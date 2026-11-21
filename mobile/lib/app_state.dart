@@ -124,6 +124,21 @@ class AppState extends ChangeNotifier {
     await _afterParentAuth();
   }
 
+  Future<void> startPinReset(String email, String password) async {
+    final t = asMap(await api.post('/auth/login', body: {'email': email.trim(), 'password': password}));
+    if (!(t['roles'] as List).contains('parent')) {
+      throw ApiException(403, 'Akun ini bukan akun orang tua.');
+    }
+    await _saveTokens(t);
+    hasPin = false;
+    await store.write('has_pin', '0');
+    child = null;
+    studentToken = null;
+    _stopSyncTimer();
+    mode = AppMode.setPin;
+    notifyListeners();
+  }
+
   Future<void> setPin(String pin, String password) async {
     await api.put('/parent/pin', token: parentAccess, body: {'pin': pin, 'password': password});
     hasPin = true;

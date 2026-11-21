@@ -127,6 +127,50 @@ class _PinScreenState extends State<PinScreen> {
     }
   }
 
+  Future<void> _forgot() async {
+    final email = TextEditingController();
+    final pw = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Buat PIN baru'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('Masuk dengan email dan kata sandi akun orang tua, lalu buat PIN baru.'),
+          const SizedBox(height: 12),
+          TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')),
+          const SizedBox(height: 10),
+          TextField(controller: pw, obscureText: true, decoration: const InputDecoration(labelText: 'Kata sandi')),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Lanjut')),
+        ],
+      ),
+    );
+    final e = email.text;
+    final p = pw.text;
+    email.dispose();
+    pw.dispose();
+    if (ok != true || !mounted) {
+      return;
+    }
+    setState(() => _busy = true);
+    final app = context.read<AppState>();
+    final nav = Navigator.of(context);
+    try {
+      await app.startPinReset(e, p);
+      nav.pop();
+    } on ApiException catch (err) {
+      if (mounted) {
+        setState(() => _error = err.message);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'del', '0', 'ok'];
@@ -157,6 +201,8 @@ class _PinScreenState extends State<PinScreen> {
                 SizedBox(height: 22, child: _error == null ? null : Text(_error!, style: const TextStyle(color: Palette.bad, fontWeight: FontWeight.w700))),
               ]),
             ),
+            TextButton(onPressed: _busy ? null : _forgot, child: const Text('Lupa PIN? Masuk dengan email dan kata sandi')),
+            const SizedBox(height: 8),
             GridView.count(
               crossAxisCount: 3,
               shrinkWrap: true,
