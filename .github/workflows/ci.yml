@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: [main]
+    branches: [main, "wip/**"]
   pull_request:
   workflow_dispatch:
 
@@ -71,29 +71,23 @@ jobs:
         run: |
           flutter create --platforms=android --org id.bobo --project-name bobo_belajar .
           rm -f test/widget_test.dart
-          python3 tool/prepare_android.py --allow-http
+          python3 tool/prepare_android.py
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
-      - name: Build APK uji (HTTP lokal diizinkan)
-        run: flutter build apk --release --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}
-      - name: Build App Bundle rilis (HTTPS saja)
+      - name: Build APK dan App Bundle
+        if: github.ref == 'refs/heads/main'
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk /tmp/app-test.apk
-          python3 tool/prepare_android.py
+          flutter build apk --release
           flutter build appbundle --release
-          flutter build apk --release --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}
-          cp build/app/outputs/flutter-apk/app-release.apk /tmp/app-https.apk
-          cp /tmp/app-test.apk build/app/outputs/flutter-apk/app-release.apk
-      - name: Publish APK to GitHub Release
+      - name: Publish ke GitHub Release
         if: github.ref == 'refs/heads/main'
         working-directory: mobile
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk bobo-belajar-${GITHUB_SHA::7}.apk
-          gh release view android-latest >/dev/null 2>&1 || gh release create android-latest --title "BOBO BELAJAR Android (build terbaru)" --notes "APK uji dari GitHub Actions. Signing debug, HTTP lokal diizinkan. Bukan untuk Play Store." --prerelease
+          gh release view android-latest >/dev/null 2>&1 || gh release create android-latest --title "BOBO BELAJAR Android (build terbaru)" --notes "Build otomatis dari GitHub Actions, signing debug. Untuk rilis, tanda tangani dengan upload key." --prerelease
           for a in $(gh release view android-latest --json assets --jq '.assets[].name'); do gh release delete-asset android-latest "$a" -y; done
+          cp build/app/outputs/flutter-apk/app-release.apk bobo-belajar-${GITHUB_SHA::7}-debugsigned.apk
           cp build/app/outputs/bundle/release/app-release.aab bobo-belajar-${GITHUB_SHA::7}-unsigned.aab
-          cp /tmp/app-https.apk bobo-belajar-${GITHUB_SHA::7}-https-debugsigned.apk
-          gh release upload android-latest bobo-belajar-${GITHUB_SHA::7}.apk bobo-belajar-${GITHUB_SHA::7}-unsigned.aab bobo-belajar-${GITHUB_SHA::7}-https-debugsigned.apk --clobber
+          gh release upload android-latest bobo-belajar-${GITHUB_SHA::7}-debugsigned.apk bobo-belajar-${GITHUB_SHA::7}-unsigned.aab --clobber

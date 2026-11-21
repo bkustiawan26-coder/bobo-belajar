@@ -733,6 +733,14 @@ def score_essay(ans_id: int, body: ScoreIn, ctx: ParentCtx = Depends(reviewer), 
     return {"score": res.score, "final": res.is_final}
 
 
+@router.get("/content-bundle")
+def content_bundle(include_sample: bool = False, ctx: ParentCtx = Depends(editor), db: Session = Depends(get_db)):
+    from app.services.bundle import build_bundle
+    audit(db, "content.bundle_export", ctx.user.id, "editor", meta={"include_sample": include_sample})
+    db.commit()
+    return build_bundle(db, include_sample)
+
+
 @router.get("/export")
 def export(grade: int | None = None, ctx: ParentCtx = Depends(staff), db: Session = Depends(get_db)):
     q = select(Subject).join(Grade, Grade.id == Subject.grade_id)

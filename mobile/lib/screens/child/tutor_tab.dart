@@ -131,7 +131,7 @@ class _TutorTabState extends State<TutorTab> {
         if (e.status == 429) {
           _left = 0;
         }
-        _msgs.add(_Msg(false, e.isOffline ? 'Tutor butuh internet. Coba lagi saat online, ya.' : e.message, flagged: true));
+        _msgs.add(_Msg(false, e.message, flagged: true));
       });
     } finally {
       if (mounted) {
@@ -155,7 +155,7 @@ class _TutorTabState extends State<TutorTab> {
     }
     final out = _left != null && _left! <= 0;
     final disabled = app.offline || out || _typing;
-    final note = app.offline ? 'Tutor butuh internet. Materi yang sudah diunduh tetap bisa dibaca.' : (out ? 'Kuota Tutor gratis hari ini habis. Kamu tetap bisa membaca materi dan berlatih. Paket Premium memberi kuota lebih besar.' : null);
+    final note = app.offline ? 'Tutor butuh internet. Materi yang sudah diunduh tetap bisa dibaca.' : (out ? 'Batas pertanyaan Tutor hari ini sudah tercapai. Kamu tetap bisa membaca materi dan berlatih. Besok bisa bertanya lagi.' : null);
     return Column(children: [
       Expanded(
         child: ListView(controller: _scroll, padding: const EdgeInsets.fromLTRB(16, 16, 16, 20), children: [
@@ -166,7 +166,7 @@ class _TutorTabState extends State<TutorTab> {
               Tag('AI', fg: t.ink, bg: t.soft, size: 11),
               const SizedBox(width: 10),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('Tutor menjawab dari materi BOBO yang sudah ditinjau dan memberi petunjuk, bukan jawaban PR langsung.', style: TextStyle(fontSize: 13, height: 1.5, color: Palette.inkSoft)),
+                const Text('Tutor menjawab dari materi di aplikasi ini dan memberi petunjuk, bukan jawaban PR langsung. Tidak perlu internet.', style: TextStyle(fontSize: 13, height: 1.5, color: Palette.inkSoft)),
                 const SizedBox(height: 4),
                 Text('Sisa ${_left ?? '-'} dari $_limit pertanyaan hari ini', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Palette.muted)),
               ])),

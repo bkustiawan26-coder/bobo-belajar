@@ -10,18 +10,10 @@ if not manifest.exists():
     sys.exit("android/ belum ada. Jalankan: flutter create --platforms=android --org id.bobo --project-name bobo_belajar .")
 
 text = manifest.read_text(encoding="utf-8")
-if "android.permission.INTERNET" not in text:
-    text = text.replace("<application", '<uses-permission android:name="android.permission.INTERNET"/>\n    <application', 1)
+text = re.sub(r'\s*<uses-permission android:name="android.permission.INTERNET"\s*/>', "", text)
+text = text.replace(' android:usesCleartextTraffic="true"', "")
 text = re.sub(r'android:label="[^"]*"', 'android:label="BOBO Belajar"', text, count=1)
-allow_http = "--allow-http" in sys.argv
-if allow_http and "usesCleartextTraffic" not in text:
-    text = text.replace("<application", '<application android:usesCleartextTraffic="true"', 1)
-if not allow_http:
-    text = text.replace(' android:usesCleartextTraffic="true"', "")
-extra_queries = (
-    '        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE"/>\n        </intent>\n'
-    '        <intent>\n            <action android:name="android.intent.action.VIEW"/>\n            <data android:scheme="https"/>\n        </intent>\n'
-)
+extra_queries = '        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE"/>\n        </intent>\n'
 if "TTS_SERVICE" not in text:
     if "<queries>" in text:
         text = text.replace("<queries>\n", "<queries>\n" + extra_queries, 1)
@@ -81,4 +73,4 @@ elif groovy.exists():
     groovy.write_text(g, encoding="utf-8")
 
 signed = (root / "android" / "key.properties").exists()
-print(f"Android disiapkan: HTTP lokal {'diizinkan' if allow_http else 'tidak diizinkan'}, signing {'rilis' if signed else 'debug'}.")
+print(f"Android disiapkan (mode lokal, tanpa izin internet), signing {'rilis' if signed else 'debug'}.")

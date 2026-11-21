@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../app_state.dart';
 import '../../core/api.dart';
-import '../../core/grading.dart';
 import '../../core/models.dart';
 import '../../core/speech.dart';
 import '../../core/theme.dart';
@@ -42,7 +41,6 @@ class _LatihanTabState extends State<LatihanTab> {
   bool _done = false;
   bool _loading = true;
   bool _checking = false;
-  bool _offlineMode = false;
   Object? _error;
   int _seenVersion = -1;
   String _mode = 'practice';
@@ -76,28 +74,13 @@ class _LatihanTabState extends State<LatihanTab> {
           }
         }
       }
-      List<Map<String, dynamic>> qs;
-      var offline = false;
-      try {
-        final r = mode == 'review'
-            ? asMap(await app.student('GET', '/student/review'))
-            : asMap(await app.student('GET', '/student/practice', query: topicId == null ? null : {'topic_id': '$topicId'}));
-        qs = asList(r['questions']);
-        if (mode == 'practice' && app.setting('short_sessions') && qs.length > 3) {
-          qs.shuffle();
-          qs = qs.take(3).toList();
-        }
-      } on ApiException catch (e) {
-        final pack = await CatalogCache.pack(app);
-        if (!e.isOffline || pack == null) {
-          rethrow;
-        }
-        qs = mode == 'review' ? <Map<String, dynamic>>[] : asList(pack['questions']).where((q) => topicId == null || q['topic_id'] == topicId).toList();
-        if (mode == 'practice' && app.setting('short_sessions') && qs.length > 3) {
-          qs.shuffle();
-          qs = qs.take(3).toList();
-        }
-        offline = true;
+      final r = mode == 'review'
+          ? asMap(await app.student('GET', '/student/review'))
+          : asMap(await app.student('GET', '/student/practice', query: topicId == null ? null : {'topic_id': '$topicId'}));
+      var qs = asList(r['questions']);
+      if (mode == 'practice' && app.setting('short_sessions') && qs.length > 3) {
+        qs.shuffle();
+        qs = qs.take(3).toList();
       }
       if (!mounted) {
         return;
@@ -105,7 +88,6 @@ class _LatihanTabState extends State<LatihanTab> {
       setState(() {
         _topics = topics;
         _questions = qs;
-        _offlineMode = offline;
         _reset();
         _loading = false;
       });
@@ -153,42 +135,23 @@ class _LatihanTabState extends State<LatihanTab> {
     final resp = _response();
     final attempt = {'client_uuid': uuidGen.v4(), 'question_id': q['id'], 'response': resp, 'answered_at': DateTime.now().toUtc().toIso8601String(), 'mode': _mode};
     setState(() => _checking = true);
-    _Result? res;
-    if (!_offlineMode) {
-      try {
-        final r = asMap(await app.student('POST', '/student/practice/attempts', body: attempt));
-        res = _Result(q, r['correct'] == true, (r['correct_answer'] ?? '') as String, asMap(r['answer_key']), (r['explanation'] ?? '') as String, r['mistake_hint'] as String?, r['related_lesson_id'] as int?, r['scaffold'] == null ? null : asMap(r['scaffold']));
-      } on ApiException catch (e) {
-        if (!e.isOffline) {
-          if (mounted) {
-            setState(() => _checking = false);
-            showToast(context, e.message);
-          }
-          return;
-        }
+    final _Result res;
+    try {
+      final r = asMap(await app.student('POST', '/student/practice/attempts', body: attempt));
+      res = _Result(q, r['correct'] == true, (r['correct_answer'] ?? '') as String, asMap(r['answer_key']), (r['explanation'] ?? '') as String, r['mistake_hint'] as String?, r['related_lesson_id'] as int?, r['scaffold'] == null ? null : asMap(r['scaffold']));
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => _checking = false);
+        showToast(context, e.message);
       }
-    }
-    if (res == null) {
-      final pack = await CatalogCache.pack(app);
-      final full = pack == null ? null : asList(pack['questions']).where((x) => x['id'] == q['id']).firstOrNull;
-      if (full == null) {
-        if (mounted) {
-          setState(() => _checking = false);
-          showToast(context, 'Tidak ada koneksi. Unduh latihan dulu agar bisa dikerjakan offline.');
-        }
-        return;
-      }
-      final ok = gradeLocally(full, resp);
-      await app.queueAttempt(attempt);
-      res = _Result(q, ok, (full['answer_text'] ?? '') as String, asMap(full['answer']), (full['explanation'] ?? '') as String, ok ? null : full['mistake_hint'] as String?, null, ok || full['scaffold'] == null ? null : asMap(full['scaffold']));
-      _offlineMode = true;
+      return;
     }
     if (!mounted) {
       return;
     }
     setState(() {
       _current = res;
-      _results.add(res!);
+      _results.add(res);
       _checking = false;
     });
   }
@@ -225,12 +188,8 @@ class _LatihanTabState extends State<LatihanTab> {
     try {
       sim = asMap(await app.student('GET', '/student/practice/similar', query: {'question_id': '${q['id']}'}));
     } on ApiException catch (e) {
-      final pack = await CatalogCache.pack(app);
-      if (e.isOffline && pack != null) {
-        sim = asList(pack['questions']).where((x) => x['topic_id'] == q['topic_id'] && x['id'] != q['id']).firstOrNull;
-      }
-      if (sim == null && mounted) {
-        showToast(context, e.isOffline ? 'Soal serupa belum tersedia offline.' : e.message);
+      if (mounted) {
+        showToast(context, e.message);
       }
     }
     if (!mounted) {
@@ -291,7 +250,6 @@ class _LatihanTabState extends State<LatihanTab> {
       ),
       if (_mode == 'review') Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: Notice('Ulang sebentar: soal yang dulu belum tepat. Kalau benar, soal ini akan muncul lagi beberapa hari lagi sampai benar-benar ingat.', fg: t.ink, bg: t.soft)),
       if (_mode == 'foundation') Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: Notice('Jalur pondasi: latihan dasar supaya topik berikutnya lebih mudah.', fg: t.ink, bg: t.soft)),
-      if (_offlineMode) const Padding(padding: EdgeInsets.fromLTRB(20, 0, 20, 8), child: Notice('Mode offline: jawaban dinilai di perangkat dan dikirim saat online.')),
       Expanded(child: _done ? _summary(t, app) : _runner(t)),
     ]);
   }
@@ -596,7 +554,6 @@ class _LatihanTabState extends State<LatihanTab> {
             ),
         ]),
       ),
-      if (app.pending > 0) ...[const SizedBox(height: 12), Notice('${app.pending} jawaban tersimpan di perangkat dan akan tersinkron saat online.')],
       const SizedBox(height: 16),
       if (wrong > 0) ...[PrimaryButton(label: 'Ulangi soal yang salah ($wrong)', color: t.accent, radius: t.radiusSmall, onPressed: _retryWrong), const SizedBox(height: 12)],
       SecondaryButton(label: _mode == 'review' ? 'Cek soal ulang lainnya' : 'Latihan dari awal', radius: t.radiusSmall, onPressed: () => _init(_topicId, mode: _mode)),

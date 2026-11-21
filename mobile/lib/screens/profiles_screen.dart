@@ -5,6 +5,7 @@ import '../app_state.dart';
 import '../core/api.dart';
 import '../core/theme.dart';
 import '../widgets/common.dart';
+import 'setup_screens.dart';
 
 class ProfilesScreen extends StatelessWidget {
   const ProfilesScreen({super.key});
@@ -128,38 +129,58 @@ class _PinScreenState extends State<PinScreen> {
   }
 
   Future<void> _forgot() async {
-    final email = TextEditingController();
-    final pw = TextEditingController();
+    final code = TextEditingController();
+    final pin = TextEditingController();
+    final pin2 = TextEditingController();
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Buat PIN baru'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('Masuk dengan email dan kata sandi akun orang tua, lalu buat PIN baru.'),
-          const SizedBox(height: 12),
-          TextField(controller: email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')),
-          const SizedBox(height: 10),
-          TextField(controller: pw, obscureText: true, decoration: const InputDecoration(labelText: 'Kata sandi')),
-        ]),
+        content: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Text('Masukkan kode pemulihan yang disimpan saat pertama kali membuat PIN.'),
+            const SizedBox(height: 12),
+            TextField(controller: code, textCapitalization: TextCapitalization.characters, autocorrect: false, decoration: const InputDecoration(labelText: 'Kode pemulihan', hintText: 'XXXXX-XXXXX')),
+            const SizedBox(height: 10),
+            TextField(controller: pin, keyboardType: TextInputType.number, obscureText: true, maxLength: 6, decoration: const InputDecoration(labelText: 'PIN baru (4–6 angka)', counterText: '')),
+            const SizedBox(height: 10),
+            TextField(controller: pin2, keyboardType: TextInputType.number, obscureText: true, maxLength: 6, decoration: const InputDecoration(labelText: 'Ulangi PIN baru', counterText: '')),
+          ]),
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Lanjut')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Simpan')),
         ],
       ),
     );
-    final e = email.text;
-    final p = pw.text;
-    email.dispose();
-    pw.dispose();
+    final c = code.text;
+    final p = pin.text;
+    final p2 = pin2.text;
+    code.dispose();
+    pin.dispose();
+    pin2.dispose();
     if (ok != true || !mounted) {
+      return;
+    }
+    if (p != p2) {
+      setState(() => _error = 'Kedua PIN baru tidak sama.');
       return;
     }
     setState(() => _busy = true);
     final app = context.read<AppState>();
-    final nav = Navigator.of(context);
     try {
-      await app.startPinReset(e, p);
-      nav.pop();
+      final newCode = await app.resetPin(c, p);
+      if (!mounted) {
+        return;
+      }
+      await Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => Scaffold(body: SafeArea(child: RecoveryCodeView(code: newCode, buttonLabel: 'Sudah disimpan', onDone: () => Navigator.of(ctx).pop())))));
+      if (mounted) {
+        setState(() {
+          _error = null;
+          _pin = '';
+        });
+        showToast(context, 'PIN baru tersimpan. Kode pemulihan lama tidak berlaku lagi.');
+      }
     } on ApiException catch (err) {
       if (mounted) {
         setState(() => _error = err.message);
@@ -201,7 +222,7 @@ class _PinScreenState extends State<PinScreen> {
                 SizedBox(height: 22, child: _error == null ? null : Text(_error!, style: const TextStyle(color: Palette.bad, fontWeight: FontWeight.w700))),
               ]),
             ),
-            TextButton(onPressed: _busy ? null : _forgot, child: const Text('Lupa PIN? Masuk dengan email dan kata sandi')),
+            TextButton(onPressed: _busy ? null : _forgot, child: const Text('Lupa PIN? Pakai kode pemulihan')),
             const SizedBox(height: 8),
             GridView.count(
               crossAxisCount: 3,

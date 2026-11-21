@@ -1,10 +1,10 @@
 import 'dart:convert';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_state.dart';
 import '../../core/api.dart';
@@ -12,6 +12,7 @@ import '../../core/models.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
 import '../child/growth_screen.dart';
+import '../privacy_screen.dart';
 
 class ParentShell extends StatefulWidget {
   const ParentShell({super.key});
@@ -629,8 +630,7 @@ class _ChildrenTabState extends State<_ChildrenTab> {
       _error = null;
     });
     try {
-      final r = asMap(await app.parent('POST', '/parent/children', body: {'nickname': name, 'grade': _grade}));
-      await app.fetchStudentToken(r['id'] as String);
+      await app.parent('POST', '/parent/children', body: {'nickname': name, 'grade': _grade});
       await app.loadChildren();
       _name.clear();
       if (mounted) {
@@ -653,7 +653,7 @@ class _ChildrenTabState extends State<_ChildrenTab> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Hapus profil ${c.nickname}?'),
-        content: const Text('Semua riwayat belajar, nilai, dan percakapan Tutor profil ini akan dihapus permanen dan tidak bisa dikembalikan.'),
+        content: const Text('Semua riwayat belajar dan nilai profil ini akan dihapus permanen dari HP ini dan tidak bisa dikembalikan, kecuali dari berkas cadangan.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
           FilledButton(onPressed: () => Navigator.pop(ctx, true), style: FilledButton.styleFrom(backgroundColor: Palette.bad), child: const Text('Hapus permanen')),
@@ -665,7 +665,6 @@ class _ChildrenTabState extends State<_ChildrenTab> {
     }
     try {
       await app.parent('DELETE', '/parent/children/${c.id}');
-      await app.store.setStudentToken(c.id, null);
       await app.loadChildren();
     } on ApiException catch (e) {
       if (mounted) {
@@ -678,9 +677,55 @@ class _ChildrenTabState extends State<_ChildrenTab> {
     final app = context.read<AppState>();
     try {
       final data = await app.parent('GET', '/parent/export');
-      await Clipboard.setData(ClipboardData(text: const JsonEncoder.withIndent('  ').convert(data)));
+      final now = DateTime.now();
+      final name = 'bobo-belajar-cadangan-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}.json';
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile.fromData(utf8.encode(jsonEncode(data)), mimeType: 'application/json', name: name)],
+        fileNameOverrides: [name],
+        subject: 'Cadangan BOBO Belajar',
+      ));
+    } on ApiException catch (e) {
       if (mounted) {
-        showToast(context, 'Data akun disalin ke clipboard (format JSON).');
+        showToast(context, e.message);
+      }
+    }
+  }
+
+  Future<void> _import() async {
+    final app = context.read<AppState>();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Pulihkan dari cadangan?'),
+        content: const Text('Semua profil dan riwayat belajar di HP ini akan diganti dengan isi berkas cadangan. PIN orang tua tetap sama.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Pilih berkas')),
+        ],
+      ),
+    );
+    if (ok != true) {
+      return;
+    }
+    try {
+      final picked = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['json'], withData: true);
+      final bytes = picked?.files.single.bytes;
+      if (bytes == null) {
+        return;
+      }
+      final Object? decoded;
+      try {
+        decoded = jsonDecode(utf8.decode(bytes));
+      } on FormatException {
+        throw ApiException(422, 'Berkas tidak bisa dibaca sebagai cadangan.');
+      }
+      if (decoded is! Map) {
+        throw ApiException(422, 'Berkas tidak bisa dibaca sebagai cadangan.');
+      }
+      final r = asMap(await app.parent('POST', '/parent/import', body: {'backup': decoded}));
+      await app.loadChildren();
+      if (mounted) {
+        showToast(context, '${r['children']} profil anak dipulihkan.');
       }
     } on ApiException catch (e) {
       if (mounted) {
@@ -689,17 +734,17 @@ class _ChildrenTabState extends State<_ChildrenTab> {
     }
   }
 
-  Future<void> _deleteAccount() async {
+  Future<void> _deleteAll() async {
     final app = context.read<AppState>();
-    final pw = TextEditingController();
+    final confirm = TextEditingController();
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Hapus akun?'),
+        title: const Text('Hapus semua data?'),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('Akun orang tua dan semua profil anak beserta riwayat belajarnya akan dihapus permanen.'),
+          const Text('PIN, semua profil anak, dan seluruh riwayat belajar di HP ini akan dihapus permanen. Buat cadangan dulu jika masih dibutuhkan.'),
           const SizedBox(height: 12),
-          TextField(controller: pw, obscureText: true, decoration: const InputDecoration(labelText: 'Kata sandi')),
+          TextField(controller: confirm, textCapitalization: TextCapitalization.characters, decoration: const InputDecoration(labelText: 'Ketik HAPUS')),
         ]),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
@@ -707,14 +752,13 @@ class _ChildrenTabState extends State<_ChildrenTab> {
         ],
       ),
     );
-    final password = pw.text;
-    pw.dispose();
+    final text = confirm.text.trim().toUpperCase();
+    confirm.dispose();
     if (ok != true) {
       return;
     }
     try {
-      await app.parent('POST', '/parent/delete-account', body: {'password': password, 'confirm': 'HAPUS'});
-      await app.logout();
+      await app.parent('POST', '/parent/delete-account', body: {'confirm': text});
     } on ApiException catch (e) {
       if (mounted) {
         showToast(context, e.message);
@@ -726,7 +770,7 @@ class _ChildrenTabState extends State<_ChildrenTab> {
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
     return ListView(padding: const EdgeInsets.all(20), children: [
-      Text('${app.children.length} profil anak terhubung ke akun ${app.parentName}.', style: const TextStyle(fontSize: 14, color: Palette.muted)),
+      Text('${app.children.length} profil anak tersimpan di HP ini.', style: const TextStyle(fontSize: 14, color: Palette.muted)),
       const SizedBox(height: 14),
       for (final c in app.children) ...[
         AppCard(
@@ -788,20 +832,19 @@ class _ChildrenTabState extends State<_ChildrenTab> {
         ]),
       ),
       const SizedBox(height: 20),
-      const SectionTitle('Akun & privasi'),
-      SecondaryButton(label: 'Salin data akun (ekspor)', icon: Icons.download_rounded, onPressed: _export),
+      const SectionTitle('Data & privasi'),
+      const Notice('Semua data hanya ada di HP ini. Buat cadangan berkala dan simpan di tempat aman, misalnya Google Drive pribadi Anda.', fg: Palette.inkSoft, bg: Color(0xFFF1F5F9)),
       const SizedBox(height: 10),
-      SecondaryButton(label: 'Keluar dari perangkat ini', icon: Icons.logout_rounded, onPressed: () => app.logout()),
+      SecondaryButton(label: 'Buat cadangan', icon: Icons.backup_outlined, onPressed: _export),
       const SizedBox(height: 10),
-      SecondaryButton(label: 'Hapus akun', icon: Icons.delete_forever_outlined, foreground: Palette.bad, onPressed: _deleteAccount),
+      SecondaryButton(label: 'Pulihkan dari cadangan', icon: Icons.restore_rounded, onPressed: _import),
+      const SizedBox(height: 10),
+      SecondaryButton(label: 'Kunci Mode Orang Tua', icon: Icons.lock_outline_rounded, onPressed: () => app.lock()),
+      const SizedBox(height: 10),
+      SecondaryButton(label: 'Hapus semua data', icon: Icons.delete_forever_outlined, foreground: Palette.bad, onPressed: _deleteAll),
       const SizedBox(height: 10),
       TextButton.icon(
-        onPressed: () async {
-          final uri = Uri.parse('${app.serverUrl.replaceAll(RegExp(r'/+$'), '')}/privacy');
-          if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && context.mounted) {
-            showToast(context, 'Tidak bisa membuka kebijakan privasi.');
-          }
-        },
+        onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PrivacyScreen())),
         icon: const Icon(Icons.privacy_tip_outlined, size: 18),
         label: const Text('Kebijakan privasi'),
         style: TextButton.styleFrom(foregroundColor: Palette.parent, minimumSize: const Size(0, 44)),

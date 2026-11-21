@@ -19,6 +19,9 @@ def main() -> None:
     s.add_argument("--sample", action="store_true")
     s.add_argument("--publish-sample", action="store_true")
     sub.add_parser("purge")
+    b = sub.add_parser("export-bundle")
+    b.add_argument("--out", required=True)
+    b.add_argument("--include-sample", action="store_true")
     a = sub.add_parser("create-staff")
     a.add_argument("--email", required=True)
     a.add_argument("--name", required=True)
@@ -34,6 +37,12 @@ def main() -> None:
         elif args.cmd == "purge":
             from app.services.support import purge_old_conversations
             print(json.dumps({"deleted_messages": purge_old_conversations(db, 30)}))
+        elif args.cmd == "export-bundle":
+            from app.services.bundle import build_bundle
+            data = build_bundle(db, args.include_sample)
+            with open(args.out, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+            print(json.dumps({"out": args.out, "lessons": len(data["lessons"]), "questions": len(data["questions"]), "assessments": len(data["assessments"])}))
         elif args.cmd == "create-staff":
             pw = getpass.getpass("Kata sandi (min 12 karakter): ")
             if len(pw) < 12:

@@ -103,7 +103,6 @@ class _ChildScaffold extends StatelessWidget {
       child: Scaffold(
         body: SafeArea(
           child: Column(children: [
-            if (app.offline) OfflineBanner(pending: app.pending),
             Container(
               color: Palette.surface,
               padding: const EdgeInsets.fromLTRB(20, 10, 16, 10),
@@ -151,36 +150,5 @@ class _ChildScaffold extends StatelessWidget {
 }
 
 class CatalogCache {
-  static Future<Map<String, dynamic>> load(AppState app, {bool refresh = false}) async {
-    final key = 'catalog_${app.child!.id}';
-    if (!refresh) {
-      final cached = await app.db.getJson(key);
-      if (cached != null && app.offline) {
-        return asMap(cached);
-      }
-    }
-    try {
-      final data = asMap(await app.student('GET', '/student/catalog'));
-      await app.db.putJson(key, data);
-      return data;
-    } catch (e) {
-      final cached = await app.db.getJson(key);
-      if (cached != null) {
-        return asMap(cached);
-      }
-      rethrow;
-    }
-  }
-
-  static Future<Map<String, dynamic>?> pack(AppState app) async {
-    final p = await app.db.getJson('pack_${app.child!.id}');
-    return p == null ? null : asMap(p);
-  }
-
-  static Future<void> download(AppState app) async {
-    final p = asMap(await app.student('GET', '/student/offline-pack'));
-    await app.db.putJson('pack_${app.child!.id}', p);
-  }
-
-  static Future<void> removePack(AppState app) => app.db.putJson('pack_${app.child!.id}', null);
+  static Future<Map<String, dynamic>> load(AppState app, {bool refresh = false}) async => asMap(await app.student('GET', '/student/catalog'));
 }

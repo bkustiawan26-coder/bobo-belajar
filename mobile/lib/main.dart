@@ -35,11 +35,10 @@ class _Root extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mode = context.select<AppState, AppMode>((s) => s.mode);
+    final error = context.select<AppState, Object?>((s) => s.loadError);
     final Widget screen = switch (mode) {
-      AppMode.loading => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      AppMode.server => const ServerScreen(),
-      AppMode.auth => const AuthScreen(),
-      AppMode.setPin => const SetPinScreen(),
+      AppMode.loading => Scaffold(body: Center(child: error == null ? const CircularProgressIndicator() : Padding(padding: const EdgeInsets.all(24), child: Text('Materi aplikasi gagal dimuat: $error', textAlign: TextAlign.center)))),
+      AppMode.setup => const SetupScreen(),
       AppMode.profiles => const ProfilesScreen(),
       AppMode.child => const ChildShell(),
       AppMode.parent => const ParentShell(),
