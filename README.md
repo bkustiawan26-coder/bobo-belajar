@@ -26,7 +26,7 @@ Konten contoh masuk sebagai **menunggu review**; terbitkan lewat CMS setelah dit
 
 ## Aplikasi Android
 
-Rilis 1.0.0 ada di GitHub Release `v1.0.0` (App Bundle bertanda tangan untuk Play Store, APK rilis, APK uji). Build terbaru dari setiap push ada di `android-latest`. Build lokal dan signing: `docs/DEPLOYMENT_GUIDE.md`; persiapan Play Store: `docs/PLAY_STORE.md`.
+Berkas rilis 1.0.0 yang sudah ditandatangani (App Bundle untuk Play Store, APK rilis, APK uji) disimpan di luar git, di folder `release\1.0.0` pada salinan proyek pengelola. Build terbaru dari setiap push ada di `android-latest`. Build lokal dan signing: `docs/DEPLOYMENT_GUIDE.md`; persiapan Play Store: `docs/PLAY_STORE.md`.
 Saat pertama dibuka, aplikasi meminta alamat server, lalu orang tua mendaftar, membuat PIN, dan menambah profil anak.
 
 ## Dokumentasi

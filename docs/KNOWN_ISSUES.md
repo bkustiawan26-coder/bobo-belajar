@@ -15,3 +15,4 @@
 13. Kepatuhan UU PDP dan Google Play Families belum diverifikasi ahli hukum. Halaman `/privacy` adalah draf.
 14. Ekspor data di aplikasi disalin ke clipboard (belum disimpan sebagai file).
 15. Flutter 3.50 menandai `package:flutter/material.dart` deprecated (pindah ke `material_ui`); masih berfungsi.
+16. Tag `v1.0.0` dan GitHub Release `v1.0.0` belum dibuat karena sesi pengembangan tidak diizinkan membuat tag/release. Buat manual: `git tag v1.0.0 && git push origin v1.0.0`, lalu unggah berkas dari folder `release\1.0.0`.
