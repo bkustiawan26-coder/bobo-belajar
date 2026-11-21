@@ -18,5 +18,11 @@ Chat antar pengguna, profil publik, papan peringkat, iklan, unggah foto anak.
 ## Asisten orang tua
 Tidak mendiagnosis atau melabeli anak; pertanyaan diagnosis dialihkan ke profesional. Rekomendasi selalu menyebut dasar datanya, dan "paham" baru dinilai setelah minimal 3 jawaban (5 terakhir, ≥80% benar).
 
+## Sinyal "perlu pendampingan"
+Muncul di dashboard orang tua hanya jika ada cukup bukti (≥8 jawaban, ≥3 hari belajar berbeda dari 10 jawaban terakhir, hasil 5 terakhir tidak lebih baik dari 5 sebelumnya). Teksnya menyebut data, bukan label, dan selalu disertai keterangan "bukan diagnosis". Ringkasan untuk guru juga diberi keterangan bukan penilaian resmi sekolah dan bukan diagnosis.
+
+## Motivasi tanpa membandingkan
+"Kemajuanku" hanya membandingkan anak dengan dirinya sendiri (5 jawaban pertama vs 5 terakhir). Lencana diberikan untuk usaha (mencoba, bertahan, mengulang), bukan peringkat.
+
 ## Batasan
 Filter berbasis aturan (regex Bahasa Indonesia). Perlu ditinjau berkala dan diuji dengan kasus baru sebelum rilis.

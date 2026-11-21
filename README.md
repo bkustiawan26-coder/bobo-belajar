@@ -1,6 +1,6 @@
 # BOBO BELAJAR
 
-Teman belajar Android untuk siswa SD kelas 1–SMP kelas 9, dengan mode orang tua di aplikasi yang sama.
+Teman belajar Android untuk siswa SD kelas 1–SMP kelas 9, dengan mode orang tua di aplikasi yang sama. Versi 1.0.0 (Android 7.0+).
 
 | Bagian | Teknologi | Folder |
 |---|---|---|
@@ -26,9 +26,9 @@ Konten contoh masuk sebagai **menunggu review**; terbitkan lewat CMS setelah dit
 
 ## Aplikasi Android
 
-APK uji dibangun otomatis oleh GitHub Actions dan diunggah ke GitHub Release `android-latest`. Build lokal: lihat `docs/DEPLOYMENT_GUIDE.md`.
+Rilis 1.0.0 ada di GitHub Release `v1.0.0` (App Bundle bertanda tangan untuk Play Store, APK rilis, APK uji). Build terbaru dari setiap push ada di `android-latest`. Build lokal dan signing: `docs/DEPLOYMENT_GUIDE.md`; persiapan Play Store: `docs/PLAY_STORE.md`.
 Saat pertama dibuka, aplikasi meminta alamat server, lalu orang tua mendaftar, membuat PIN, dan menambah profil anak.
 
 ## Dokumentasi
 
-`docs/`: SYSTEM_ARCHITECTURE, DATABASE_ERD, API_SPECIFICATION, CURRICULUM_MODEL, AI_ARCHITECTURE, SECURITY_AND_PRIVACY, CHILD_SAFETY, DEPLOYMENT_GUIDE, TESTING_STRATEGY, COST_ESTIMATION, MILESTONE_STATUS, CHANGELOG, KNOWN_ISSUES.
+`docs/`: SYSTEM_ARCHITECTURE, DATABASE_ERD, API_SPECIFICATION, CURRICULUM_MODEL, AI_ARCHITECTURE, SECURITY_AND_PRIVACY, CHILD_SAFETY, DEPLOYMENT_GUIDE, TESTING_STRATEGY, COST_ESTIMATION, MILESTONE_STATUS, CHANGELOG, KNOWN_ISSUES, PLAY_STORE.

@@ -2,8 +2,8 @@
 
 | Lapisan | Alat | Cakupan |
 |---|---|---|
-| Backend | pytest + PostgreSQL asli (`backend/tests`) | registrasi & persetujuan, PIN & lockout, isolasi keluarga, token anak vs orang tua, latihan dinilai server, idempotensi jawaban & sinkron, aturan penguasaan & rekomendasi, alur asesmen (skor, submit idempoten, batas waktu, finalisasi otomatis), tutor (sumber, mode petunjuk, penolakan data pribadi, kuota, di luar materi), provider eksternal (biaya, sanitasi, fallback, batas biaya), alur review/publish, impor selalu draft |
-| Aplikasi | flutter test (`mobile/test`) | penilaian lokal offline, tema per jenjang, komponen aksesibel |
+| Backend | pytest + PostgreSQL asli (`backend/tests`) | registrasi & persetujuan, PIN & lockout, isolasi keluarga, token anak vs orang tua, latihan dinilai server, idempotensi jawaban & sinkron, aturan penguasaan & rekomendasi, alur asesmen (skor, submit idempoten, batas waktu, finalisasi otomatis), tutor (sumber, mode petunjuk, penolakan data pribadi, kuota, di luar materi), provider eksternal (biaya, sanitasi, fallback, batas biaya), alur review/publish, impor selalu draft, jadwal ulang 1/3/7 hari, langkah kecil hanya saat salah, prasyarat lintas kelas & tolak lingkaran, pilihan lebih sedikit (kunci tetap benar), sinyal pendampingan, ringkasan guru, pertumbuhan, pembersihan 30 hari |
+| Aplikasi | flutter test (`mobile/test`) | penilaian lokal offline, tema per jenjang, komponen aksesibel, logika alat peraga pecahan |
 | Statis | flutter analyze, `next build` (TypeScript strict) | error kompilasi & tipe |
 | CI | GitHub Actions | ketiga job di setiap push |
 

@@ -15,6 +15,8 @@
 - Data minimum: nama panggilan + kelas. Nama panggilan yang berisi angka ditolak.
 - Tanpa iklan, tanpa iklan perilaku, tanpa pelacak pihak ketiga.
 - Persetujuan orang tua dicatat dengan versi kebijakan (`guardian_consents`).
+- Kebijakan privasi publik di `/privacy` (Bahasa Indonesia), ditautkan dari menu Anak di aplikasi. Isi nama pengelola & email kontak lewat environment.
+- Fitur suara memakai mesin TTS bawaan Android di perangkat; teks tidak dikirim ke server BOBO.
 - Ekspor data (`/parent/export`) dan hapus permanen profil/akun (`/parent/children/{id}`, `/parent/delete-account`) tersedia di aplikasi.
 
 ## Kepatuhan

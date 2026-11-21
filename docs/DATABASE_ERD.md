@@ -35,12 +35,21 @@ erDiagram
   student_profiles ||--o{ learning_recommendations : gets
   student_profiles ||--o{ learning_sessions : logs
   student_profiles ||--o{ ai_conversations : has
+  student_profiles ||--o{ review_items : schedules
+  questions ||--o{ review_items : reviewed_again
+  topics ||--o{ topic_prerequisites : requires
   ai_conversations ||--o{ ai_messages : has
   knowledge_documents ||--o{ knowledge_chunks : has
   parent_profiles ||--o{ subscriptions : has
 ```
 
 Tabel lain: `media_assets`, `content_versions`, `content_reviews`, `ai_providers`, `ai_models`, `ai_prompt_versions`, `ai_usage_logs`, `ai_safety_events`, `subscription_entitlements`, `payments`, `notifications`, `audit_logs`, `sync_jobs`, `privacy_requests`.
+
+## Tambahan 1.0.0 (migrasi 0002)
+- `student_profiles.settings` (JSON): mode bantuan per anak (sesi pendek, huruf besar, pilihan lebih sedikit, bacakan otomatis).
+- `questions.scaffold` (JSON): contoh mirip + langkah kecil, hanya ditampilkan saat jawaban salah.
+- `review_items`: jadwal ulang soal yang salah (unik per anak+soal; langkah 1/3/7 hari).
+- `topic_prerequisites`: graf prasyarat antartopik, boleh lintas kelas, tanpa lingkaran.
 
 ## Indeks penting
 - `exercise_attempts.client_uuid` unik (sinkron idempoten), indeks `(student_id)`, `(topic_id)`, `(answered_at)`.
@@ -55,7 +64,7 @@ Nama panggilan, kelas, aktivitas belajar. Tidak ada nama lengkap, tanggal lahir,
 | Data | Retensi |
 |---|---|
 | Aktivitas & nilai | selama akun aktif; dihapus permanen saat profil/akun dihapus |
-| Percakapan AI | target 30 hari (job pembersihan belum dibuat, lihat KNOWN_ISSUES) |
+| Percakapan AI | 30 hari, dihapus otomatis oleh layanan `maintenance` (`app.cli purge`) |
 | Log pemakaian AI | tanpa isi pesan; disimpan untuk kontrol biaya |
 | Backup | 14 hari (layanan `backup` di Compose) |
 

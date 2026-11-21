@@ -1,16 +1,17 @@
 # Known Issues & Batasan
 
-1. Aplikasi Flutter sudah terkompilasi dan lulus tes di CI, tetapi belum diuji di perangkat Android nyata (layar kecil, TalkBack, offline end-to-end) dan belum diuji terhubung ke server sungguhan.
-2. Flutter 3.50 menandai `package:flutter/material.dart` deprecated (pindah ke `material_ui`); masih berfungsi, migrasi impor bisa dilakukan nanti.
-3. Konten hanya contoh: Matematika kelas 2, 5, 8 (1 bab). Wajib ditinjau tim kurikulum; kelas dan mapel lain kosong.
-4. Sumber kurikulum resmi belum diisi (placeholder berstatus belum diverifikasi).
-5. Pembayaran/langganan premium belum dibangun (tabel dan entitlement sudah ada; paket diatur manual di database).
-6. Job pembersihan percakapan AI 30 hari belum dibuat.
-7. Retrieval memakai full-text search, belum semantic search (pgvector bisa ditambah).
-8. Filter keselamatan berbasis aturan; perlu ditinjau dan diuji berkala.
-9. APK dari CI memakai signing debug dan mengizinkan HTTP untuk pengujian lokal. Untuk Play Store: keystore rilis, tanpa `--allow-http`, App Bundle.
-10. Rate limiter berada di memori proses (cukup untuk satu instance API).
-11. Media (gambar/audio/video) di materi: tabel tersedia, unggahan belum dibuat di CMS.
-12. Kepatuhan UU PDP dan Google Play Families belum diverifikasi ahli hukum.
-13. Ekspor data di aplikasi disalin ke clipboard (belum disimpan sebagai file).
-14. Kuota penyimpanan artifact GitHub Actions di akun sempat penuh; karena itu APK dipublikasikan sebagai aset GitHub Release, bukan artifact.
+1. Aplikasi sudah terkompilasi dan lulus tes di CI, tetapi belum diuji di perangkat Android nyata (layar kecil, TalkBack, suara TTS, offline end-to-end) dan belum terhubung ke server production.
+2. Konten hanya contoh: Matematika kelas 2, 5, 8 (1 bab) beserta langkah kecil dan prasyaratnya. Wajib ditinjau tim kurikulum; kelas dan mapel lain kosong.
+3. Sumber kurikulum resmi belum diisi (placeholder berstatus belum diverifikasi).
+4. Alat peraga baru 3 jenis (pecahan, nilai tempat, Pythagoras); topik lain belum punya alat peraga.
+5. Bacakan memakai TTS bawaan perangkat; jika suara Bahasa Indonesia belum terpasang, Android memakai suara default atau tidak bersuara.
+6. "Ulang sebentar" dan "Soal serupa" butuh internet; saat offline anak tetap bisa latihan biasa dari paket offline.
+7. Pembayaran/langganan premium belum dibangun (tabel dan entitlement ada; paket diatur manual di database).
+8. Retrieval memakai full-text search, belum semantic search (pgvector bisa ditambah).
+9. Filter keselamatan berbasis aturan; perlu ditinjau dan diuji berkala.
+10. Kunci signing tidak disimpan di GitHub (proxy sesi ini tidak bisa mengatur GitHub Secrets). CI menghasilkan App Bundle tanpa tanda tangan rilis; penandatanganan dilakukan manual dengan `jarsigner`. Untuk otomatisasi, tambahkan secret keystore sendiri lalu tambahkan langkah signing di workflow.
+11. Rate limiter berada di memori proses (cukup untuk satu instance API).
+12. Media (gambar/audio/video) di materi: tabel tersedia, unggahan belum dibuat di CMS.
+13. Kepatuhan UU PDP dan Google Play Families belum diverifikasi ahli hukum. Halaman `/privacy` adalah draf.
+14. Ekspor data di aplikasi disalin ke clipboard (belum disimpan sebagai file).
+15. Flutter 3.50 menandai `package:flutter/material.dart` deprecated (pindah ke `material_ui`); masih berfungsi.
