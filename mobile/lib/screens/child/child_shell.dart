@@ -14,6 +14,7 @@ import 'ujian_tab.dart';
 class ChildNav extends ChangeNotifier {
   int tab = 0;
   int? practiceTopicId;
+  String practiceMode = 'practice';
   int practiceVersion = 0;
   int? openLessonId;
   int? openSubjectId;
@@ -26,8 +27,9 @@ class ChildNav extends ChangeNotifier {
     notifyListeners();
   }
 
-  void practice(int? topicId) {
+  void practice(int? topicId, {String mode = 'practice'}) {
     practiceTopicId = topicId;
+    practiceMode = mode;
     practiceVersion++;
     tab = 2;
     notifyListeners();
@@ -88,7 +90,10 @@ class _ChildScaffold extends StatelessWidget {
     final nav = context.watch<ChildNav>();
     final ChildInfo c = app.child!;
     final t = BandTheme.forGrade(c.grade);
-    return PopScope(
+    final scale = app.setting('larger_text') ? 1.18 : 1.0;
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(MediaQuery.textScalerOf(context).scale(1) * scale)),
+      child: PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop && nav.tab != 0 && !nav.examRunning) {
@@ -139,6 +144,7 @@ class _ChildScaffold extends StatelessWidget {
                   NavigationDestination(icon: Icon(Icons.chat_bubble_outline_rounded), selectedIcon: Icon(Icons.chat_bubble_rounded), label: 'Tutor'),
                 ],
               ),
+      ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:bobo_belajar/core/grading.dart';
 import 'package:bobo_belajar/core/theme.dart';
 import 'package:bobo_belajar/widgets/common.dart';
+import 'package:bobo_belajar/widgets/playground.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -52,5 +53,19 @@ void main() {
     await tester.tap(find.text('Coba'));
     expect(tapped, isTrue);
     expect(find.text('Materi sedang ditinjau'), findsOneWidget);
+  });
+
+  group('alat peraga pecahan', () {
+    test('fpb dan bentuk sederhana', () {
+      expect(gcd(12, 8), 4);
+      expect(gcd(7, 3), 1);
+      expect(simplest(4, 8), '1/2');
+      expect(simplest(3, 7), '3/7');
+      expect(simplest(6, 6), '1');
+    });
+    test('pecahan senilai', () {
+      expect(equivalents(1, 2), containsAll(['2/4', '3/6', '6/12']));
+      expect(equivalents(1, 2), isNot(contains('1/2')));
+    });
   });
 }

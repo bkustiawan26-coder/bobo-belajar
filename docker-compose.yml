@@ -36,6 +36,17 @@ services:
     ports:
       - "3000:3000"
 
+  maintenance:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      BOBO_DATABASE_URL: postgresql+psycopg://bobo:${POSTGRES_PASSWORD}@db:5432/bobo
+    command: ["sh", "-c", "while true; do python -m app.cli purge; sleep 86400; done"]
+
   backup:
     image: postgres:16-alpine
     restart: unless-stopped

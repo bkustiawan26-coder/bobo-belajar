@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.models import (
-    AIConversation, AIMessage, AIPromptVersion, AISafetyEvent, AIUsageLog, AssessmentResult, Assessment, ParentProfile, StudentProfile,
+    AIConversation, AIMessage, Lesson, LessonBlock, AIPromptVersion, AISafetyEvent, AIUsageLog, AssessmentResult, Assessment, ParentProfile, StudentProfile,
 )
 from app.services import learning
 from app.services.ai import retrieval, safety
@@ -30,6 +30,28 @@ PARENT_PROMPT = (
     "Jangan pernah mendiagnosis gangguan belajar, kondisi psikologis, atau medis, dan jangan memberi label negatif pada anak. "
     "Berikan saran kegiatan di rumah yang konkret dan singkat. Maksimal 8 kalimat."
 )
+
+STYLE_HINT = {
+    "story": "Jelaskan lewat cerita pendek dari kehidupan sehari-hari anak Indonesia.",
+    "visual": "Jelaskan dengan gambaran visual yang mudah dibayangkan; aplikasi akan menampilkan alat peraga di bawah jawabanmu.",
+    "steps": "Jelaskan dalam langkah bernomor yang pendek, satu ide per langkah.",
+}
+
+
+def visual_for(db: Session, topic_id: int | None, topic_title: str | None) -> str | None:
+    if topic_id is not None:
+        v = db.scalar(select(LessonBlock.visual).join(Lesson, Lesson.id == LessonBlock.lesson_id).where(Lesson.topic_id == topic_id, Lesson.status == "published", LessonBlock.visual.is_not(None)))
+        if v:
+            return v
+    t = (topic_title or "").lower()
+    if "pecahan" in t:
+        return "frac"
+    if "pythagoras" in t or "segitiga" in t or "jarak" in t:
+        return "tri"
+    if "jumlah" in t or "kurang" in t or "cerita" in t:
+        return "tens"
+    return None
+
 
 STYLE = {1: "sangat sederhana, kalimat pendek, dengan contoh benda sehari-hari", 2: "sederhana dengan contoh konkret", 3: "jelas dengan penalaran langkah demi langkah", 4: "runtut dan logis seperti untuk siswa SMP"}
 MAX_SENT = {1: 3, 2: 4, 3: 5, 4: 6}
@@ -111,7 +133,7 @@ def _run_provider(db: Session, req: GenRequest):
     return res, outcome, latency, cost
 
 
-def tutor_reply(db: Session, student: StudentProfile, parent: ParentProfile, text: str, conv_id: uuid.UUID | None, topic_id: int | None) -> dict:
+def tutor_reply(db: Session, student: StudentProfile, parent: ParentProfile, text: str, conv_id: uuid.UUID | None, topic_id: int | None, style: str | None = None) -> dict:
     s = get_settings()
     limit = tutor_limit(db, parent, student)
     used = _used_today(db, "tutor", student_id=student.id)
@@ -124,6 +146,7 @@ def tutor_reply(db: Session, student: StudentProfile, parent: ParentProfile, tex
     topics = learning.topics_with_evidence_or_content(db, student.grade_number)
     scope = ", ".join(t.title for t in topics[:3]) or "materi kelasmu"
     sources: list[str] = []
+    visual = None
     provider, model, outcome, latency, cost, tin, tout, cached, pv = "safety", "rules", "refused", 0, 0.0, 0, 0, False, None
     if verdict.action != "allow":
         db.add(AISafetyEvent(student_id=student.id, purpose="tutor", category=verdict.category, stage="input", action=verdict.action))
@@ -131,7 +154,7 @@ def tutor_reply(db: Session, student: StudentProfile, parent: ParentProfile, tex
         outcome = "guided" if verdict.action == "guide" else "refused"
         learning.log_activity(db, student.id, "tutor", "Tutor menolak permintaan yang tidak aman" if outcome == "refused" else "Tutor memandu langkah, bukan memberi jawaban langsung")
     else:
-        key = hashlib.sha256(f"tutor|{student.grade_number}|{topic_id}|{s.ai_provider}|{s.ai_model}|{' '.join(text.lower().split())}".encode()).hexdigest()
+        key = hashlib.sha256(f"tutor|{student.grade_number}|{topic_id}|{style}|{s.ai_provider}|{s.ai_model}|{' '.join(text.lower().split())}".encode()).hexdigest()
         hit = _cache_get(key)
         passages = retrieval.search(db, text, student.grade_number, topic_id)
         if hit:
@@ -140,7 +163,9 @@ def tutor_reply(db: Session, student: StudentProfile, parent: ParentProfile, tex
         else:
             tpl, pv = _prompt(db, "tutor", TUTOR_PROMPT)
             system = tpl.format(level=learning.level(student.grade_number), grade=student.grade_number, style=STYLE[b], max_sentences=MAX_SENT[b])
-            req = GenRequest("tutor", system, text, passages, student.grade_number, s.ai_max_output_tokens, {"scope": scope})
+            if style:
+                system += " " + STYLE_HINT[style]
+            req = GenRequest("tutor", system, text, passages, student.grade_number, s.ai_max_output_tokens, {"scope": scope, "style": style})
             res, outcome, latency, cost = _run_provider(db, req)
             provider, model, tin, tout = res.provider, res.model, res.input_tokens, res.output_tokens
             reply, flagged = safety.clean_output(res.text, 900 if b <= 2 else 1400)
@@ -150,12 +175,15 @@ def tutor_reply(db: Session, student: StudentProfile, parent: ParentProfile, tex
             if passages:
                 _cache_put(key, reply, sources)
         topic_name = passages[0].topic if passages and passages[0].topic else None
+        if passages:
+            visual = visual_for(db, passages[0].topic_id, topic_name)
         learning.log_activity(db, student.id, "tutor", f"Bertanya ke Tutor ({topic_name or 'umum'})", passages[0].topic_id if passages else None)
         flagged = False
     db.add(AIMessage(conversation_id=conv.id, role="assistant", content=reply, sources=sources, flagged=verdict.action != "allow"))
     db.add(AIUsageLog(purpose="tutor", student_id=student.id, parent_id=parent.id, provider=provider, model=model, prompt_version=pv, input_tokens=tin, output_tokens=tout, cost_usd=cost, latency_ms=latency, outcome=outcome, cached=cached))
     db.commit()
-    return {"conversation_id": str(conv.id), "reply": reply, "sources": sources, "refused": verdict.action == "refuse", "category": verdict.category, "quota_limit": limit, "quota_left": max(0, limit - used - 1)}
+    return {"conversation_id": str(conv.id), "reply": reply, "sources": sources, "refused": verdict.action == "refuse", "category": verdict.category, "quota_limit": limit, "quota_left": max(0, limit - used - 1),
+            "visual": visual if style == "visual" else None, "visual_available": visual is not None, "can_restyle": bool(sources)}
 
 
 def parent_context(db: Session, child: StudentProfile) -> dict:

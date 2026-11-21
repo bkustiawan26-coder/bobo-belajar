@@ -11,7 +11,7 @@ from app.core.deps import ParentCtx, require_roles
 from app.models import (
     AIPromptVersion, AIUsageLog, Assessment, AssessmentAnswer, AssessmentQuestion, AssessmentResult, AssessmentSession, AssessmentTemplate, AuditLog,
     Chapter, ContentReview, ContentVersion, CurriculumSource, CurriculumVersion, EducationLevel, Grade, LearningObjective, Lesson, LessonBlock,
-    Question, QuestionExplanation, QuestionOption, QuestionReview, QuestionSource, QuestionVersion, StudentProfile, Subject, Topic,
+    Question, QuestionExplanation, QuestionOption, QuestionReview, QuestionSource, QuestionVersion, StudentProfile, Subject, Topic, TopicPrerequisite,
 )
 from app.models.questions import QUESTION_TYPES
 from app.services import learning
@@ -254,6 +254,42 @@ def update_topic(tid: int, body: TopicIn, ctx: ParentCtx = Depends(editor), db: 
     return _row(t, "id", "chapter_id", "title", "sort_order", "home_activity", "common_mistake")
 
 
+class PrereqIn(BaseModel):
+    prerequisite_topic_ids: list[int] = Field(default_factory=list, max_length=10)
+
+
+@router.get("/topics/{tid}/prerequisites")
+def get_prereqs(tid: int, ctx: ParentCtx = Depends(staff), db: Session = Depends(get_db)):
+    _get(db, Topic, tid)
+    rows = db.execute(select(Topic.id, Topic.title, Grade.number).join(TopicPrerequisite, TopicPrerequisite.prerequisite_topic_id == Topic.id).join(Chapter, Chapter.id == Topic.chapter_id).join(Subject, Subject.id == Chapter.subject_id).join(Grade, Grade.id == Subject.grade_id).where(TopicPrerequisite.topic_id == tid)).all()
+    return [{"id": r[0], "title": r[1], "grade_number": r[2]} for r in rows]
+
+
+@router.put("/topics/{tid}/prerequisites")
+def set_prereqs(tid: int, body: PrereqIn, ctx: ParentCtx = Depends(editor), db: Session = Depends(get_db)):
+    _get(db, Topic, tid)
+    ids = [i for i in dict.fromkeys(body.prerequisite_topic_ids) if i != tid]
+    for i in ids:
+        _get(db, Topic, i)
+        chain, frontier = set(), [i]
+        while frontier:
+            nxt = []
+            for f in frontier:
+                for p in db.scalars(select(TopicPrerequisite.prerequisite_topic_id).where(TopicPrerequisite.topic_id == f)):
+                    if p == tid:
+                        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Prasyarat membentuk lingkaran")
+                    if p not in chain:
+                        chain.add(p)
+                        nxt.append(p)
+            frontier = nxt
+    db.query(TopicPrerequisite).filter(TopicPrerequisite.topic_id == tid).delete()
+    for i in ids:
+        db.add(TopicPrerequisite(topic_id=tid, prerequisite_topic_id=i))
+    audit(db, "topic.prerequisites", ctx.user.id, "editor", "topic", tid, {"ids": ids})
+    db.commit()
+    return get_prereqs(tid, ctx, db)
+
+
 class ObjectiveIn(BaseModel):
     topic_id: int
     code: str | None = None
@@ -425,6 +461,7 @@ class QuestionIn(BaseModel):
     options: list[OptionIn] = Field(default_factory=list, max_length=12)
     answer: dict | None = None
     rubric: str | None = None
+    scaffold: dict | None = None
     usage: Literal["practice", "assessment", "both"] = "both"
     explanation: str = Field(min_length=3, max_length=3000)
     mistake_hint: str | None = Field(default=None, max_length=1000)
@@ -434,7 +471,7 @@ class QuestionIn(BaseModel):
 
 def _question_out(q: Question, db: Session | None = None) -> dict:
     d = {"id": q.id, "topic_id": q.topic_id, "learning_objective_id": q.learning_objective_id, "type": q.type, "body": q.body, "difficulty": q.difficulty,
-         "options": [{"label": o.label, "side": o.side} for o in q.options], "answer": q.answer, "rubric": q.rubric, "usage": q.usage, "status": q.status, "version": q.version, "is_sample": q.is_sample,
+         "options": [{"label": o.label, "side": o.side} for o in q.options], "answer": q.answer, "rubric": q.rubric, "scaffold": q.scaffold, "usage": q.usage, "status": q.status, "version": q.version, "is_sample": q.is_sample,
          "explanation": q.explanation.explanation if q.explanation else "", "mistake_hint": q.explanation.mistake_hint if q.explanation else None,
          "source": q.sources[0].source if q.sources else "", "source_reference": q.sources[0].reference if q.sources else None}
     if db is not None:
@@ -456,7 +493,12 @@ def _apply_question(q: Question, body: QuestionIn) -> None:
     err = validate_answer_shape(body.type, body.answer, len(opts))
     if err:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, err)
-    q.topic_id, q.learning_objective_id, q.type, q.body, q.difficulty, q.answer, q.rubric, q.usage = body.topic_id, body.learning_objective_id, body.type, body.body, body.difficulty, body.answer, body.rubric, body.usage
+    sc = body.scaffold or None
+    if sc is not None:
+        example = str(sc.get("example") or "").strip()[:2000]
+        steps = [str(x).strip()[:500] for x in (sc.get("steps") or []) if str(x).strip()][:8]
+        sc = {"example": example, "steps": steps} if example or steps else None
+    q.topic_id, q.learning_objective_id, q.type, q.body, q.difficulty, q.answer, q.rubric, q.usage, q.scaffold = body.topic_id, body.learning_objective_id, body.type, body.body, body.difficulty, body.answer, body.rubric, body.usage, sc
     q.options.clear()
     for i, o in enumerate(opts):
         q.options.append(QuestionOption(position=i, label=o.label, side=o.side))

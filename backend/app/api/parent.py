@@ -12,7 +12,7 @@ from app.models import (
     AIMessage, AIConversation, AISafetyEvent, AIUsageLog, Assessment, AssessmentResult, ExerciseAttempt, GuardianChildLink, GuardianConsent,
     LearningRecommendation, LearningSession, LessonProgress, PrivacyRequest, StudentProfile, User,
 )
-from app.services import learning
+from app.services import learning, support
 from app.services.ai import service as ai
 from app.services.audit import audit
 from app.services.entitlements import tutor_limit
@@ -35,10 +35,18 @@ class ChildIn(BaseModel):
         return v
 
 
+class SettingsIn(BaseModel):
+    short_sessions: bool = False
+    larger_text: bool = False
+    fewer_options: bool = False
+    read_aloud: bool = False
+
+
 class ChildPatch(BaseModel):
     nickname: str | None = Field(default=None, min_length=2, max_length=20)
     grade: int | None = Field(default=None, ge=1, le=9)
     tutor_daily_limit: int | None = Field(default=None, ge=0, le=100)
+    settings: SettingsIn | None = None
 
 
 class PinIn(BaseModel):
@@ -51,7 +59,7 @@ def _child_out(db: Session, parent, c: StudentProfile) -> dict:
     used = db.scalar(select(func.count()).select_from(AIUsageLog).where(AIUsageLog.student_id == c.id, AIUsageLog.purpose == "tutor", AIUsageLog.created_at >= a, AIUsageLog.created_at < b)) or 0
     safety = db.scalar(select(func.count()).select_from(AISafetyEvent).where(AISafetyEvent.student_id == c.id, AISafetyEvent.purpose == "tutor", AISafetyEvent.action == "refuse")) or 0
     return {"id": str(c.id), "nickname": c.nickname, "grade": c.grade_number, "level": learning.level(c.grade_number), "phase": learning.phase(c.grade_number), "band": learning.band(c.grade_number),
-            "tutor_today": used, "tutor_limit": tutor_limit(db, parent, c), "safety_refusals": safety, "consent_active": True}
+            "tutor_today": used, "tutor_limit": tutor_limit(db, parent, c), "safety_refusals": safety, "consent_active": True, "settings": support.clean_settings(c.settings)}
 
 
 @router.get("/me")
@@ -102,6 +110,8 @@ def patch_child(child_id: uuid.UUID, body: ChildPatch, ctx: ParentCtx = Depends(
         c.grade_number = body.grade
     if body.tutor_daily_limit is not None:
         c.tutor_daily_limit_override = body.tutor_daily_limit
+    if body.settings is not None:
+        c.settings = support.clean_settings(body.settings.model_dump())
     audit(db, "child.update", ctx.user.id, "parent", "student", c.id, body.model_dump(exclude_none=True))
     db.commit()
     return _child_out(db, ctx.parent, c)
@@ -118,7 +128,8 @@ def delete_child(child_id: uuid.UUID, ctx: ParentCtx = Depends(current_parent), 
 
 
 def _erase_child(db: Session, c: StudentProfile) -> None:
-    for model in (ExerciseAttempt, LessonProgress, LearningSession, LearningRecommendation, AssessmentResult):
+    from app.models import ReviewItem
+    for model in (ExerciseAttempt, LessonProgress, LearningSession, LearningRecommendation, AssessmentResult, ReviewItem):
         db.query(model).filter(model.student_id == c.id).delete(synchronize_session=False)
     conv_ids = list(db.scalars(select(AIConversation.id).where(AIConversation.student_id == c.id)))
     if conv_ids:
@@ -152,7 +163,22 @@ def dashboard(child_id: uuid.UUID, ctx: ParentCtx = Depends(current_parent), db:
         "top_recommendation": _rec_out(top) if top else None,
         "assessments": [{"title": t, "score": round(r.score), "date": learning.relative_label(r.created_at), "final": r.is_final, "pending_review": r.pending_review_count, "weak_topics": [titles.get(x) for x in r.weak_topic_ids if titles.get(x)]} for r, t in exams],
         "activity": [{"text": a.summary, "when": learning.relative_label(a.occurred_at)} for a in log],
+        "signals": support.signals(db, c),
+        "review_due": support.due_count(db, c.id),
     }
+
+
+@router.get("/children/{child_id}/summary")
+def summary(child_id: uuid.UUID, ctx: ParentCtx = Depends(current_parent), db: Session = Depends(get_db)):
+    c = owned_child(db, ctx.parent, child_id)
+    audit(db, "child.summary_shared", ctx.user.id, "parent", "student", c.id)
+    db.commit()
+    return {"text": support.teacher_summary(db, c)}
+
+
+@router.get("/children/{child_id}/growth")
+def child_growth(child_id: uuid.UUID, ctx: ParentCtx = Depends(current_parent), db: Session = Depends(get_db)):
+    return support.growth(db, owned_child(db, ctx.parent, child_id))
 
 
 def _rec_out(r: LearningRecommendation) -> dict:

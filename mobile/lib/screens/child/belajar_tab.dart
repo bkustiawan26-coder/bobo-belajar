@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 import '../../app_state.dart';
 import '../../core/api.dart';
 import '../../core/models.dart';
+import '../../core/speech.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
+import '../../widgets/playground.dart';
 import '../../widgets/visuals.dart';
 import 'child_shell.dart';
 
@@ -246,6 +248,7 @@ class _LessonReaderState extends State<LessonReader> {
   Object? _error;
   int _step = 0;
   bool _fromPack = false;
+  int _spoken = -1;
 
   @override
   void initState() {
@@ -295,6 +298,7 @@ class _LessonReaderState extends State<LessonReader> {
   }
 
   Future<void> _next() async {
+    Speech.instance.stop();
     final blocks = asList(_lesson!['blocks']);
     final nav = context.read<ChildNav>();
     if (_step + 1 < blocks.length) {
@@ -327,6 +331,11 @@ class _LessonReaderState extends State<LessonReader> {
     final b = blocks[_step.clamp(0, blocks.length - 1)];
     final points = (b['points'] as List?)?.map((e) => e.toString()).toList();
     final last = _step + 1 >= blocks.length;
+    final speakText = [b['kind'], if (b['text'] != null) b['text'], ...?points].join('. ');
+    if (_spoken != _step && context.read<AppState>().setting('read_aloud')) {
+      _spoken = _step;
+      WidgetsBinding.instance.addPostFrameCallback((_) => Speech.instance.speak(speakText));
+    }
     return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 24), children: [
       Row(children: List.generate(blocks.length, (i) => Expanded(
             child: Container(height: 6, margin: EdgeInsets.only(right: i == blocks.length - 1 ? 0 : 6), decoration: BoxDecoration(color: i <= _step ? t.accent : const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(999))),
@@ -345,7 +354,23 @@ class _LessonReaderState extends State<LessonReader> {
         radius: t.radius,
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (b['visual'] != null) ...[LessonVisual(kind: b['visual'] as String, theme: t), const SizedBox(height: 16)],
+          Row(children: [
+            const Spacer(),
+            SpeakButton(text: speakText, color: t.ink, label: 'Dengarkan'),
+          ]),
+          if (b['visual'] != null) ...[
+            LessonVisual(kind: b['visual'] as String, theme: t),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlaygroundScreen(kind: b['visual'] as String, theme: t))),
+                icon: const Icon(Icons.touch_app_rounded, size: 18),
+                label: const Text('Coba sendiri di alat peraga'),
+                style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(0, 44)),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           if (b['text'] != null) Text(b['text'] as String, style: TextStyle(fontSize: t.body, height: 1.65)),
           if (points != null)
             for (final p in points)

@@ -92,3 +92,35 @@ SUBJECTS = {
     3: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("IPAS", "IPAS", "IP"), ("PPK", "Pendidikan Pancasila", "PP"), ("BIG", "Bahasa Inggris", "En")],
     4: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("IPA", "IPA", "IA"), ("IPS", "IPS", "IS"), ("BIG", "Bahasa Inggris", "En")],
 }
+
+SCAFFOLDS = {
+    2: [
+        {"example": "Contoh: 21 + 13. Satuan 1 + 3 = 4. Puluhan 20 + 10 = 30. Hasilnya 34.", "steps": ["Tulis satuannya: 4 dan 5.", "Jumlahkan satuan: 4 + 5 = ?", "Jumlahkan puluhan: 30 + 20 = ?", "Gabungkan puluhan dan satuan."]},
+        {"example": "Contoh: 38 − 15. Satuan 8 − 5 = 3. Puluhan 30 − 10 = 20. Hasilnya 23.", "steps": ["Kurangi satuan: 7 − 2 = ?", "Kurangi puluhan: 40 − 10 = ?", "Gabungkan, lalu bandingkan dengan 35."]},
+        {"example": "Contoh: Budi punya 10 kue, memberi 3 kue. Memberi berarti berkurang: 10 − 3 = 7.", "steps": ["Cari kata kunci: \"memberi\".", "Memberi artinya permen berkurang, jadi kita mengurangi.", "Hitung 18 − 6."]},
+        {"example": "Contoh: 41 + 27. Satuan 1 + 7 = 8. Puluhan 40 + 20 = 60. Hasilnya 68.", "steps": ["Jumlahkan satuan: 2 + 6 = ?", "Jumlahkan puluhan: 50 + 30 = ?", "Gabungkan hasilnya."]},
+    ],
+    5: [
+        {"example": "Contoh: 1/3 = (1 × 2)/(3 × 2) = 2/6.", "steps": ["Pilih angka pengali, misalnya 2.", "Kalikan pembilang: 2 × 2 = ?", "Kalikan penyebut: 3 × 2 = ?", "Cari pilihan yang sama dengan hasilmu."]},
+        {"example": "Contoh: 2/4 senilai dengan 1/2 karena 2 adalah setengah dari 4.", "steps": ["Untuk tiap pilihan, bandingkan pembilang dengan penyebut.", "Apakah pembilangnya tepat setengah dari penyebut?", "Pilih semua yang jawabannya ya."]},
+        {"example": "Contoh: 1/5 + 3/5 = 4/5. Penyebutnya tetap 5.", "steps": ["Periksa penyebutnya: keduanya 4.", "Jumlahkan pembilangnya saja: 1 + 2 = ?", "Tulis hasilnya dengan penyebut 4."]},
+        {"example": "Contoh: pizza dipotong 6 bagian, dimakan 2 bagian, jadi 2/6.", "steps": ["Ada berapa bagian seluruhnya? Itu penyebut.", "Berapa bagian yang dimakan? Itu pembilang.", "Tulis pembilang/penyebut."]},
+        {"example": "Contoh: 1/3 = …/6. Penyebut 3 dikali 2 menjadi 6, jadi pembilang 1 dikali 2 = 2.", "steps": ["Penyebut 2 dikali berapa supaya menjadi 8?", "Kalikan pembilang 1 dengan angka yang sama."]},
+    ],
+    8: [
+        {"example": "Contoh: sisi tegak 3 dan 4. c² = 9 + 16 = 25, jadi c = 5.", "steps": ["Kuadratkan sisi pertama: 5² = ?", "Kuadratkan sisi kedua: 12² = ?", "Jumlahkan kedua kuadrat.", "Cari akar dari hasilnya."]},
+        {"example": "Contoh: 6, 8, 10 → 36 + 64 = 100 = 10². Termasuk tripel.", "steps": ["Untuk tiap pilihan, kuadratkan dua bilangan terkecil.", "Jumlahkan.", "Bandingkan dengan kuadrat bilangan terbesar."]},
+        {"example": "Contoh: tangga 5 m, jarak ke dinding 3 m. t² = 25 − 9 = 16, t = 4 m.", "steps": ["Gambar segitiganya: tangga adalah sisi miring.", "Kuadratkan panjang tangga dan jarak ke dinding.", "Kurangkan: c² − a².", "Cari akarnya."]},
+        {"example": "Contoh: segitiga dengan sudut tumpul tidak memenuhi a² + b² = c².", "steps": ["Ingat syarat teorema Pythagoras.", "Apakah semua segitiga punya sudut siku-siku?"]},
+        {"example": "Contoh: c = 13, a = 5. b² = 169 − 25 = 144, b = 12.", "steps": ["Kuadratkan c: 25² = ?", "Kuadratkan a: 7² = ?", "Kurangkan, lalu cari akarnya."]},
+    ],
+}
+
+PREREQUISITES = [
+    (5, "Penjumlahan Pecahan", 5, "Pecahan Senilai"),
+    (5, "Soal Cerita Pecahan", 5, "Penjumlahan Pecahan"),
+    (5, "Penjumlahan Pecahan", 2, "Penjumlahan sampai 100"),
+    (8, "Tripel Pythagoras", 8, "Teorema Pythagoras"),
+    (8, "Soal Kontekstual Pythagoras", 8, "Teorema Pythagoras"),
+    (8, "Jarak Dua Titik", 8, "Teorema Pythagoras"),
+]

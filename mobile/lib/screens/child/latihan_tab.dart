@@ -5,6 +5,7 @@ import '../../app_state.dart';
 import '../../core/api.dart';
 import '../../core/grading.dart';
 import '../../core/models.dart';
+import '../../core/speech.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
 import 'child_shell.dart';
@@ -17,7 +18,7 @@ class LatihanTab extends StatefulWidget {
 }
 
 class _Result {
-  _Result(this.question, this.correct, this.answer, this.answerKey, this.explanation, this.mistake, this.relatedLessonId);
+  _Result(this.question, this.correct, this.answer, this.answerKey, this.explanation, this.mistake, this.relatedLessonId, [this.scaffold]);
 
   final Map<String, dynamic> question;
   final bool correct;
@@ -26,6 +27,7 @@ class _Result {
   final String explanation;
   final String? mistake;
   final int? relatedLessonId;
+  final Map<String, dynamic>? scaffold;
 }
 
 class _LatihanTabState extends State<LatihanTab> {
@@ -43,6 +45,10 @@ class _LatihanTabState extends State<LatihanTab> {
   bool _offlineMode = false;
   Object? _error;
   int _seenVersion = -1;
+  String _mode = 'practice';
+  int _stepsShown = 0;
+  bool _loadingSimilar = false;
+  int _spokenIdx = -1;
 
   @override
   void dispose() {
@@ -50,12 +56,13 @@ class _LatihanTabState extends State<LatihanTab> {
     super.dispose();
   }
 
-  Future<void> _init(int? topicId) async {
+  Future<void> _init(int? topicId, {String mode = 'practice'}) async {
     final app = context.read<AppState>();
     setState(() {
       _loading = true;
       _error = null;
       _topicId = topicId;
+      _mode = mode;
     });
     try {
       final cat = await CatalogCache.load(app);
@@ -72,14 +79,24 @@ class _LatihanTabState extends State<LatihanTab> {
       List<Map<String, dynamic>> qs;
       var offline = false;
       try {
-        final r = asMap(await app.student('GET', '/student/practice', query: topicId == null ? null : {'topic_id': '$topicId'}));
+        final r = mode == 'review'
+            ? asMap(await app.student('GET', '/student/review'))
+            : asMap(await app.student('GET', '/student/practice', query: topicId == null ? null : {'topic_id': '$topicId'}));
         qs = asList(r['questions']);
+        if (mode == 'practice' && app.setting('short_sessions') && qs.length > 3) {
+          qs.shuffle();
+          qs = qs.take(3).toList();
+        }
       } on ApiException catch (e) {
         final pack = await CatalogCache.pack(app);
         if (!e.isOffline || pack == null) {
           rethrow;
         }
-        qs = asList(pack['questions']).where((q) => topicId == null || q['topic_id'] == topicId).toList();
+        qs = mode == 'review' ? <Map<String, dynamic>>[] : asList(pack['questions']).where((q) => topicId == null || q['topic_id'] == topicId).toList();
+        if (mode == 'practice' && app.setting('short_sessions') && qs.length > 3) {
+          qs.shuffle();
+          qs = qs.take(3).toList();
+        }
         offline = true;
       }
       if (!mounted) {
@@ -109,6 +126,8 @@ class _LatihanTabState extends State<LatihanTab> {
     _current = null;
     _results.clear();
     _done = false;
+    _stepsShown = 0;
+    _spokenIdx = -1;
   }
 
   Map<String, dynamic>? get _q => _idx < _questions.length ? _questions[_idx] : null;
@@ -132,13 +151,13 @@ class _LatihanTabState extends State<LatihanTab> {
     final app = context.read<AppState>();
     final q = _q!;
     final resp = _response();
-    final attempt = {'client_uuid': uuidGen.v4(), 'question_id': q['id'], 'response': resp, 'answered_at': DateTime.now().toUtc().toIso8601String()};
+    final attempt = {'client_uuid': uuidGen.v4(), 'question_id': q['id'], 'response': resp, 'answered_at': DateTime.now().toUtc().toIso8601String(), 'mode': _mode};
     setState(() => _checking = true);
     _Result? res;
     if (!_offlineMode) {
       try {
         final r = asMap(await app.student('POST', '/student/practice/attempts', body: attempt));
-        res = _Result(q, r['correct'] == true, (r['correct_answer'] ?? '') as String, asMap(r['answer_key']), (r['explanation'] ?? '') as String, r['mistake_hint'] as String?, r['related_lesson_id'] as int?);
+        res = _Result(q, r['correct'] == true, (r['correct_answer'] ?? '') as String, asMap(r['answer_key']), (r['explanation'] ?? '') as String, r['mistake_hint'] as String?, r['related_lesson_id'] as int?, r['scaffold'] == null ? null : asMap(r['scaffold']));
       } on ApiException catch (e) {
         if (!e.isOffline) {
           if (mounted) {
@@ -161,7 +180,7 @@ class _LatihanTabState extends State<LatihanTab> {
       }
       final ok = gradeLocally(full, resp);
       await app.queueAttempt(attempt);
-      res = _Result(q, ok, (full['answer_text'] ?? '') as String, asMap(full['answer']), (full['explanation'] ?? '') as String, ok ? null : full['mistake_hint'] as String?, null);
+      res = _Result(q, ok, (full['answer_text'] ?? '') as String, asMap(full['answer']), (full['explanation'] ?? '') as String, ok ? null : full['mistake_hint'] as String?, null, ok || full['scaffold'] == null ? null : asMap(full['scaffold']));
       _offlineMode = true;
     }
     if (!mounted) {
@@ -175,7 +194,9 @@ class _LatihanTabState extends State<LatihanTab> {
   }
 
   void _next() {
+    Speech.instance.stop();
     setState(() {
+      _stepsShown = 0;
       if (_idx + 1 >= _questions.length) {
         _done = true;
       } else {
@@ -183,6 +204,48 @@ class _LatihanTabState extends State<LatihanTab> {
         _selected = [];
         _text.clear();
         _current = null;
+      }
+    });
+  }
+
+  void _retrySame() {
+    setState(() {
+      _selected = [];
+      _text.clear();
+      _current = null;
+      _stepsShown = 0;
+    });
+  }
+
+  Future<void> _similar() async {
+    final app = context.read<AppState>();
+    final q = _q!;
+    setState(() => _loadingSimilar = true);
+    Map<String, dynamic>? sim;
+    try {
+      sim = asMap(await app.student('GET', '/student/practice/similar', query: {'question_id': '${q['id']}'}));
+    } on ApiException catch (e) {
+      final pack = await CatalogCache.pack(app);
+      if (e.isOffline && pack != null) {
+        sim = asList(pack['questions']).where((x) => x['topic_id'] == q['topic_id'] && x['id'] != q['id']).firstOrNull;
+      }
+      if (sim == null && mounted) {
+        showToast(context, e.isOffline ? 'Soal serupa belum tersedia offline.' : e.message);
+      }
+    }
+    if (!mounted) {
+      return;
+    }
+    final found = sim;
+    setState(() {
+      _loadingSimilar = false;
+      if (found != null) {
+        _questions = [..._questions.take(_idx + 1), found, ..._questions.skip(_idx + 1)];
+        _idx++;
+        _selected = [];
+        _text.clear();
+        _current = null;
+        _stepsShown = 0;
       }
     });
   }
@@ -202,7 +265,8 @@ class _LatihanTabState extends State<LatihanTab> {
     if (nav.practiceVersion != _seenVersion) {
       _seenVersion = nav.practiceVersion;
       final tid = nav.practiceTopicId;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _init(tid));
+      final mode = nav.practiceMode;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _init(tid, mode: mode));
     }
     final t = BandTheme.forGrade(app.child!.grade);
     if (_loading) {
@@ -211,7 +275,10 @@ class _LatihanTabState extends State<LatihanTab> {
     if (_error != null) {
       return ErrorView(error: _error!, onRetry: () => _init(_topicId));
     }
-    if (_topics.isEmpty) {
+    if (_mode == 'review' && _questions.isEmpty && !_done) {
+      return EmptyState(icon: Icons.check_circle_outline_rounded, iconColor: t.accent, title: 'Belum ada yang perlu diulang', body: 'Soal yang belum tepat akan muncul lagi di sini beberapa hari kemudian supaya kamu makin ingat.', action: SizedBox(width: 220, child: SecondaryButton(label: 'Latihan biasa', onPressed: () => _init(null))));
+    }
+    if (_topics.isEmpty && _mode == 'practice') {
       return EmptyState(icon: Icons.edit_outlined, iconColor: t.accent, title: 'Soal latihan belum tersedia', body: 'Bank soal Kelas ${app.child!.grade} sedang ditinjau. Soal hanya tampil setelah kunci jawaban dan pembahasannya diperiksa.');
     }
     return Column(children: [
@@ -222,6 +289,8 @@ class _LatihanTabState extends State<LatihanTab> {
           for (final tp in _topics) _chip(t, tp['title'] as String, _topicId == tp['id'], () => _init(tp['id'] as int)),
         ]),
       ),
+      if (_mode == 'review') Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: Notice('Ulang sebentar: soal yang dulu belum tepat. Kalau benar, soal ini akan muncul lagi beberapa hari lagi sampai benar-benar ingat.', fg: t.ink, bg: t.soft)),
+      if (_mode == 'foundation') Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: Notice('Jalur pondasi: latihan dasar supaya topik berikutnya lebih mudah.', fg: t.ink, bg: t.soft)),
       if (_offlineMode) const Padding(padding: EdgeInsets.fromLTRB(20, 0, 20, 8), child: Notice('Mode offline: jawaban dinilai di perangkat dan dikirim saat online.')),
       Expanded(child: _done ? _summary(t, app) : _runner(t)),
     ]);
@@ -259,6 +328,11 @@ class _LatihanTabState extends State<LatihanTab> {
       _ => 'Pilih satu jawaban.',
     };
     const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    if (_spokenIdx != _idx && context.read<AppState>().setting('read_aloud')) {
+      _spokenIdx = _idx;
+      final text = _speakText(q);
+      WidgetsBinding.instance.addPostFrameCallback((_) => Speech.instance.speak(text));
+    }
     return ListView(padding: const EdgeInsets.fromLTRB(20, 4, 20, 24), children: [
       Row(children: [
         Text('Soal ${_idx + 1} dari ${_questions.length}', style: const TextStyle(fontSize: 13, color: Palette.muted, fontWeight: FontWeight.w700)),
@@ -272,8 +346,12 @@ class _LatihanTabState extends State<LatihanTab> {
         radius: t.radius,
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (q['topic'] != null) Tag(q['topic'] as String, fg: t.ink, bg: t.soft),
-          const SizedBox(height: 14),
+          Row(children: [
+            if (q['topic'] != null) Flexible(child: Tag(q['topic'] as String, fg: t.ink, bg: t.soft)),
+            const Spacer(),
+            SpeakButton(text: _speakText(q), color: t.ink),
+          ]),
+          const SizedBox(height: 8),
           Text(q['body'] as String, style: TextStyle(fontSize: t.question, fontWeight: FontWeight.w700, height: 1.45)),
           const SizedBox(height: 10),
           Text(instr, style: const TextStyle(fontSize: 13, color: Palette.muted, fontWeight: FontWeight.w600)),
@@ -306,6 +384,16 @@ class _LatihanTabState extends State<LatihanTab> {
         onPressed: checked ? _next : (_answered ? _check : null),
       ),
     ]);
+  }
+
+  String _speakText(Map<String, dynamic> q) {
+    final opts = asList(q['options']);
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    final parts = [q['body'] as String];
+    for (var i = 0; i < opts.length; i++) {
+      parts.add('${letters[i % letters.length]}. ${opts[i]['label']}');
+    }
+    return parts.join('. ');
   }
 
   String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
@@ -401,6 +489,25 @@ class _LatihanTabState extends State<LatihanTab> {
           ],
           const SizedBox(height: 8),
           Text.rich(TextSpan(children: [const TextSpan(text: 'Pembahasan: ', style: TextStyle(fontWeight: FontWeight.w800)), TextSpan(text: r.explanation)]), style: const TextStyle(fontSize: 15, height: 1.55)),
+          Align(alignment: Alignment.centerLeft, child: SpeakButton(text: r.correct ? r.explanation : 'Jawaban benar: ${r.answer}. ${r.explanation}', color: t.ink, label: 'Dengarkan pembahasan')),
+          if (!r.correct) ...[
+            if (r.scaffold != null) _scaffold(t, r.scaffold!),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              OutlinedButton.icon(
+                onPressed: _retrySame,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('Coba lagi soal ini'),
+                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44), backgroundColor: Palette.surface, foregroundColor: t.ink, side: BorderSide(color: t.accent)),
+              ),
+              OutlinedButton.icon(
+                onPressed: _loadingSimilar ? null : _similar,
+                icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                label: const Text('Soal serupa'),
+                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44), backgroundColor: Palette.surface, foregroundColor: t.ink, side: BorderSide(color: t.accent)),
+              ),
+            ]),
+          ],
           const SizedBox(height: 4),
           TextButton(
             onPressed: () => r.relatedLessonId != null ? nav.lesson(r.relatedLessonId!) : nav.askTutor('Jelaskan tentang ${r.question['topic'] ?? 'soal ini'}'),
@@ -409,6 +516,48 @@ class _LatihanTabState extends State<LatihanTab> {
           ),
         ]),
       ),
+    );
+  }
+
+  Widget _scaffold(BandTheme t, Map<String, dynamic> sc) {
+    final example = (sc['example'] ?? '') as String;
+    final steps = ((sc['steps'] as List?) ?? const []).map((e) => e.toString()).toList();
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: Palette.surface, borderRadius: BorderRadius.circular(t.radiusSmall), border: Border.all(color: t.soft, width: 2)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(Icons.stairs_rounded, color: t.ink),
+          const SizedBox(width: 8),
+          Text('Langkah kecil', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: t.ink)),
+        ]),
+        if (example.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text('Lihat contoh dulu:', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+          Text(example, style: const TextStyle(fontSize: 15, height: 1.5)),
+        ],
+        if (steps.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          for (var i = 0; i < _stepsShown && i < steps.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Container(width: 24, height: 24, alignment: Alignment.center, decoration: BoxDecoration(color: t.accent, shape: BoxShape.circle), child: Text('${i + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12))),
+                const SizedBox(width: 10),
+                Expanded(child: Text(steps[i], style: const TextStyle(fontSize: 15, height: 1.45))),
+              ]),
+            ),
+          if (_stepsShown < steps.length)
+            TextButton(
+              onPressed: () => setState(() => _stepsShown++),
+              style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(0, 44)),
+              child: Text(_stepsShown == 0 ? 'Tunjukkan langkah pertama' : 'Langkah berikutnya (${_stepsShown + 1} dari ${steps.length})', style: const TextStyle(fontWeight: FontWeight.w700)),
+            )
+          else
+            const Text('Sekarang coba lagi soalnya, atau minta soal serupa.', style: TextStyle(fontSize: 13, color: Palette.muted)),
+        ],
+      ]),
     );
   }
 
@@ -450,7 +599,7 @@ class _LatihanTabState extends State<LatihanTab> {
       if (app.pending > 0) ...[const SizedBox(height: 12), Notice('${app.pending} jawaban tersimpan di perangkat dan akan tersinkron saat online.')],
       const SizedBox(height: 16),
       if (wrong > 0) ...[PrimaryButton(label: 'Ulangi soal yang salah ($wrong)', color: t.accent, radius: t.radiusSmall, onPressed: _retryWrong), const SizedBox(height: 12)],
-      SecondaryButton(label: 'Latihan dari awal', radius: t.radiusSmall, onPressed: () => _init(_topicId)),
+      SecondaryButton(label: _mode == 'review' ? 'Cek soal ulang lainnya' : 'Latihan dari awal', radius: t.radiusSmall, onPressed: () => _init(_topicId, mode: _mode)),
     ]);
   }
 }

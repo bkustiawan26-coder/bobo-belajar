@@ -1,5 +1,6 @@
 import random
 import uuid
+from typing import Literal
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -14,7 +15,7 @@ from app.models import (
     Assessment, AssessmentAnswer, AssessmentQuestion, AssessmentResult, AssessmentSession, AssessmentTemplate, Chapter, ExerciseAttempt,
     Grade, Lesson, LessonProgress, ParentProfile, Question, StudentProfile, Subject, SyncJob, Topic,
 )
-from app.services import learning
+from app.services import learning, support
 from app.services.ai import service as ai
 from app.services.grading import answer_text, grade, response_text
 
@@ -35,7 +36,9 @@ def _topic_grade(db: Session, topic_id: int) -> tuple[Topic, int, Subject] | Non
     return (row[0], row[1], row[2]) if row else None
 
 
-def question_payload(q: Question, topic_title: str | None = None, order: list[int] | None = None, with_key: bool = False) -> dict:
+def question_payload(q: Question, topic_title: str | None = None, order: list[int] | None = None, with_key: bool = False, student: StudentProfile | None = None) -> dict:
+    if order is None and student is not None:
+        order = support.keep_options(q, student)
     opts = {o.position: o for o in q.options}
     seq = order if order else sorted(opts)
     d = {
@@ -47,6 +50,7 @@ def question_payload(q: Question, topic_title: str | None = None, order: list[in
         d["answer_text"] = answer_text(q)
         d["explanation"] = q.explanation.explanation if q.explanation else ""
         d["mistake_hint"] = q.explanation.mistake_hint if q.explanation else None
+        d["scaffold"] = q.scaffold
     return d
 
 
@@ -61,7 +65,7 @@ def lesson_payload(l: Lesson, prog: LessonProgress | None) -> dict:
 @router.get("/me")
 def me(ctx: StudentCtx = Depends(current_student)):
     s = ctx.student
-    return {"id": str(s.id), "nickname": s.nickname, "grade": s.grade_number, "level": learning.level(s.grade_number), "phase": learning.phase(s.grade_number), "band": learning.band(s.grade_number)}
+    return {"id": str(s.id), "nickname": s.nickname, "grade": s.grade_number, "level": learning.level(s.grade_number), "phase": learning.phase(s.grade_number), "band": learning.band(s.grade_number), "settings": support.clean_settings(s.settings)}
 
 
 @router.get("/catalog")
@@ -96,8 +100,7 @@ def _lesson_for_student(db: Session, s: StudentProfile, lesson_id: int) -> Lesso
     l = db.get(Lesson, lesson_id)
     if l is None or l.status != "published":
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Materi tidak ditemukan")
-    tg = _topic_grade(db, l.topic_id)
-    if tg is None or tg[1] != s.grade_number:
+    if l.topic_id not in support.allowed_topic_ids(db, s):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Materi tidak ditemukan")
     return l
 
@@ -138,23 +141,58 @@ def _apply_progress(db: Session, s: StudentProfile, l: Lesson, step: int, comple
     return {"lesson_id": l.id, "step": p.step, "completed": p.completed_at is not None, "downloaded": p.downloaded}
 
 
-def _grade_questions(db: Session, s: StudentProfile, usage: tuple[str, ...]):
-    v = learning.active_version(db)
-    if v is None:
-        return select(Question).where(Question.id == -1)
+def _grade_questions(db: Session, s: StudentProfile, usage: tuple[str, ...], allowed: set[int] | None = None):
+    allowed = allowed if allowed is not None else support.allowed_topic_ids(db, s)
     return (
-        select(Question, Topic.title).join(Topic, Topic.id == Question.topic_id).join(Chapter, Chapter.id == Topic.chapter_id).join(Subject, Subject.id == Chapter.subject_id).join(Grade, Grade.id == Subject.grade_id)
-        .where(Grade.number == s.grade_number, Subject.curriculum_version_id == v.id, Question.status == "published", Question.usage.in_(usage), Question.type != "essay")
+        select(Question, Topic.title).join(Topic, Topic.id == Question.topic_id)
+        .where(Question.topic_id.in_(allowed or {-1}), Question.status == "published", Question.usage.in_(usage), Question.type != "essay")
     )
+
+
+def _own_grade_ids(db: Session, s: StudentProfile) -> set[int]:
+    return {t.id for t in learning.grade_topics(db, s.grade_number)}
 
 
 @router.get("/practice")
 def practice(topic_id: int | None = None, ctx: StudentCtx = Depends(current_student), db: Session = Depends(get_db)):
-    q = _grade_questions(db, ctx.student, ("practice", "both"))
+    allowed = support.allowed_topic_ids(db, ctx.student) if topic_id is not None else _own_grade_ids(db, ctx.student)
+    q = _grade_questions(db, ctx.student, ("practice", "both"), allowed)
     if topic_id is not None:
         q = q.where(Question.topic_id == topic_id)
     rows = db.execute(q.order_by(Topic.sort_order, Question.id)).all()
-    return {"questions": [question_payload(r[0], r[1]) for r in rows]}
+    return {"questions": [question_payload(r[0], r[1], student=ctx.student) for r in rows]}
+
+
+@router.get("/practice/similar")
+def similar(question_id: int, ctx: StudentCtx = Depends(current_student), db: Session = Depends(get_db)):
+    base = db.get(Question, question_id)
+    if base is None or base.topic_id not in support.allowed_topic_ids(db, ctx.student):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Soal tidak ditemukan")
+    rank = {"mudah": 0, "sedang": 1, "menantang": 2}
+    rows = db.execute(_grade_questions(db, ctx.student, ("practice", "both")).where(Question.topic_id == base.topic_id, Question.id != base.id)).all()
+    solved = set(db.scalars(select(ExerciseAttempt.question_id).where(ExerciseAttempt.student_id == ctx.student.id, ExerciseAttempt.is_correct.is_(True))))
+    cands = sorted(rows, key=lambda r: (rank.get(r[0].difficulty, 1) > rank.get(base.difficulty, 1), r[0].id in solved, rank.get(r[0].difficulty, 1), r[0].id))
+    if not cands:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Belum ada soal serupa")
+    return question_payload(cands[0][0], cands[0][1], student=ctx.student)
+
+
+@router.get("/review")
+def review(ctx: StudentCtx = Depends(current_student), db: Session = Depends(get_db)):
+    items = support.due_reviews(db, ctx.student.id, limit=5)
+    qs = {q.id: q for q in db.scalars(select(Question).where(Question.id.in_([i.question_id for i in items]), Question.status == "published"))}
+    titles = dict(db.execute(select(Topic.id, Topic.title).where(Topic.id.in_([q.topic_id for q in qs.values()]))).all())
+    return {"due": support.due_count(db, ctx.student.id), "questions": [question_payload(qs[i.question_id], titles.get(qs[i.question_id].topic_id), student=ctx.student) for i in items if i.question_id in qs]}
+
+
+@router.get("/foundation")
+def foundation(ctx: StudentCtx = Depends(current_student), db: Session = Depends(get_db)):
+    return {"topics": support.foundation_suggestions(db, ctx.student)}
+
+
+@router.get("/growth")
+def growth(ctx: StudentCtx = Depends(current_student), db: Session = Depends(get_db)):
+    return support.growth(db, ctx.student)
 
 
 class AttemptIn(BaseModel):
@@ -162,6 +200,7 @@ class AttemptIn(BaseModel):
     question_id: int
     response: dict | None
     answered_at: datetime | None = None
+    mode: Literal["practice", "review", "foundation"] = "practice"
 
 
 def _record_attempt(db: Session, s: StudentProfile, a: AttemptIn, offline: bool) -> tuple[dict, str]:
@@ -182,7 +221,9 @@ def _record_attempt(db: Session, s: StudentProfile, a: AttemptIn, offline: bool)
     if when > now + timedelta(minutes=5) or when < now - timedelta(days=30):
         return {"client_uuid": str(a.client_uuid), "error": "waktu jawaban tidak valid"}, "rejected"
     ok = bool(grade(q, a.response))
-    db.add(ExerciseAttempt(client_uuid=a.client_uuid, student_id=s.id, question_id=q.id, topic_id=q.topic_id, response=a.response, is_correct=ok, source="latihan", answered_at=when, synced_offline=offline))
+    source = {"practice": "latihan", "review": "review", "foundation": "pondasi"}[a.mode]
+    db.add(ExerciseAttempt(client_uuid=a.client_uuid, student_id=s.id, question_id=q.id, topic_id=q.topic_id, response=a.response, is_correct=ok, source=source, answered_at=when, synced_offline=offline))
+    support.schedule_review(db, s.id, q, ok, a.mode)
     db.flush()
     return _attempt_result(db, q, ok, a.client_uuid), "accepted"
 
@@ -193,7 +234,7 @@ def _attempt_result(db: Session, q: Question, ok: bool, cu: uuid.UUID) -> dict:
     return {
         "client_uuid": str(cu), "question_id": q.id, "correct": ok, "correct_answer": answer_text(q), "answer_key": q.answer,
         "explanation": q.explanation.explanation if q.explanation else "", "mistake_hint": None if ok else (q.explanation.mistake_hint if q.explanation else None),
-        "topic_id": q.topic_id, "topic": topic.title if topic else None, "related_lesson_id": lesson,
+        "topic_id": q.topic_id, "topic": topic.title if topic else None, "related_lesson_id": lesson, "scaffold": None if ok else q.scaffold,
     }
 
 
@@ -266,9 +307,9 @@ def offline_pack(ctx: StudentCtx = Depends(current_student), db: Session = Depen
                 db.add(p)
             p.downloaded = True
             lessons.append(lesson_payload(l, p))
-    rows = db.execute(_grade_questions(db, s, ("practice", "both"))).all()
+    rows = db.execute(_grade_questions(db, s, ("practice", "both"), _own_grade_ids(db, s))).all()
     db.commit()
-    return {"generated_at": utcnow().isoformat(), "grade": s.grade_number, "lessons": lessons, "questions": [question_payload(r[0], r[1], with_key=True) for r in rows], "note": "Paket latihan offline. Asesmen formal tidak tersedia offline."}
+    return {"generated_at": utcnow().isoformat(), "grade": s.grade_number, "lessons": lessons, "questions": [question_payload(r[0], r[1], with_key=True, student=s) for r in rows], "note": "Paket latihan offline. Asesmen formal tidak tersedia offline."}
 
 
 @router.get("/home")
@@ -291,7 +332,8 @@ def home(ctx: StudentCtx = Depends(current_student), db: Session = Depends(get_d
             l, p = pick
             sub = db.execute(select(Subject.name).join(Chapter, Chapter.subject_id == Subject.id).join(Topic, Topic.chapter_id == Chapter.id).where(Topic.id == l.topic_id)).scalar()
             cont = {"lesson_id": l.id, "title": l.title, "subject": sub, "step": p.step if p else 0, "block_count": len(l.blocks), "completed": bool(p and p.completed_at)}
-    return {"targets": learning.today_targets(db, s, quota["used"]), "continue_lesson": cont, "developing_topics": [{"topic_id": x["topic_id"], "topic": x["topic"]} for x in m if x["state"] == "developing"], "tutor_quota": quota}
+    return {"targets": learning.today_targets(db, s, quota["used"]), "continue_lesson": cont, "developing_topics": [{"topic_id": x["topic_id"], "topic": x["topic"]} for x in m if x["state"] == "developing"], "tutor_quota": quota,
+            "review_due": support.due_count(db, s.id), "foundation": support.foundation_suggestions(db, s), "settings": support.clean_settings(s.settings)}
 
 
 @router.get("/progress")
@@ -303,11 +345,12 @@ class TutorIn(BaseModel):
     text: str = Field(min_length=1, max_length=500)
     conversation_id: uuid.UUID | None = None
     topic_id: int | None = None
+    style: Literal["story", "visual", "steps"] | None = None
 
 
 @router.post("/tutor/messages")
 def tutor(body: TutorIn, ctx: StudentCtx = Depends(current_student), db: Session = Depends(get_db)):
-    return ai.tutor_reply(db, ctx.student, _parent(db, ctx), body.text.strip(), body.conversation_id, body.topic_id)
+    return ai.tutor_reply(db, ctx.student, _parent(db, ctx), body.text.strip(), body.conversation_id, body.topic_id, body.style)
 
 
 @router.get("/tutor/quota")

@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from app.core.db import utcnow
 from app.models import (
     AIModel, AIPromptVersion, AIProvider, Assessment, AssessmentQuestion, AssessmentTemplate, Chapter, CurriculumSource, CurriculumVersion,
-    EducationLevel, Grade, Lesson, LessonBlock, Question, QuestionExplanation, QuestionOption, QuestionSource, Subject, SubscriptionEntitlement, Topic,
+    EducationLevel, Grade, Lesson, TopicPrerequisite, LessonBlock, Question, QuestionExplanation, QuestionOption, QuestionSource, Subject, SubscriptionEntitlement, Topic,
 )
-from app.seed.sample_content import SAMPLE, SUBJECTS
+from app.seed.sample_content import PREREQUISITES, SAMPLE, SCAFFOLDS, SUBJECTS
 from app.services.ai import retrieval
 from app.services.ai.service import PARENT_PROMPT, TUTOR_PROMPT
 from app.services.learning import band
@@ -95,8 +95,8 @@ def seed_sample(db: Session, v: CurriculumVersion, publish: bool) -> int:
         if publish:
             retrieval.index_lesson(db, lesson, grade_no)
 
-        def mkq(qtype, body, opts, ans, exp, hint, tidx, diff, usage):
-            q = Question(topic_id=topics[tidx].id, type=qtype, body=body, difficulty=diff, answer=ans, usage=usage, status=status_, version=1 if publish else 0, is_sample=True, published_at=utcnow() if publish else None)
+        def mkq(qtype, body, opts, ans, exp, hint, tidx, diff, usage, scaffold=None):
+            q = Question(topic_id=topics[tidx].id, type=qtype, body=body, difficulty=diff, answer=ans, usage=usage, scaffold=scaffold, status=status_, version=1 if publish else 0, is_sample=True, published_at=utcnow() if publish else None)
             for j, label in enumerate(opts):
                 q.options.append(QuestionOption(position=j, label=label))
             q.explanation = QuestionExplanation(explanation=exp, mistake_hint=hint)
@@ -104,8 +104,8 @@ def seed_sample(db: Session, v: CurriculumVersion, publish: bool) -> int:
             db.add(q)
             return q
 
-        for qtype, body, opts, ans, exp, hint, tidx, diff in data["practice"]:
-            q = mkq(qtype, body, opts, ans, exp, hint, tidx, diff, "practice")
+        for qi, (qtype, body, opts, ans, exp, hint, tidx, diff) in enumerate(data["practice"]):
+            q = mkq(qtype, body, opts, ans, exp, hint, tidx, diff, "practice", SCAFFOLDS.get(grade_no, [None] * 10)[qi])
             db.flush()
             if publish:
                 retrieval.index_question(db, q, grade_no, topics[tidx].title)
@@ -122,8 +122,24 @@ def seed_sample(db: Session, v: CurriculumVersion, publish: bool) -> int:
     return created
 
 
+def seed_prerequisites(db: Session, v: CurriculumVersion) -> int:
+    def find(grade, title):
+        return db.scalar(select(Topic).join(Chapter, Chapter.id == Topic.chapter_id).join(Subject, Subject.id == Chapter.subject_id).join(Grade, Grade.id == Subject.grade_id)
+                         .where(Grade.number == grade, Topic.title == title, Subject.curriculum_version_id == v.id))
+    n = 0
+    for g, t, pg, pt in PREREQUISITES:
+        a, b = find(g, t), find(pg, pt)
+        if a and b and db.scalar(select(TopicPrerequisite.id).where(TopicPrerequisite.topic_id == a.id, TopicPrerequisite.prerequisite_topic_id == b.id)) is None:
+            db.add(TopicPrerequisite(topic_id=a.id, prerequisite_topic_id=b.id))
+            n += 1
+    return n
+
+
 def run(db: Session, sample: bool, publish_sample: bool) -> dict:
     v = seed_base(db)
     n = seed_sample(db, v, publish_sample) if sample else 0
+    if sample:
+        db.flush()
+        seed_prerequisites(db, v)
     db.commit()
     return {"curriculum_version_id": v.id, "sample_items": n}

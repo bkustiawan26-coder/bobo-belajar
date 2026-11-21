@@ -53,6 +53,9 @@ class GroundedProvider:
         return GenResult(out, approx_tokens(req.system + req.user), approx_tokens(out), self.name, self.model)
 
     def _tutor(self, req: GenRequest) -> str:
+        style = req.extras.get("style")
+        if style and req.passages:
+            return self._styled(req, style)
         if not req.passages:
             scope = req.extras.get("scope") or "materi yang tersedia"
             return f"Aku hanya menjawab dari materi BOBO yang sudah ditinjau, yaitu {scope}. Coba tanyakan dengan kata kunci dari materi itu, atau minta bantuan orang tua dan gurumu."
@@ -67,6 +70,26 @@ class GroundedProvider:
         topic = top.topic or top.title
         tail = f"\n\nMau coba latihan soal tentang {topic}? Buka menu Latihan." if topic else ""
         return body + tail
+
+
+    def _styled(self, req: GenRequest, style: str) -> str:
+        top = req.passages[0]
+        sentences = _sentences(top.content)
+        topic = (top.topic or top.title or "").lower()
+        if style == "steps":
+            steps = sentences[:4]
+            return "Langkah demi langkah:\n" + "\n".join(f"{i + 1}. {x}" for i, x in enumerate(steps)) + "\n\nCoba ikuti langkahnya satu per satu, lalu kerjakan satu soal di Latihan."
+        if style == "story":
+            if "pecahan" in topic:
+                frame = "kamu dan temanmu berbagi satu martabak yang dipotong sama besar"
+            elif "pythagoras" in topic or "segitiga" in topic:
+                frame = "sebuah tangga bersandar ke dinding, membentuk segitiga siku-siku dengan lantai"
+            elif "jumlah" in topic or "kurang" in topic or "cerita" in topic:
+                frame = "kamu mengumpulkan kelereng dari dua kantong lalu menghitung semuanya"
+            else:
+                frame = "kamu sedang menjelaskan hal ini kepada adikmu"
+            return f"Bayangkan {frame}. " + " ".join(sentences[:2]) + "\n\nSekarang coba ceritakan ulang dengan kata-katamu sendiri."
+        return "Lihat gambarnya, lalu coba sendiri di Alat peraga. " + " ".join(sentences[:2])
 
 
 class AnthropicProvider:

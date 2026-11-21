@@ -69,3 +69,15 @@ class LearningRecommendation(Base, TimestampMixin):
     evidence_data: Mapped[dict] = mapped_column(JSON, nullable=False)
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     done_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ReviewItem(Base, TimestampMixin):
+    __tablename__ = "review_items"
+    __table_args__ = (UniqueConstraint("student_id", "question_id"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    student_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("student_profiles.id", ondelete="CASCADE"), index=True, nullable=False)
+    question_id: Mapped[int] = mapped_column(ForeignKey("questions.id", ondelete="CASCADE"), nullable=False)
+    topic_id: Mapped[int] = mapped_column(ForeignKey("topics.id", ondelete="CASCADE"), nullable=False)
+    step: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True, nullable=False)
+    last_correct: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

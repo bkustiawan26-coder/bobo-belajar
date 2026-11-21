@@ -85,3 +85,11 @@ class LearningObjective(Base, TimestampMixin):
     description: Mapped[str] = mapped_column(Text, nullable=False)
     source_id: Mapped[int | None] = mapped_column(ForeignKey("curriculum_sources.id", ondelete="SET NULL"))
     status: Mapped[str] = mapped_column(String(20), default="unverified", nullable=False)
+
+
+class TopicPrerequisite(Base, TimestampMixin):
+    __tablename__ = "topic_prerequisites"
+    __table_args__ = (UniqueConstraint("topic_id", "prerequisite_topic_id"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    topic_id: Mapped[int] = mapped_column(ForeignKey("topics.id", ondelete="CASCADE"), index=True, nullable=False)
+    prerequisite_topic_id: Mapped[int] = mapped_column(ForeignKey("topics.id", ondelete="CASCADE"), index=True, nullable=False)

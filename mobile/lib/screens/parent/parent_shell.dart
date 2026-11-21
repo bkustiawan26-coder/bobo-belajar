@@ -3,12 +3,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_state.dart';
 import '../../core/api.dart';
 import '../../core/models.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
+import '../child/growth_screen.dart';
 
 class ParentShell extends StatefulWidget {
   const ParentShell({super.key});
@@ -180,6 +183,8 @@ class _DashboardTab extends StatelessWidget {
         final top = d['top_recommendation'] == null ? null : asMap(d['top_recommendation']);
         final mastery = asList(d['mastery']);
         final activity = asList(d['activity']);
+        final signals = asList(d['signals']);
+        final reviewDue = (d['review_due'] as num?)?.toInt() ?? 0;
         final tiles = [
           ('Materi selesai', '${k['lessons_completed']}', 'topik dibaca sampai tuntas'),
           ('Soal dikerjakan', '${k['answers_total']}', 'latihan dan asesmen'),
@@ -219,6 +224,16 @@ class _DashboardTab extends StatelessWidget {
                 ),
             ],
           ),
+          for (final sg in signals) ...[
+            const SizedBox(height: 16),
+            _SignalCard(signal: sg),
+          ],
+          if (reviewDue > 0) ...[
+            const SizedBox(height: 16),
+            Notice('$reviewDue soal yang dulu salah dijadwalkan untuk diulang. Ingatkan ${child.nickname} membuka kartu "Ulang sebentar" di Beranda.', fg: Palette.inkSoft, bg: const Color(0xFFF1F5F9)),
+          ],
+          const SizedBox(height: 16),
+          _SummaryCard(child: child),
           if (top != null) ...[
             const SizedBox(height: 16),
             AppCard(
@@ -346,6 +361,9 @@ class _ProgressTab extends StatelessWidget {
               ]),
             ),
           const SizedBox(height: 16),
+          const SectionTitle('Pertumbuhan'),
+          _GrowthSection(child: child),
+          const SizedBox(height: 16),
           AppCard(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -443,6 +461,7 @@ class _RecsTab extends StatelessWidget {
       'practice' => (Palette.devInk, Palette.devSoft),
       'evidence' => (Palette.warnInk, Palette.warnSoft),
       'maintain' => (Palette.okInk, Palette.okSoft),
+      'foundation' => (const Color(0xFF7C2D12), const Color(0xFFFFEDD5)),
       _ => (Palette.inkSoft, Palette.neutralSoft),
     };
     return Tag(label, fg: fg, bg: bg);
@@ -724,6 +743,8 @@ class _ChildrenTabState extends State<_ChildrenTab> {
             const SizedBox(height: 10),
             Text('Tutor hari ini: ${c.tutorToday} dari ${c.tutorLimit} pertanyaan', style: const TextStyle(fontSize: 13, color: Palette.inkSoft)),
             Text(c.safetyRefusals > 0 ? '${c.safetyRefusals} permintaan tidak aman ditolak Tutor' : 'Tidak ada permintaan tidak aman ke Tutor', style: const TextStyle(fontSize: 13, color: Palette.inkSoft)),
+            const SizedBox(height: 6),
+            _SettingsPanel(child: c),
             const SizedBox(height: 8),
             Align(alignment: Alignment.centerLeft, child: TextButton.icon(onPressed: () => _delete(c), icon: const Icon(Icons.delete_outline_rounded, size: 18), label: const Text('Hapus profil'), style: TextButton.styleFrom(foregroundColor: Palette.bad))),
           ]),
@@ -773,6 +794,243 @@ class _ChildrenTabState extends State<_ChildrenTab> {
       SecondaryButton(label: 'Keluar dari perangkat ini', icon: Icons.logout_rounded, onPressed: () => app.logout()),
       const SizedBox(height: 10),
       SecondaryButton(label: 'Hapus akun', icon: Icons.delete_forever_outlined, foreground: Palette.bad, onPressed: _deleteAccount),
+      const SizedBox(height: 10),
+      TextButton.icon(
+        onPressed: () async {
+          final uri = Uri.parse('${app.serverUrl.replaceAll(RegExp(r'/+$'), '')}/privacy');
+          if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && context.mounted) {
+            showToast(context, 'Tidak bisa membuka kebijakan privasi.');
+          }
+        },
+        icon: const Icon(Icons.privacy_tip_outlined, size: 18),
+        label: const Text('Kebijakan privasi'),
+        style: TextButton.styleFrom(foregroundColor: Palette.parent, minimumSize: const Size(0, 44)),
+      ),
+    ]);
+  }
+}
+
+
+class _SignalCard extends StatefulWidget {
+  const _SignalCard({required this.signal});
+
+  final Map<String, dynamic> signal;
+
+  @override
+  State<_SignalCard> createState() => _SignalCardState();
+}
+
+class _SignalCardState extends State<_SignalCard> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final plan = asList(widget.signal['plan']);
+    return AppCard(
+      color: Palette.warnSoft,
+      borderColor: const Color(0xFFFCD34D),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Row(children: [
+          Icon(Icons.flag_outlined, color: Palette.warnInk),
+          SizedBox(width: 8),
+          Expanded(child: Text('Perlu pendampingan', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Palette.warnInk))),
+        ]),
+        const SizedBox(height: 8),
+        Text(widget.signal['message'] as String, style: const TextStyle(fontSize: 14, height: 1.5)),
+        const SizedBox(height: 4),
+        const Text('Ini sinyal dari pola latihan, bukan diagnosis. Wajar jika anak butuh waktu lebih lama di satu topik.', style: TextStyle(fontSize: 12, color: Palette.inkSoft, height: 1.45)),
+        if (plan.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () => setState(() => _open = !_open),
+            icon: Icon(_open ? Icons.expand_less_rounded : Icons.expand_more_rounded),
+            label: Text(_open ? 'Tutup rencana' : 'Lihat rencana 7 hari'),
+            style: TextButton.styleFrom(foregroundColor: Palette.warnInk, minimumSize: const Size(0, 44)),
+          ),
+          if (_open)
+            for (final p in plan)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  SizedBox(width: 64, child: Text(p['day'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800))),
+                  Expanded(child: Text(p['task'] as String, style: const TextStyle(fontSize: 13, height: 1.45))),
+                ]),
+              ),
+        ],
+      ]),
+    );
+  }
+}
+
+class _SummaryCard extends StatefulWidget {
+  const _SummaryCard({required this.child});
+
+  final ChildInfo child;
+
+  @override
+  State<_SummaryCard> createState() => _SummaryCardState();
+}
+
+class _SummaryCardState extends State<_SummaryCard> {
+  bool _busy = false;
+
+  Future<String?> _fetch() async {
+    final app = context.read<AppState>();
+    setState(() => _busy = true);
+    try {
+      final r = asMap(await app.parent('GET', '/parent/children/${widget.child.id}/summary'));
+      return r['text'] as String;
+    } on ApiException catch (e) {
+      if (mounted) {
+        showToast(context, e.message);
+      }
+      return null;
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
+
+  Future<void> _preview() async {
+    final text = await _fetch();
+    if (text == null || !mounted) {
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.7,
+        builder: (ctx, sc) => ListView(controller: sc, padding: const EdgeInsets.fromLTRB(20, 0, 20, 24), children: [
+          const Text('Ringkasan untuk guru', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 12),
+          SelectableText(text, style: const TextStyle(fontSize: 14, height: 1.55)),
+          const SizedBox(height: 16),
+          PrimaryButton(label: 'Bagikan', icon: Icons.share_rounded, onPressed: () => SharePlus.instance.share(ShareParams(text: text, subject: 'Ringkasan belajar ${widget.child.nickname}'))),
+          const SizedBox(height: 8),
+          SecondaryButton(
+            label: 'Salin teks',
+            icon: Icons.copy_rounded,
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: text));
+              if (ctx.mounted) {
+                showToast(ctx, 'Ringkasan disalin.');
+              }
+            },
+          ),
+        ]),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Row(children: [
+        const Icon(Icons.description_outlined, color: Palette.parent),
+        const SizedBox(width: 12),
+        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Ringkasan untuk guru', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+          Text('Teks singkat 30 hari terakhir untuk dibagikan lewat WhatsApp atau email. Bukan rapor resmi.', style: TextStyle(fontSize: 12, color: Palette.muted, height: 1.4)),
+        ])),
+        const SizedBox(width: 8),
+        _busy
+            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5))
+            : IconButton(onPressed: _preview, icon: const Icon(Icons.share_rounded), color: Palette.parent, tooltip: 'Lihat dan bagikan ringkasan'),
+      ]),
+    );
+  }
+}
+
+class _GrowthSection extends StatelessWidget {
+  const _GrowthSection({required this.child});
+
+  final ChildInfo child;
+
+  @override
+  Widget build(BuildContext context) {
+    final app = context.read<AppState>();
+    return FutureBuilder<Map<String, dynamic>>(
+      future: app.parent('GET', '/parent/children/${child.id}/growth').then(asMap),
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return const AppCard(child: Text('Data pertumbuhan belum bisa dimuat.', style: TextStyle(color: Palette.muted)));
+        }
+        if (!snap.hasData) {
+          return const Padding(padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator()));
+        }
+        return GrowthView(data: snap.data!, theme: BandTheme.forGrade(child.grade), forParent: true);
+      },
+    );
+  }
+}
+
+class _SettingsPanel extends StatefulWidget {
+  const _SettingsPanel({required this.child});
+
+  final ChildInfo child;
+
+  @override
+  State<_SettingsPanel> createState() => _SettingsPanelState();
+}
+
+class _SettingsPanelState extends State<_SettingsPanel> {
+  late Map<String, bool> _s = Map.of(widget.child.settings);
+  bool _open = false;
+  String? _saving;
+
+  static const _items = [
+    ('short_sessions', 'Sesi pendek', 'Latihan 3 soal per sesi supaya tidak cepat lelah.'),
+    ('larger_text', 'Huruf lebih besar', 'Semua tulisan di mode anak diperbesar.'),
+    ('fewer_options', 'Pilihan lebih sedikit', 'Satu pilihan salah disembunyikan di soal pilihan ganda.'),
+    ('read_aloud', 'Bacakan otomatis', 'Soal, materi, dan jawaban Tutor dibacakan dengan suara.'),
+  ];
+
+  Future<void> _toggle(String key, bool v) async {
+    final app = context.read<AppState>();
+    final prev = Map.of(_s);
+    setState(() {
+      _s[key] = v;
+      _saving = key;
+    });
+    try {
+      await app.parent('PATCH', '/parent/children/${widget.child.id}', body: {'settings': _s});
+      await app.loadChildren();
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => _s = prev);
+        showToast(context, e.message);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _saving = null);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final on = _s.values.where((v) => v).length;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      TextButton.icon(
+        onPressed: () => setState(() => _open = !_open),
+        icon: const Icon(Icons.tune_rounded, size: 18),
+        label: Text(on == 0 ? 'Bantuan belajar' : 'Bantuan belajar ($on aktif)'),
+        style: TextButton.styleFrom(foregroundColor: Palette.parent, minimumSize: const Size(0, 44)),
+      ),
+      if (_open)
+        for (final (key, title, desc) in _items)
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            value: _s[key] == true,
+            onChanged: _saving != null ? null : (v) => _toggle(key, v),
+            title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+            subtitle: Text(desc, style: const TextStyle(fontSize: 12, color: Palette.muted)),
+            activeTrackColor: Palette.parent,
+          ),
     ]);
   }
 }

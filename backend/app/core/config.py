@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     premium_parent_assistant_daily_limit: int = 40
 
     privacy_policy_version: str = "2026-11"
+    operator_name: str | None = None
+    privacy_contact_email: str | None = None
 
     @field_validator("jwt_secret")
     @classmethod

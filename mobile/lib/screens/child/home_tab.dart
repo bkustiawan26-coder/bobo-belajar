@@ -6,6 +6,7 @@ import '../../core/models.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
 import 'child_shell.dart';
+import 'growth_screen.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -73,6 +74,8 @@ class _HomeTabState extends State<HomeTab> {
     final cont = _home == null ? null : (_home!['continue_lesson'] == null ? null : asMap(_home!['continue_lesson']));
     final targets = _home == null ? <Map<String, dynamic>>[] : asList(_home!['targets']);
     final dev = _home == null ? <Map<String, dynamic>>[] : asList(_home!['developing_topics']);
+    final reviewDue = _home == null ? 0 : ((_home!['review_due'] as num?)?.toInt() ?? 0);
+    final foundation = _home == null ? <Map<String, dynamic>>[] : asList(_home!['foundation']);
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(padding: const EdgeInsets.all(20), children: [
@@ -101,6 +104,51 @@ class _HomeTabState extends State<HomeTab> {
               const Text('Tim konten BOBO sedang menyusun dan meninjau materi untuk kelasmu. Materi baru muncul setelah lolos review.', style: TextStyle(fontSize: 14, color: Palette.muted, height: 1.5)),
             ]),
           ),
+        if (reviewDue > 0) ...[
+          const SizedBox(height: 16),
+          _ActionCard(
+            theme: t,
+            icon: Icons.replay_rounded,
+            title: 'Ulang sebentar',
+            body: '$reviewDue soal yang dulu belum tepat siap diulang. Cuma sebentar, kok.',
+            button: 'Mulai ulang',
+            onTap: () => nav.practice(null, mode: 'review'),
+          ),
+        ],
+        for (final f in foundation) ...[
+          const SizedBox(height: 16),
+          _ActionCard(
+            theme: t,
+            icon: Icons.foundation_rounded,
+            title: 'Pondasi: ${f['topic']}',
+            body: 'Supaya ${f['for_topic']} lebih mudah, perkuat dulu dasarnya${f['grade'] != c.grade ? ' dari Kelas ${f['grade']}' : ''}.',
+            button: f['lesson_id'] != null ? 'Baca materinya' : 'Latihan dasar',
+            onTap: () => f['lesson_id'] != null ? nav.lesson(f['lesson_id'] as int) : nav.practice(f['topic_id'] as int, mode: 'foundation'),
+            secondary: (f['question_count'] as num) > 0 ? 'Latihan ${f['question_count']} soal' : null,
+            onSecondary: () => nav.practice(f['topic_id'] as int, mode: 'foundation'),
+          ),
+        ],
+        const SizedBox(height: 16),
+        Material(
+          color: Palette.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(t.radius), side: const BorderSide(color: Palette.border)),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(t.radius),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => GrowthScreen(theme: t, load: () async => asMap(await app.student('GET', '/student/growth'))))),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(children: [
+                Container(width: 44, height: 44, decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)), child: Icon(Icons.trending_up_rounded, color: t.ink)),
+                const SizedBox(width: 14),
+                const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Kemajuanku', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                  Text('Lihat perkembanganmu dan lencana usaha', style: TextStyle(fontSize: 13, color: Palette.muted)),
+                ])),
+                const Icon(Icons.chevron_right_rounded, color: Palette.muted),
+              ]),
+            ),
+          ),
+        ),
         const SizedBox(height: 20),
         if (targets.isNotEmpty)
           AppCard(
@@ -207,6 +255,52 @@ class _ContinueCard extends StatelessWidget {
           style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: theme.ink, minimumSize: const Size(0, 48), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(theme.radiusSmall))),
           child: Text(done ? 'Buka lagi' : (step > 0 ? 'Lanjut belajar' : 'Mulai'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
         ),
+      ]),
+    );
+  }
+}
+
+
+class _ActionCard extends StatelessWidget {
+  const _ActionCard({required this.theme, required this.icon, required this.title, required this.body, required this.button, required this.onTap, this.secondary, this.onSecondary});
+
+  final BandTheme theme;
+  final IconData icon;
+  final String title;
+  final String body;
+  final String button;
+  final VoidCallback onTap;
+  final String? secondary;
+  final VoidCallback? onSecondary;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      radius: theme.radius,
+      color: theme.soft,
+      borderColor: theme.soft,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(icon, color: theme.ink),
+          const SizedBox(width: 8),
+          Expanded(child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: theme.ink))),
+        ]),
+        const SizedBox(height: 6),
+        Text(body, style: TextStyle(fontSize: theme.body - 1, height: 1.45, color: Palette.ink)),
+        const SizedBox(height: 12),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          FilledButton(
+            onPressed: onTap,
+            style: FilledButton.styleFrom(backgroundColor: theme.accent, minimumSize: const Size(0, 44), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(theme.radiusSmall))),
+            child: Text(button, style: const TextStyle(fontWeight: FontWeight.w700)),
+          ),
+          if (secondary != null)
+            OutlinedButton(
+              onPressed: onSecondary,
+              style: OutlinedButton.styleFrom(backgroundColor: Palette.surface, foregroundColor: theme.ink, minimumSize: const Size(0, 44), side: BorderSide(color: theme.accent), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(theme.radiusSmall))),
+              child: Text(secondary!, style: const TextStyle(fontWeight: FontWeight.w700)),
+            ),
+        ]),
       ]),
     );
   }

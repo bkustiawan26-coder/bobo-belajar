@@ -125,6 +125,10 @@ def refresh_recommendations(db: Session, student: StudentProfile) -> None:
             wanted[f"ins:{x['topic_id']}"] = dict(kind="evidence", topic_id=x["topic_id"], title=f"Ajak {student.nickname} mengerjakan {need} soal {x['topic']} lagi", evidence=f"Baru {x['evidence_count']} jawaban, belum cukup untuk menilai.", activity="Buka menu Latihan bersama, pilih topik ini, lalu minta anak menjelaskan caranya dengan kata-katanya sendiri.", duration_label="5–10 menit")
         elif x["state"] == "demonstrated":
             wanted[f"good:{x['topic_id']}"] = dict(kind="maintain", topic_id=x["topic_id"], title=f"Apresiasi usaha {student.nickname} di {x['topic']}", evidence=f"{x['recent_correct']} dari {x['recent_total']} jawaban terakhir benar.", activity="Puji prosesnya (\"kamu teliti menghitungnya\"), bukan kecerdasannya. Sesekali ajak mengulang satu soal agar tetap ingat.", duration_label="2 menit")
+    from app.services import support
+    for f in support.foundation_suggestions(db, student):
+        grade_note = f" dari Kelas {f['grade']}" if f["grade"] != student.grade_number else ""
+        wanted[f"found:{f['topic_id']}"] = dict(kind="foundation", topic_id=f["topic_id"], title=f"Perkuat pondasi: {f['topic']}{grade_note}", evidence=f["reason"], activity=f"Sebelum lanjut {f['for_topic']}, ajak anak membuka jalur Pondasi di menu Home: baca materi {f['topic']} lalu kerjakan 3 soal. Dasar yang kuat membuat topik berikutnya lebih mudah.", duration_label=dur)
     nxt = next((x for x in m if x["state"] == "not_started"), None)
     if nxt:
         wanted[f"next:{nxt['topic_id']}"] = dict(kind="next", topic_id=nxt["topic_id"], title=f"Mulai topik {nxt['topic']}", evidence="Belum ada aktivitas di topik ini.", activity=nxt["home_activity"] or "Mulai dari materi topik ini di menu Belajar.", duration_label=dur)
@@ -147,8 +151,8 @@ def refresh_recommendations(db: Session, student: StudentProfile) -> None:
             r.active = False
 
 
-KIND_ORDER = {"practice": 0, "evidence": 1, "next": 2, "maintain": 3}
-KIND_LABEL = {"practice": "Latih lagi", "evidence": "Kumpulkan bukti", "next": "Topik berikutnya", "maintain": "Pertahankan"}
+KIND_ORDER = {"practice": 0, "foundation": 1, "evidence": 2, "next": 3, "maintain": 4}
+KIND_LABEL = {"practice": "Latih lagi", "foundation": "Perkuat pondasi", "evidence": "Kumpulkan bukti", "next": "Topik berikutnya", "maintain": "Pertahankan"}
 
 
 def active_recommendations(db: Session, student: StudentProfile) -> list[LearningRecommendation]:

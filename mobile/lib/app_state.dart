@@ -29,6 +29,7 @@ class AppState extends ChangeNotifier {
   List<ChildInfo> children = [];
   ChildInfo? child;
   String? studentToken;
+  Map<String, bool> childSettings = {};
   bool offline = false;
   int pending = 0;
   Timer? _syncTimer;
@@ -197,13 +198,28 @@ class AppState extends ChangeNotifier {
     }
     child = c;
     studentToken = token;
+    final cachedSettings = await db.getJson('settings_${c.id}');
+    childSettings = cachedSettings is Map ? cachedSettings.map((k, v) => MapEntry(k.toString(), v == true)) : <String, bool>{};
     mode = AppMode.child;
     pending = await db.countQueued(c.id);
     notifyListeners();
+    unawaited(_refreshSettings(c.id));
     unawaited(syncNow());
     _startSyncTimer();
     return null;
   }
+
+  Future<void> _refreshSettings(String childId) async {
+    try {
+      final me = asMap(await student('GET', '/student/me'));
+      final st = asMap(me['settings']);
+      childSettings = st.map((k, v) => MapEntry(k, v == true));
+      await db.putJson('settings_$childId', childSettings);
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  bool setting(String key) => childSettings[key] == true;
 
   Future<void> logout() async {
     _stopSyncTimer();

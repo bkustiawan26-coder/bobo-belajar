@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, SmallInteger, String, UniqueConstraint, Uuid
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, SmallInteger, String, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base, TimestampMixin
@@ -43,6 +43,7 @@ class StudentProfile(Base, TimestampMixin):
     nickname: Mapped[str] = mapped_column(String(20), nullable=False)
     grade_number: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     tutor_daily_limit_override: Mapped[int | None] = mapped_column(Integer)
+    settings: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False, server_default="{}")
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 

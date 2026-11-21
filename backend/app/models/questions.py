@@ -20,6 +20,7 @@ class Question(Base, TimestampMixin):
     difficulty: Mapped[str] = mapped_column(String(12), default="mudah", nullable=False)
     answer: Mapped[dict | None] = mapped_column(JSON)
     rubric: Mapped[str | None] = mapped_column(Text)
+    scaffold: Mapped[dict | None] = mapped_column(JSON)
     usage: Mapped[str] = mapped_column(String(12), default="both", nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="draft", index=True, nullable=False)
     version: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

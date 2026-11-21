@@ -18,6 +18,7 @@ def main() -> None:
     s = sub.add_parser("seed")
     s.add_argument("--sample", action="store_true")
     s.add_argument("--publish-sample", action="store_true")
+    sub.add_parser("purge")
     a = sub.add_parser("create-staff")
     a.add_argument("--email", required=True)
     a.add_argument("--name", required=True)
@@ -30,6 +31,9 @@ def main() -> None:
                 print("Konten contoh tidak boleh langsung terbit di production. Jalankan tanpa --publish-sample lalu tinjau lewat CMS.", file=sys.stderr)
                 sys.exit(2)
             print(json.dumps(run(db, args.sample, args.publish_sample)))
+        elif args.cmd == "purge":
+            from app.services.support import purge_old_conversations
+            print(json.dumps({"deleted_messages": purge_old_conversations(db, 30)}))
         elif args.cmd == "create-staff":
             pw = getpass.getpass("Kata sandi (min 12 karakter): ")
             if len(pw) < 12:

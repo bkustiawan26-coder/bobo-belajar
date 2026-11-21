@@ -4,12 +4,13 @@ import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy import text
 
 from app.api import admin, auth, parent, student
 from app.core.config import get_settings
 from app.core.db import session_factory
+from app.privacy import privacy_html
 
 log = logging.getLogger("bobo")
 
@@ -42,6 +43,10 @@ def create_app() -> FastAPI:
             return {"status": "ok"}
         finally:
             db.close()
+
+    @app.get("/privacy", response_class=HTMLResponse)
+    def privacy():
+        return privacy_html()
 
     for r in (auth.router, student.router, parent.router, admin.router):
         app.include_router(r, prefix="/v1")
