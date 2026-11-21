@@ -1,5 +1,12 @@
 # Panduan Deployment
 
+Aplikasi Android 1.1.0 tidak butuh server. Server di bawah hanya untuk tim konten (CMS).
+
+## Memperbarui materi di aplikasi
+1. Tim konten menyusun dan meninjau materi di CMS sampai terbit.
+2. CMS → Impor, AI & audit → **Unduh paket materi** (atau `docker compose exec api python -m app.cli export-bundle --out bobo-content.json`; tambah `--include-sample` hanya untuk demo).
+3. Ganti `mobile/assets/content/bobo-content.json`, naikkan `version` di `mobile/pubspec.yaml`, push ke `main`, lalu tanda tangani dan rilis berkas dari GitHub Actions.
+
 ## Server (Docker Compose)
 1. Siapkan server Linux dengan Docker. Minimal 2 vCPU, 2 GB RAM, 20 GB disk.
 2. `cp .env.example .env`, isi `POSTGRES_PASSWORD`, `BOBO_JWT_SECRET` (acak 64 hex), `BOBO_CORS_ORIGINS` (alamat CMS), `CMS_API_BASE_URL` (alamat publik API).
@@ -11,15 +18,15 @@
 8. Isi `BOBO_OPERATOR_NAME` dan `BOBO_PRIVACY_CONTACT_EMAIL` agar halaman `/privacy` menampilkan pengelola dan kontak yang benar.
 
 ## Aplikasi Android
-- Otomatis: setiap push ke `main`, GitHub Actions membangun APK dan mengunggahnya ke GitHub Release `android-latest`. Isi variabel repo `API_BASE_URL` agar alamat server terisi di layar pertama.
+- Otomatis: setiap push ke `main`, GitHub Actions menjalankan analisis + tes, lalu membangun APK (signing debug) dan App Bundle (tanpa tanda tangan rilis) ke GitHub Release `android-latest`. Branch `wip/**` hanya menjalankan analisis dan tes.
 - Lokal:
   ```bash
   cd mobile
   flutter create --platforms=android --org id.bobo --project-name bobo_belajar .
   rm test/widget_test.dart
-  python tool/prepare_android.py            # tambah --allow-http hanya untuk server lokal tanpa HTTPS
+  python tool/prepare_android.py
   flutter pub get && flutter test
-  flutter build apk --release --dart-define=API_BASE_URL=https://api.domainmu
+  flutter build appbundle --release
   ```
 - Rilis (Play Store): taruh `upload-keystore.jks` di `mobile/android/app/` dan `mobile/android/key.properties` (isi: `storePassword`, `keyPassword`, `keyAlias=upload`, `storeFile=upload-keystore.jks`). `prepare_android.py` (tanpa `--allow-http`) otomatis memakai signing rilis jika `key.properties` ada. Lalu `flutter build appbundle --release`. Kedua file tidak boleh masuk git.
 - CI membangun dua berkas: APK uji (signing debug, HTTP lokal diizinkan) dan App Bundle rilis tanpa tanda tangan rilis. App Bundle dan APK HTTPS ditandatangani di luar CI dengan upload key, karena kunci tidak disimpan di GitHub:
@@ -29,6 +36,3 @@
   python mobile/tool/apk_sign_v2.py app-https.apk BOBO-Belajar-release.apk upload-keystore.jks <password>
   ```
   `apk_sign_v2.py` membuat tanda tangan APK Signature Scheme v2 (cukup untuk minSdk 24). Jika Android SDK tersedia, `apksigner sign` boleh dipakai sebagai gantinya.
-
-## Uji di jaringan lokal
-Jalankan API di PC (`docker compose up`), lalu di aplikasi isi `http://IP-PC:8000` (APK dari CI sudah mengizinkan HTTP untuk pengujian).

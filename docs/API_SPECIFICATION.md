@@ -1,5 +1,7 @@
 # Spesifikasi API
 
+Sejak 1.1.0 aplikasi Android tidak memanggil server. `mobile/lib/local/engine.dart` menjawab path `/student/...` dan `/parent/...` di bawah ini secara lokal dengan bentuk JSON yang sama (kecuali auth, sinkron, offline-pack, dan persetujuan, yang tidak dipakai di mode lokal; ditambah `POST /parent/import` untuk memulihkan cadangan). Server tetap dipakai CMS.
+
 Basis: `/v1`. JSON. Autentikasi: `Authorization: Bearer <token>`. OpenAPI lengkap tersedia di `/docs` dan `/openapi.json` saat `BOBO_ENV` bukan production.
 
 ## Auth
@@ -41,7 +43,7 @@ Semua endpoint anak-spesifik mengembalikan 404 untuk anak yang tidak terhubung k
 Kurikulum: `/admin/curriculum/versions`, `/admin/curriculum/versions/{id}/activate`, `/admin/curriculum/versions/{id}/sources`, `/admin/curriculum/sources/{id}`, `/admin/grades`, `/admin/subjects`, `/admin/subjects/{id}/tree`, `/admin/chapters`, `/admin/topics`, `/admin/topics/{id}`, `/admin/topics/{id}/prerequisites` (GET/PUT, menolak lingkaran), `/admin/objectives`
 Konten: `/admin/lessons[/{id}[/submit|/review|/publish|/unpublish]]`, `/admin/questions[...]` (sama)
 Asesmen: `/admin/assessment-templates`, `/admin/assessments[/{id}[/publish|/unpublish]]`, `/admin/essay-reviews`, `/admin/assessment-answers/{id}/score`
-Lainnya: `/admin/export`, `/admin/import`, `/admin/ai/usage`, `/admin/ai/prompts`, `/admin/stats`, `/admin/audit`
+Lainnya: `/admin/content-bundle?include_sample=` (paket materi untuk aplikasi; editor/admin), `/admin/export`, `/admin/import`, `/admin/ai/usage`, `/admin/ai/prompts`, `/admin/stats`, `/admin/audit`
 
 ## Publik
 `GET /privacy` — kebijakan privasi (HTML) untuk tautan Google Play dan aplikasi.

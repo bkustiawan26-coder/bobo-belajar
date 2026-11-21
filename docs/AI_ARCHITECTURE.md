@@ -1,5 +1,9 @@
 # Arsitektur AI
 
+**Aplikasi 1.1.0 (lokal):** Tutor dan Tanya BOBO berjalan di HP tanpa internet. Alurnya sama dengan provider `grounded` di server: safety input → pencarian kata kunci di materi yang dibundel (kelas anak) → jawaban disusun dari kalimat materi (mode petunjuk, gaya cerita/gambar/langkah) → saring output. Batas harian per anak (bawaan 20, diatur orang tua) mencegah pemakaian berlebihan. Isi pertanyaan tidak disimpan; hanya jumlah dan kategori penolakan. Provider eksternal di bawah ini hanya tersedia di backend server.
+
+## Backend server
+
 Alur: Aplikasi → `/student/tutor/messages` atau `/parent/assistant/messages` → kuota → safety input → retrieval → prompt berversi → provider → validasi output → log pemakaian.
 
 ## Provider (tidak terikat satu vendor)

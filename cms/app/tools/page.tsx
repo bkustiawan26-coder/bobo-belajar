@@ -19,6 +19,8 @@ export default function ToolsPage() {
   const [importText, setImportText] = useState("");
   const [exportGrade, setExportGrade] = useState(5);
   const [exported, setExported] = useState("");
+  const [withSample, setWithSample] = useState(false);
+  const canBundle = getSession()?.roles.some((r) => r === "admin" || r === "editor") ?? false;
   const [newPrompt, setNewPrompt] = useState({ purpose: "tutor", template: "" });
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const active = versions.data?.find((v) => v.is_active);
@@ -36,6 +38,27 @@ export default function ToolsPage() {
   return (
     <Shell title="Impor, AI & audit" subtitle="Impor/ekspor konten, pemakaian dan biaya AI, versi prompt, dan jejak audit.">
       {msg ? <div className={`alert ${msg.kind}`} role="status">{msg.text}</div> : null}
+
+      {canBundle ? (
+        <div className="card">
+          <h2>Paket materi aplikasi</h2>
+          <p className="muted small" style={{ marginTop: 0 }}>Aplikasi Android berjalan lokal tanpa server. Materi, soal, dan asesmen yang sudah terbit dibundel ke aplikasi dari berkas ini. Simpan sebagai <code>mobile/assets/content/bobo-content.json</code>, lalu rilis versi aplikasi baru.</p>
+          <label className="row" style={{ gap: 8, alignItems: "center" }}>
+            <input type="checkbox" style={{ width: "auto" }} checked={withSample} onChange={(e) => setWithSample(e.target.checked)} />
+            <span className="small">Sertakan konten contoh yang belum terbit (ditandai sebagai contoh di aplikasi)</span>
+          </label>
+          <button className="primary" style={{ marginTop: 8 }} onClick={() => run(async () => {
+            const r = await api(`/admin/content-bundle?include_sample=${withSample}`);
+            const blob = new Blob([JSON.stringify(r)], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "bobo-content.json";
+            a.click();
+            URL.revokeObjectURL(a.href);
+            return r;
+          }, (r) => `Paket diunduh: ${r.lessons.length} materi, ${r.questions.length} soal, ${r.assessments.length} asesmen.`)}>Unduh paket materi</button>
+        </div>
+      ) : null}
 
       <div className="card">
         <h2>Ekspor konten</h2>

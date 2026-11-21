@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0 — 2026-11-21
+Aplikasi berjalan **lokal penuh**, tanpa alamat server, tanpa akun, tanpa internet:
+- Mesin belajar di HP (`mobile/lib/local`): penilaian, penguasaan, rekomendasi, ulang terjadwal, jalur pondasi, sinyal pendampingan, ringkasan guru, asesmen ber-waktu, Tutor dan Tanya BOBO lokal dengan filter keselamatan yang sama.
+- Materi dibundel ke aplikasi dari paket materi yang diekspor CMS (`/admin/content-bundle`, `app.cli export-bundle`). Konten contoh ditandai di aplikasi.
+- Setup baru: persetujuan orang tua → PIN → kode pemulihan. Lupa PIN memakai kode pemulihan.
+- Cadangan & pulihkan lewat berkas JSON; hapus profil atau semua data.
+- Izin internet dihapus; kebijakan privasi di dalam aplikasi.
+- Dihapus: layar alamat server, login/daftar email, sinkron, unduh offline.
+
 ## 1.0.0 — 2026-11-21
 Fitur untuk anak yang tertinggal atau lambat memahami:
 - **Ulang sebentar**: soal yang salah dijadwalkan muncul lagi 1, 3, lalu 7 hari kemudian sampai benar.
