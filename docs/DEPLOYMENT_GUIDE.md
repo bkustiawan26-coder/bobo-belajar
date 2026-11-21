@@ -22,7 +22,13 @@
   flutter build apk --release --dart-define=API_BASE_URL=https://api.domainmu
   ```
 - Rilis (Play Store): taruh `upload-keystore.jks` di `mobile/android/app/` dan `mobile/android/key.properties` (isi: `storePassword`, `keyPassword`, `keyAlias=upload`, `storeFile=upload-keystore.jks`). `prepare_android.py` (tanpa `--allow-http`) otomatis memakai signing rilis jika `key.properties` ada. Lalu `flutter build appbundle --release`. Kedua file tidak boleh masuk git.
-- CI membangun dua berkas: APK uji (signing debug, HTTP lokal diizinkan) dan App Bundle rilis tanpa tanda tangan rilis. App Bundle ditandatangani di luar CI dengan `jarsigner` memakai upload key, karena kunci tidak disimpan di GitHub.
+- CI membangun dua berkas: APK uji (signing debug, HTTP lokal diizinkan) dan App Bundle rilis tanpa tanda tangan rilis. App Bundle dan APK HTTPS ditandatangani di luar CI dengan upload key, karena kunci tidak disimpan di GitHub:
+  ```bash
+  zip -d app.aab 'META-INF/*.SF' 'META-INF/*.RSA' 'META-INF/MANIFEST.MF'
+  jarsigner -keystore upload-keystore.jks -sigalg SHA256withRSA -digestalg SHA-256 -signedjar BOBO-Belajar.aab app.aab upload
+  python mobile/tool/apk_sign_v2.py app-https.apk BOBO-Belajar-release.apk upload-keystore.jks <password>
+  ```
+  `apk_sign_v2.py` membuat tanda tangan APK Signature Scheme v2 (cukup untuk minSdk 24). Jika Android SDK tersedia, `apksigner sign` boleh dipakai sebagai gantinya.
 
 ## Uji di jaringan lokal
 Jalankan API di PC (`docker compose up`), lalu di aplikasi isi `http://IP-PC:8000` (APK dari CI sudah mengizinkan HTTP untuk pengujian).
