@@ -9,7 +9,7 @@
 6. Backup harian otomatis ke `./backups`; salin ke penyimpanan lain secara berkala.
 
 ## Aplikasi Android
-- Otomatis: setiap push ke `main`, GitHub Actions membangun APK (artifact `bobo-belajar-apk`). Isi variabel repo `API_BASE_URL` agar alamat server terisi di layar pertama.
+- Otomatis: setiap push ke `main`, GitHub Actions membangun APK dan mengunggahnya ke GitHub Release `android-latest`. Isi variabel repo `API_BASE_URL` agar alamat server terisi di layar pertama.
 - Lokal:
   ```bash
   cd mobile

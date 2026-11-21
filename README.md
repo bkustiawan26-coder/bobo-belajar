@@ -26,7 +26,7 @@ Konten contoh masuk sebagai **menunggu review**; terbitkan lewat CMS setelah dit
 
 ## Aplikasi Android
 
-APK dibangun otomatis oleh GitHub Actions (artifact `bobo-belajar-apk`). Build lokal: lihat `docs/DEPLOYMENT_GUIDE.md`.
+APK uji dibangun otomatis oleh GitHub Actions dan diunggah ke GitHub Release `android-latest`. Build lokal: lihat `docs/DEPLOYMENT_GUIDE.md`.
 Saat pertama dibuka, aplikasi meminta alamat server, lalu orang tua mendaftar, membuat PIN, dan menambah profil anak.
 
 ## Dokumentasi
