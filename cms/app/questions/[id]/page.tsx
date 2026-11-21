@@ -10,6 +10,7 @@ type Opt = { label: string; side: "a" | "b" };
 type Q = {
   id: number; topic_id: number; topic: string; type: string; body: string; difficulty: string; options: Opt[]; answer: Record<string, unknown> | null; rubric: string | null;
   usage: string; status: string; version: number; is_sample: boolean; explanation: string; mistake_hint: string | null; source: string; source_reference: string | null;
+  scaffold: { example?: string; steps?: string[] } | null;
   reviews: { decision: string; notes: string | null; at: string }[];
 };
 
@@ -31,6 +32,8 @@ export default function QuestionEditor() {
   const [rubric, setRubric] = useState("");
   const [explanation, setExplanation] = useState("");
   const [mistake, setMistake] = useState("");
+  const [example, setExample] = useState("");
+  const [steps, setSteps] = useState("");
   const [source, setSource] = useState("Tim konten BOBO");
   const [sourceRef, setSourceRef] = useState("");
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
@@ -40,7 +43,7 @@ export default function QuestionEditor() {
     setOptions(x.options.length ? x.options : [{ label: "", side: "a" }, { label: "", side: "a" }]);
     const a = (x.answer ?? {}) as { index?: number; indices?: number[]; accepted?: string[]; pairs?: Record<string, string> };
     setSingle(a.index ?? 0); setMulti(a.indices ?? []); setAccepted((a.accepted ?? []).join("\n")); setPairs(a.pairs ?? {});
-    setRubric(x.rubric ?? ""); setExplanation(x.explanation); setMistake(x.mistake_hint ?? ""); setSource(x.source); setSourceRef(x.source_reference ?? "");
+    setRubric(x.rubric ?? ""); setExplanation(x.explanation); setMistake(x.mistake_hint ?? ""); setSource(x.source); setSourceRef(x.source_reference ?? ""); setExample(x.scaffold?.example ?? ""); setSteps((x.scaffold?.steps ?? []).join("\n"));
   }
 
   useEffect(() => {
@@ -58,9 +61,15 @@ export default function QuestionEditor() {
     return null;
   }
 
+  function scaffoldPayload() {
+    const list = steps.split("\n").map((x) => x.trim()).filter(Boolean).slice(0, 8);
+    if (!example.trim() && list.length === 0) return null;
+    return { example: example.trim(), steps: list };
+  }
+
   async function save() {
     setMsg(null);
-    const payload = { topic_id: topicId, type, body, difficulty, usage, options: usesOptions ? options.filter((o) => o.label.trim()) : type === "tf" ? opts : [], answer: answer(), rubric: type === "essay" ? rubric : null, explanation, mistake_hint: mistake || null, source, source_reference: sourceRef || null };
+    const payload = { topic_id: topicId, type, body, difficulty, usage, options: usesOptions ? options.filter((o) => o.label.trim()) : type === "tf" ? opts : [], answer: answer(), rubric: type === "essay" ? rubric : null, explanation, mistake_hint: mistake || null, source, source_reference: sourceRef || null, scaffold: scaffoldPayload() };
     try {
       const x = isNew ? await api<Q>("/admin/questions", { method: "POST", body: payload }) : await api<Q>(`/admin/questions/${params.id}`, { method: "PUT", body: payload });
       hydrate(x);
@@ -150,6 +159,10 @@ export default function QuestionEditor() {
         <h2>Pembahasan & sumber</h2>
         <div className="field"><label htmlFor="q-exp">Pembahasan (wajib)</label><textarea id="q-exp" value={explanation} onChange={(e) => setExplanation(e.target.value)} /></div>
         <div className="field"><label htmlFor="q-mis">Letak kesalahan umum (ditampilkan saat jawaban salah)</label><input id="q-mis" value={mistake} onChange={(e) => setMistake(e.target.value)} /></div>
+        <h2>Langkah kecil (opsional)</h2>
+        <p className="muted">Ditampilkan ke anak hanya saat jawabannya salah: contoh yang mirip dulu, lalu langkah dibuka satu per satu.</p>
+        <div className="field"><label htmlFor="q-ex">Contoh yang mirip</label><textarea id="q-ex" value={example} maxLength={600} onChange={(e) => setExample(e.target.value)} /></div>
+        <div className="field"><label htmlFor="q-steps">Langkah (satu baris satu langkah, maks. 8)</label><textarea id="q-steps" value={steps} onChange={(e) => setSteps(e.target.value)} /></div>
         <div className="grid">
           <div className="field"><label htmlFor="q-src">Sumber</label><input id="q-src" value={source} onChange={(e) => setSource(e.target.value)} /></div>
           <div className="field"><label htmlFor="q-ref">Referensi (opsional)</label><input id="q-ref" value={sourceRef} onChange={(e) => setSourceRef(e.target.value)} /></div>

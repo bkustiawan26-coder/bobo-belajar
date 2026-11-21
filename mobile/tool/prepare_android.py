@@ -1,9 +1,11 @@
 import pathlib
 import re
+import shutil
 import sys
 
 root = pathlib.Path(__file__).resolve().parent.parent
-manifest = root / "android" / "app" / "src" / "main" / "AndroidManifest.xml"
+app_dir = root / "android" / "app"
+manifest = app_dir / "src" / "main" / "AndroidManifest.xml"
 if not manifest.exists():
     sys.exit("android/ belum ada. Jalankan: flutter create --platforms=android --org id.bobo --project-name bobo_belajar .")
 
@@ -16,14 +18,67 @@ if allow_http and "usesCleartextTraffic" not in text:
     text = text.replace("<application", '<application android:usesCleartextTraffic="true"', 1)
 if not allow_http:
     text = text.replace(' android:usesCleartextTraffic="true"', "")
+extra_queries = (
+    '        <intent>\n            <action android:name="android.intent.action.TTS_SERVICE"/>\n        </intent>\n'
+    '        <intent>\n            <action android:name="android.intent.action.VIEW"/>\n            <data android:scheme="https"/>\n        </intent>\n'
+)
+if "TTS_SERVICE" not in text:
+    if "<queries>" in text:
+        text = text.replace("<queries>\n", "<queries>\n" + extra_queries, 1)
+    else:
+        text = text.replace("</manifest>", "    <queries>\n" + extra_queries + "    </queries>\n</manifest>", 1)
 manifest.write_text(text, encoding="utf-8")
 
-for name in ("build.gradle.kts", "build.gradle"):
-    gradle = root / "android" / "app" / name
-    if gradle.exists():
-        g = gradle.read_text(encoding="utf-8")
-        g = re.sub(r"minSdk\s*=\s*flutter\.minSdkVersion", "minSdk = 23", g)
-        g = re.sub(r"minSdkVersion\s+flutter\.minSdkVersion", "minSdkVersion 23", g)
-        gradle.write_text(g, encoding="utf-8")
+res_src = root / "tool" / "android-res"
+for d in res_src.glob("mipmap-*"):
+    target = app_dir / "src" / "main" / "res" / d.name
+    target.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(d / "ic_launcher.png", target / "ic_launcher.png")
 
-print(f"AndroidManifest disiapkan (HTTP lokal {'diizinkan' if allow_http else 'tidak diizinkan'}).")
+signing_head = (
+    "import java.io.FileInputStream\nimport java.util.Properties\n\n"
+)
+signing_props = (
+    'val keystoreProperties = Properties()\n'
+    'val keystorePropertiesFile = rootProject.file("key.properties")\n'
+    'if (keystorePropertiesFile.exists()) {\n'
+    '    keystoreProperties.load(FileInputStream(keystorePropertiesFile))\n'
+    '}\n\n'
+)
+signing_config = (
+    '    signingConfigs {\n'
+    '        create("release") {\n'
+    '            if (keystorePropertiesFile.exists()) {\n'
+    '                keyAlias = keystoreProperties["keyAlias"] as String\n'
+    '                keyPassword = keystoreProperties["keyPassword"] as String\n'
+    '                storeFile = file(keystoreProperties["storeFile"] as String)\n'
+    '                storePassword = keystoreProperties["storePassword"] as String\n'
+    '            }\n'
+    '        }\n'
+    '    }\n\n'
+    '    buildTypes {'
+)
+
+kts = app_dir / "build.gradle.kts"
+groovy = app_dir / "build.gradle"
+if kts.exists():
+    g = kts.read_text(encoding="utf-8")
+    g = re.sub(r"minSdk\s*=\s*flutter\.minSdkVersion", "minSdk = 24", g)
+    if "keystoreProperties" not in g:
+        g = signing_head + g
+        g = g.replace("android {", signing_props + "android {", 1)
+        g = g.replace("    buildTypes {", signing_config, 1)
+        g = re.sub(
+            r'signingConfig\s*=\s*signingConfigs\.getByName\("debug"\)',
+            'signingConfig = if (keystorePropertiesFile.exists()) signingConfigs.getByName("release") else signingConfigs.getByName("debug")',
+            g,
+            count=1,
+        )
+    kts.write_text(g, encoding="utf-8")
+elif groovy.exists():
+    g = groovy.read_text(encoding="utf-8")
+    g = re.sub(r"minSdkVersion\s+flutter\.minSdkVersion", "minSdkVersion 24", g)
+    groovy.write_text(g, encoding="utf-8")
+
+signed = (root / "android" / "key.properties").exists()
+print(f"Android disiapkan: HTTP lokal {'diizinkan' if allow_http else 'tidak diizinkan'}, signing {'rilis' if signed else 'debug'}.")

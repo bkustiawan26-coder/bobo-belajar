@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Shell, { useAsync } from "@/components/Shell";
+import TopicPicker from "@/components/TopicPicker";
 import { api } from "@/lib/api";
 
 type Version = { id: number; name: string; version: string; academic_year: string | null; is_active: boolean };
@@ -183,6 +184,7 @@ function TreeCard({ tree, run, reload }: { tree: Tree; run: Run; reload: () => v
           <div className="field"><label htmlFor="t-title">Judul</label><input id="t-title" value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} /></div>
           <div className="field"><label htmlFor="t-act">Kegiatan di rumah</label><textarea id="t-act" value={edit.home_activity} onChange={(e) => setEdit({ ...edit, home_activity: e.target.value })} /></div>
           <div className="field"><label htmlFor="t-mis">Kesalahan umum di topik ini</label><input id="t-mis" value={edit.common_mistake} onChange={(e) => setEdit({ ...edit, common_mistake: e.target.value })} /></div>
+          <PrereqEditor key={edit.id} topicId={edit.id} run={run} />
           <div className="row">
             <button className="primary" onClick={() => run(() => api(`/admin/topics/${edit.id}`, { method: "PUT", body: { chapter_id: edit.chapter_id, title: edit.title, sort_order: edit.sort_order, home_activity: edit.home_activity || null, common_mistake: edit.common_mistake || null } }), "Topik diperbarui", () => { setEdit(null); reload(); })}>Simpan</button>
             <button onClick={() => setEdit(null)}>Batal</button>
@@ -194,6 +196,45 @@ function TreeCard({ tree, run, reload }: { tree: Tree; run: Run; reload: () => v
         <input aria-label="Judul bab baru" placeholder="Judul bab baru" value={chTitle} onChange={(e) => setChTitle(e.target.value)} style={{ maxWidth: 360 }} />
         <button className="primary" disabled={chTitle.length < 2} onClick={() => run(() => api("/admin/chapters", { method: "POST", body: { subject_id: tree.id, number: chNum, title: chTitle } }), "Bab ditambahkan", () => { setChTitle(""); reload(); })}>+ Bab</button>
       </div>
+    </div>
+  );
+}
+
+type Prereq = { id: number; title: string; grade_number: number };
+
+function PrereqEditor({ topicId, run }: { topicId: number; run: Run }) {
+  const [list, setList] = useState<Prereq[]>([]);
+  const [pick, setPick] = useState<number | null>(null);
+  const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    api<Prereq[]>(`/admin/topics/${topicId}/prerequisites`).then(setList).catch(() => setList([]));
+  }, [topicId]);
+
+  function save(ids: number[]) {
+    run(async () => { setList(await api<Prereq[]>(`/admin/topics/${topicId}/prerequisites`, { method: "PUT", body: { prerequisite_topic_ids: ids } })); }, "Prasyarat disimpan", () => { setPick(null); setAdding(false); });
+  }
+
+  return (
+    <div className="field">
+      <label>Prasyarat (topik dasar yang perlu dikuasai dulu)</label>
+      <p className="muted small">Dipakai untuk jalur pondasi: jika anak kesulitan di topik ini, BOBO menyarankan topik prasyarat, termasuk dari kelas di bawahnya.</p>
+      {list.length === 0 ? <p className="muted small">Belum ada prasyarat.</p> : (
+        <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
+          {list.map((p) => (
+            <span key={p.id} className="pill">Kelas {p.grade_number} · {p.title} <button aria-label={`Hapus prasyarat ${p.title}`} onClick={() => save(list.filter((x) => x.id !== p.id).map((x) => x.id))}>×</button></span>
+          ))}
+        </div>
+      )}
+      {adding ? (
+        <div style={{ marginTop: 8 }}>
+          <TopicPicker value={pick} onChange={setPick} />
+          <div className="row">
+            <button className="primary" disabled={!pick || pick === topicId || list.some((x) => x.id === pick)} onClick={() => pick && save([...list.map((x) => x.id), pick])}>Tambah prasyarat</button>
+            <button onClick={() => { setAdding(false); setPick(null); }}>Batal</button>
+          </div>
+        </div>
+      ) : <div className="row" style={{ marginTop: 8 }}><button onClick={() => setAdding(true)}>+ Prasyarat</button></div>}
     </div>
   );
 }

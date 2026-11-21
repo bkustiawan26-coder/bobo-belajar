@@ -75,8 +75,14 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
-      - name: Build APK
+      - name: Build APK uji (HTTP lokal diizinkan)
         run: flutter build apk --release --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}
+      - name: Build App Bundle rilis (HTTPS saja)
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk /tmp/app-test.apk
+          python3 tool/prepare_android.py
+          flutter build appbundle --release
+          cp /tmp/app-test.apk build/app/outputs/flutter-apk/app-release.apk
       - name: Publish APK to GitHub Release
         if: github.ref == 'refs/heads/main'
         working-directory: mobile
@@ -86,4 +92,5 @@ jobs:
           cp build/app/outputs/flutter-apk/app-release.apk bobo-belajar-${GITHUB_SHA::7}.apk
           gh release view android-latest >/dev/null 2>&1 || gh release create android-latest --title "BOBO BELAJAR Android (build terbaru)" --notes "APK uji dari GitHub Actions. Signing debug, HTTP lokal diizinkan. Bukan untuk Play Store." --prerelease
           for a in $(gh release view android-latest --json assets --jq '.assets[].name'); do gh release delete-asset android-latest "$a" -y; done
-          gh release upload android-latest bobo-belajar-${GITHUB_SHA::7}.apk --clobber
+          cp build/app/outputs/bundle/release/app-release.aab bobo-belajar-${GITHUB_SHA::7}-unsigned.aab
+          gh release upload android-latest bobo-belajar-${GITHUB_SHA::7}.apk bobo-belajar-${GITHUB_SHA::7}-unsigned.aab --clobber

@@ -83,3 +83,5 @@ tr:last-child td { border-bottom: 0; }
 .login { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
 .login .card { width: 100%; max-width: 400px; padding: 28px; }
 pre { background: var(--sunken); border: 1px solid var(--border); border-radius: 10px; padding: 12px; overflow: auto; font-size: 12px; max-height: 360px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 4px 4px 4px 10px; border-radius: 999px; background: var(--sunken); border: 1px solid var(--border); }
+.pill button { min-height: 28px; min-width: 28px; padding: 0 6px; border-radius: 999px; }
