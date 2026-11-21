@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main]
@@ -74,8 +77,13 @@ jobs:
       - run: flutter test
       - name: Build APK
         run: flutter build apk --release --dart-define=API_BASE_URL=${{ vars.API_BASE_URL }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: bobo-belajar-apk
-          path: mobile/build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 30
+      - name: Publish APK to GitHub Release
+        if: github.ref == 'refs/heads/main'
+        working-directory: mobile
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk bobo-belajar-${GITHUB_SHA::7}.apk
+          gh release view android-latest >/dev/null 2>&1 || gh release create android-latest --title "BOBO BELAJAR Android (build terbaru)" --notes "APK uji dari GitHub Actions. Signing debug, HTTP lokal diizinkan. Bukan untuk Play Store." --prerelease
+          for a in $(gh release view android-latest --json assets --jq '.assets[].name'); do gh release delete-asset android-latest "$a" -y; done
+          gh release upload android-latest bobo-belajar-${GITHUB_SHA::7}.apk --clobber
