@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../app_state.dart';
 import '../../core/models.dart';
+import '../../core/persona.dart';
+import '../../core/speech.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
 import 'belajar_tab.dart';
@@ -79,10 +83,78 @@ class ChildShell extends StatelessWidget {
   }
 }
 
-class _ChildScaffold extends StatelessWidget {
+class _ChildScaffold extends StatefulWidget {
   const _ChildScaffold();
 
+  @override
+  State<_ChildScaffold> createState() => _ChildScaffoldState();
+}
+
+class _ChildScaffoldState extends State<_ChildScaffold> {
   static const _titles = ['', 'Belajar', 'Latihan', 'Ujian', 'Tutor BOBO'];
+  Timer? _timer;
+  DateTime _since = DateTime.now();
+  bool _asking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final grade = context.read<AppState>().child!.grade;
+    Speech.instance.configure(grade);
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) => _maybeBreak());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    Speech.instance.stop();
+    super.dispose();
+  }
+
+  Future<void> _maybeBreak() async {
+    if (!mounted || _asking) {
+      return;
+    }
+    final app = context.read<AppState>();
+    final nav = context.read<ChildNav>();
+    final c = app.child;
+    if (c == null || nav.examRunning) {
+      return;
+    }
+    final persona = Persona.forGrade(c.grade);
+    final minutes = DateTime.now().difference(_since).inMinutes;
+    if (minutes < persona.breakMinutes) {
+      return;
+    }
+    _asking = true;
+    final body = persona.breakBody(minutes);
+    if (app.setting('read_aloud')) {
+      Speech.instance.speak('${persona.breakTitle()}\n$body');
+    } else {
+      Speech.instance.stop();
+    }
+    final t = BandTheme.forGrade(c.grade);
+    final rest = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        icon: Icon(Icons.self_improvement_rounded, color: t.accent, size: 36),
+        title: Text(persona.breakTitle(), textAlign: TextAlign.center),
+        content: Text(body, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15, height: 1.5)),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Lanjut belajar')),
+          FilledButton(onPressed: () => Navigator.of(ctx).pop(true), style: FilledButton.styleFrom(backgroundColor: t.accent), child: const Text('Istirahat dulu')),
+        ],
+      ),
+    );
+    Speech.instance.stop();
+    _since = DateTime.now();
+    _asking = false;
+    if (rest == true && mounted) {
+      nav.go(0);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +182,7 @@ class _ChildScaffold extends StatelessWidget {
                 Avatar(c.initial, color: t.accent, size: 40, radius: 12),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(nav.tab == 0 ? 'Hai, ${c.nickname}!' : _titles[nav.tab], maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+                  Text(nav.tab == 0 ? Persona.forGrade(c.grade).greeting(c.nickname, DateTime.now().hour) : _titles[nav.tab], maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
                   Text(gradeLabel(c.grade), style: const TextStyle(fontSize: 13, color: Palette.muted)),
                 ])),
                 if (!nav.examRunning)

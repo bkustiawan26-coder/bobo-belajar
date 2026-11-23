@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../app_state.dart';
 import '../../core/models.dart';
+import '../../core/persona.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
 import 'child_shell.dart';
@@ -87,7 +88,7 @@ class _HomeTabState extends State<HomeTab> {
               child: AppCard(
                 radius: 18,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                child: Text(cont != null ? 'Ayo belajar ${cont['title'].toString().toLowerCase()} hari ini, ${c.nickname}!' : 'Materimu sedang disiapkan, ${c.nickname}. Sabar, ya!', style: TextStyle(fontSize: t.body, fontWeight: FontWeight.w600, height: 1.4)),
+                child: Text(Persona.forGrade(c.grade).homeNudge(c.nickname, cont?['title']?.toString()), style: TextStyle(fontSize: t.body, fontWeight: FontWeight.w600, height: 1.4)),
               ),
             ),
           ]),

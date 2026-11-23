@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../app_state.dart';
 import '../../core/api.dart';
 import '../../core/models.dart';
+import '../../core/persona.dart';
 import '../../core/speech.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
@@ -47,6 +48,11 @@ class _LatihanTabState extends State<LatihanTab> {
   int _stepsShown = 0;
   bool _loadingSimilar = false;
   int _spokenIdx = -1;
+  int _streak = 0;
+  int _wrongRun = 0;
+  int _attempts = 0;
+  String _headline = '';
+  String? _extra;
 
   @override
   void dispose() {
@@ -110,6 +116,9 @@ class _LatihanTabState extends State<LatihanTab> {
     _done = false;
     _stepsShown = 0;
     _spokenIdx = -1;
+    _streak = 0;
+    _wrongRun = 0;
+    _extra = null;
   }
 
   Map<String, dynamic>? get _q => _idx < _questions.length ? _questions[_idx] : null;
@@ -149,11 +158,29 @@ class _LatihanTabState extends State<LatihanTab> {
     if (!mounted) {
       return;
     }
+    final persona = Persona.forGrade(app.child!.grade);
+    _attempts++;
+    final seed = (q['id'] as num).toInt() + _attempts;
+    if (res.correct) {
+      _streak++;
+      _wrongRun = 0;
+    } else {
+      _streak = 0;
+      _wrongRun++;
+    }
+    final headline = res.correct ? persona.correct(seed) : persona.wrong(seed);
+    final extra = res.correct && _streak > 0 && _streak % 3 == 0 ? persona.streak() : (!res.correct && _wrongRun >= 2 ? persona.struggle() : null);
     setState(() {
       _current = res;
       _results.add(res);
       _checking = false;
+      _headline = headline;
+      _extra = extra;
     });
+    if (app.setting('read_aloud')) {
+      final spoken = [headline, if (extra != null) extra, if (!res.correct && res.answer.isNotEmpty) persona.correctAnswerSpoken(res.answer), if (res.explanation.isNotEmpty) res.explanation].join('\n');
+      Speech.instance.speak(spoken);
+    }
   }
 
   void _next() {
@@ -323,8 +350,8 @@ class _LatihanTabState extends State<LatihanTab> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               decoration: InputDecoration(
                 labelText: 'Jawabanmu',
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(t.radiusSmall), borderSide: BorderSide(color: checked ? (_current!.correct ? Palette.ok : Palette.bad) : Palette.borderStrong, width: 2)),
-                disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(t.radiusSmall), borderSide: BorderSide(color: checked ? (_current!.correct ? Palette.ok : Palette.bad) : Palette.borderStrong, width: 2)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(t.radiusSmall), borderSide: BorderSide(color: checked ? (_current!.correct ? Palette.ok : Palette.warn) : Palette.borderStrong, width: 2)),
+                disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(t.radiusSmall), borderSide: BorderSide(color: checked ? (_current!.correct ? Palette.ok : Palette.warn) : Palette.borderStrong, width: 2)),
               ),
             )
           else
@@ -347,11 +374,11 @@ class _LatihanTabState extends State<LatihanTab> {
   String _speakText(Map<String, dynamic> q) {
     final opts = asList(q['options']);
     const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    final parts = [q['body'] as String];
+    final parts = [(q['body'] as String).trim()];
     for (var i = 0; i < opts.length; i++) {
-      parts.add('${letters[i % letters.length]}. ${opts[i]['label']}');
+      parts.add('Pilihan ${letters[i % letters.length]}: ${opts[i]['label']}.');
     }
-    return parts.join('. ');
+    return parts.join('\n');
   }
 
   String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
@@ -380,10 +407,10 @@ class _LatihanTabState extends State<LatihanTab> {
         mBg = Palette.ok;
         mFg = Colors.white;
       } else if (picked) {
-        bg = Palette.badBg;
-        border = Palette.bad;
+        bg = Palette.warnBg;
+        border = Palette.warn;
         mark = '✕';
-        mBg = Palette.bad;
+        mBg = Palette.warn;
         mFg = Colors.white;
       }
     }
@@ -427,22 +454,30 @@ class _LatihanTabState extends State<LatihanTab> {
 
   Widget _feedback(BandTheme t) {
     final r = _current!;
-    final young = context.read<AppState>().child!.grade <= 2;
+    final persona = Persona.forGrade(context.read<AppState>().child!.grade);
     final nav = context.read<ChildNav>();
     return Semantics(
       liveRegion: true,
       child: AppCard(
         radius: t.radius,
-        color: r.correct ? Palette.okBg : Palette.badBg,
-        borderColor: r.correct ? const Color(0xFFBBF7D0) : Palette.badSoft,
+        color: r.correct ? Palette.okBg : Palette.warnBg,
+        borderColor: r.correct ? const Color(0xFFBBF7D0) : Palette.warnSoft,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(r.correct ? (young ? '✓ Benar! Hebat!' : '✓ Benar! Kerja bagus.') : '✕ Belum tepat, tidak apa-apa', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: r.correct ? Palette.okInk : Palette.badInk)),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(r.correct ? Icons.check_circle_rounded : Icons.lightbulb_rounded, color: r.correct ? Palette.ok : Palette.warn, size: persona.young ? 26 : 22),
+            const SizedBox(width: 8),
+            Expanded(child: Text(_headline, style: TextStyle(fontSize: persona.young ? 18 : 17, fontWeight: FontWeight.w800, height: 1.35, color: r.correct ? Palette.okInk : Palette.warnInk))),
+          ]),
+          if (_extra != null) ...[
+            const SizedBox(height: 8),
+            Text(_extra!, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.ink, height: 1.45)),
+          ],
           if (!r.correct) ...[
             const SizedBox(height: 8),
             Text.rich(TextSpan(children: [const TextSpan(text: 'Jawaban benar: ', style: TextStyle(fontWeight: FontWeight.w800)), TextSpan(text: r.answer)]), style: const TextStyle(fontSize: 15, height: 1.5)),
             if (r.mistake != null) ...[
               const SizedBox(height: 6),
-              Text.rich(TextSpan(children: [const TextSpan(text: 'Letak kesalahannya: ', style: TextStyle(fontWeight: FontWeight.w800)), TextSpan(text: r.mistake)]), style: const TextStyle(fontSize: 14, color: Color(0xFF7F1D1D), height: 1.5)),
+              Text.rich(TextSpan(children: [TextSpan(text: persona.teen ? 'Yang sering keliru: ' : 'Perhatikan: ', style: TextStyle(fontWeight: FontWeight.w800)), TextSpan(text: r.mistake)]), style: const TextStyle(fontSize: 14, color: Palette.warnInk, height: 1.5)),
             ],
           ],
           const SizedBox(height: 8),
@@ -523,7 +558,7 @@ class _LatihanTabState extends State<LatihanTab> {
     final right = _results.where((r) => r.correct).length;
     final total = _results.length;
     final wrong = total - right;
-    final msg = right == total ? 'Sempurna! Semua jawaban benar.' : (right * 2 >= total ? 'Bagus! Ulangi soal yang salah supaya makin paham.' : 'Salah itu bagian dari belajar. Baca lagi materinya, lalu coba lagi.');
+    final msg = Persona.forGrade(app.child!.grade).summary(right, total);
     return ListView(padding: const EdgeInsets.fromLTRB(20, 4, 20, 24), children: [
       AppCard(
         radius: t.radius,
@@ -544,7 +579,7 @@ class _LatihanTabState extends State<LatihanTab> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Container(width: 24, height: 24, alignment: Alignment.center, decoration: BoxDecoration(color: r.correct ? Palette.ok : Palette.bad, shape: BoxShape.circle), child: Text(r.correct ? '✓' : '✕', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13))),
+                Container(width: 24, height: 24, alignment: Alignment.center, decoration: BoxDecoration(color: r.correct ? Palette.ok : Palette.warn, shape: BoxShape.circle), child: Text(r.correct ? '✓' : '↺', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13))),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(r.question['body'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, height: 1.4)),
@@ -555,7 +590,7 @@ class _LatihanTabState extends State<LatihanTab> {
         ]),
       ),
       const SizedBox(height: 16),
-      if (wrong > 0) ...[PrimaryButton(label: 'Ulangi soal yang salah ($wrong)', color: t.accent, radius: t.radiusSmall, onPressed: _retryWrong), const SizedBox(height: 12)],
+      if (wrong > 0) ...[PrimaryButton(label: 'Ulangi yang belum tepat ($wrong)', color: t.accent, radius: t.radiusSmall, onPressed: _retryWrong), const SizedBox(height: 12)],
       SecondaryButton(label: _mode == 'review' ? 'Cek soal ulang lainnya' : 'Latihan dari awal', radius: t.radiusSmall, onPressed: () => _init(_topicId, mode: _mode)),
     ]);
   }

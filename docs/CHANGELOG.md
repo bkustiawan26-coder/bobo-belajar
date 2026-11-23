@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.0 — 2026-11-23
+Suara dan UX menyesuaikan tahap perkembangan anak (lihat `CHILD_UX_PSYCHOLOGY.md`):
+- Suara BOBO per jenjang: kecepatan, nada, dan jeda berbeda untuk Kelas 1–2, 3–4, 5–6, 7–9; dibacakan per kalimat dengan sorotan kalimat yang sedang dibaca.
+- Simbol matematika dan satuan diucapkan sebagai kata (kuadrat, akar, bagi/banding, negatif, meter persegi, rupiah, dll.).
+- Pembuka materi menyebut nama anak, topik, dan lamanya; label bagian materi ramah anak untuk Kelas 1–2.
+- Umpan balik growth mindset per jenjang, warna kuning hangat untuk jawaban belum tepat, dibacakan otomatis; pengakuan 3 benar beruntun; tawaran bantuan setelah 2 kali belum tepat.
+- Sapaan sesuai waktu, ringkasan hasil latihan/ujian yang menekankan usaha, pengingat jeda 10/15/20/25 menit.
+- Orang tua bisa memilih suara Bahasa Indonesia yang terpasang di HP dan mendengarkan contohnya.
+- Profil Kelas 1–2 baru otomatis mengaktifkan "Bacakan otomatis".
+- Perbaikan teks: hasil ujian "Tersimpan di HP ini" (sebelumnya menyebut server).
+
 ## 1.2.0 — 2026-11-23
 Materi dan soal lengkap untuk semua kelas dan mapel di aplikasi:
 - Kelas 1–9, 41 mapel (SD 1–4: MAT, BIN, PPK, SBD/IPAS; SD 5–6: + BIG; SMP: MAT, BIN, IPA, IPS, BIG), masing-masing 2 bab × 2 topik.

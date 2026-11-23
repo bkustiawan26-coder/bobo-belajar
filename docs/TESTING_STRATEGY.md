@@ -13,3 +13,4 @@ Menjalankan backend lokal: `cd backend && pip install -r requirements-dev.txt &&
 
 ## Belum otomatis (manual sebelum rilis)
 Uji UI di perangkat Android nyata (layar kecil, Android 7–15), uji aksesibilitas TalkBack, uji cadangan/pulihkan antar-HP, uji performa dengan riwayat jawaban besar.
+| Suara & persona | flutter `persona_test.dart` | simbol diucapkan benar, pemenggalan kalimat, profil suara per jenjang, larangan pujian kecerdasan, nada SMP tidak kekanakan, Kelas 1–2 dibacakan otomatis |

@@ -18,6 +18,8 @@ class Palette {
   static const badInk = Color(0xFF991B1B);
   static const badSoft = Color(0xFFFECACA);
   static const badBg = Color(0xFFFEF2F2);
+  static const warn = Color(0xFFB45309);
+  static const warnBg = Color(0xFFFFFBEB);
   static const warnInk = Color(0xFF92400E);
   static const warnSoft = Color(0xFFFEF3C7);
   static const devInk = Color(0xFF1E40AF);

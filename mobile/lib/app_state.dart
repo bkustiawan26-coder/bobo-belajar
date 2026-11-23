@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'core/api.dart';
 import 'core/local_db.dart';
 import 'core/models.dart';
+import 'core/speech.dart';
 import 'local/content.dart';
 import 'local/engine.dart';
 import 'local/store.dart';
@@ -40,11 +41,29 @@ class AppState extends ChangeNotifier {
       sampleContent = content.includesSample;
       engine = LocalEngine(_store ?? SqliteStore(db), content);
       hasPin = await engine.hasPin();
+      await _loadVoice();
       await _reloadChildren();
       mode = hasPin ? AppMode.profiles : AppMode.setup;
     } catch (e) {
       loadError = e;
     }
+    notifyListeners();
+  }
+
+  Future<void> _loadVoice() async {
+    try {
+      final v = await db.getJson('tts_voice');
+      if (v is Map) {
+        await Speech.instance.setVoice({for (final e in v.entries) '${e.key}': '${e.value}'});
+      }
+    } catch (_) {}
+  }
+
+  Future<void> saveVoice(Map<String, String>? voice) async {
+    await Speech.instance.setVoice(voice);
+    try {
+      await db.putJson('tts_voice', voice);
+    } catch (_) {}
     notifyListeners();
   }
 

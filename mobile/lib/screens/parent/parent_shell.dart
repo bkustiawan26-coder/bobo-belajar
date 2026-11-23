@@ -9,6 +9,8 @@ import 'package:share_plus/share_plus.dart';
 import '../../app_state.dart';
 import '../../core/api.dart';
 import '../../core/models.dart';
+import '../../core/persona.dart';
+import '../../core/speech.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
 import '../child/growth_screen.dart';
@@ -1074,6 +1076,81 @@ class _SettingsPanelState extends State<_SettingsPanel> {
             subtitle: Text(desc, style: const TextStyle(fontSize: 12, color: Palette.muted)),
             activeTrackColor: Palette.parent,
           ),
+      if (_open) _VoiceTile(child: widget.child),
     ]);
+  }
+}
+
+class _VoiceTile extends StatelessWidget {
+  const _VoiceTile({required this.child});
+
+  final ChildInfo child;
+
+  Future<void> _pick(BuildContext context) async {
+    final app = context.read<AppState>();
+    await Speech.instance.configure(child.grade);
+    final voices = await Speech.instance.indonesianVoices();
+    if (!context.mounted) {
+      return;
+    }
+    final persona = Persona.forGrade(child.grade);
+    final preview = persona.voicePreview(child.nickname);
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.7),
+          child: ListView(shrinkWrap: true, padding: const EdgeInsets.fromLTRB(20, 0, 20, 20), children: [
+            const Text('Suara BOBO', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 4),
+            Text('Kecepatan dan nada otomatis menyesuaikan Kelas ${child.grade}. Pilihan suara berlaku untuk semua profil di HP ini.', style: const TextStyle(fontSize: 13, color: Palette.muted, height: 1.4)),
+            const SizedBox(height: 12),
+            if (voices.isEmpty)
+              const Notice('Belum ada suara Bahasa Indonesia yang terpasang offline. Buka Pengaturan Android → Text-to-speech → Google → Install voice data → Bahasa Indonesia, lalu kembali ke sini.', fg: Palette.warnInk, bg: Palette.warnSoft),
+            for (final (i, v) in [null, ...voices].indexed)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(_same(Speech.instance.voice, v) ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded, color: Palette.parent),
+                title: Text(v == null ? 'Bawaan HP' : 'Suara $i', style: const TextStyle(fontWeight: FontWeight.w700)),
+                subtitle: v == null ? null : Text(v['name']!, style: const TextStyle(fontSize: 12, color: Palette.muted)),
+                trailing: IconButton(
+                  tooltip: 'Dengarkan contoh',
+                  icon: const Icon(Icons.play_circle_outline_rounded, color: Palette.parent),
+                  onPressed: () async {
+                    final keep = Speech.instance.voice;
+                    await Speech.instance.setVoice(v);
+                    await Speech.instance.speak(preview);
+                    await Speech.instance.setVoice(keep);
+                  },
+                ),
+                onTap: () async {
+                  await app.saveVoice(v);
+                  if (ctx.mounted) {
+                    Navigator.of(ctx).pop();
+                  }
+                },
+              ),
+          ]),
+        ),
+      ),
+    );
+    Speech.instance.stop();
+  }
+
+  static bool _same(Map<String, String>? a, Map<String, String>? b) => a?['name'] == b?['name'];
+
+  @override
+  Widget build(BuildContext context) {
+    context.watch<AppState>();
+    final v = Speech.instance.voice;
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.record_voice_over_rounded, color: Palette.parent),
+      title: const Text('Suara BOBO', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+      subtitle: Text(v == null ? 'Bawaan HP · ketuk untuk memilih dan mendengarkan' : '${v['name']} · ketuk untuk mengganti', style: const TextStyle(fontSize: 12, color: Palette.muted)),
+      onTap: () => _pick(context),
+    );
   }
 }

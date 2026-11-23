@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../app_state.dart';
 import '../../core/api.dart';
 import '../../core/models.dart';
+import '../../core/persona.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
 import 'child_shell.dart';
@@ -469,11 +470,13 @@ class _UjianTabState extends State<UjianTab> {
           Text('${r['score']}', style: const TextStyle(color: Colors.white, fontSize: 56, fontWeight: FontWeight.w800, height: 1.1)),
           Text('${r['correct']} dari ${r['total']} soal benar', style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
           if (r['auto_submitted'] == true) const Text('Waktu habis · dikumpulkan otomatis', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 10),
+          Text(Persona.forGrade(context.read<AppState>().child!.grade).summary((r['correct'] as num).toInt(), (r['total'] as num).toInt()), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600, height: 1.4)),
         ]),
       ),
       const SizedBox(height: 12),
       Notice(
-        r['final'] == true ? '✓ Terkirim dan terverifikasi server' : 'Terkirim. Ada soal esai yang masih menunggu penilaian guru/peninjau, jadi nilai belum final.',
+        r['final'] == true ? '✓ Tersimpan di HP ini' : 'Tersimpan. Ada soal yang masih menunggu penilaian, jadi nilai belum final.',
         fg: r['final'] == true ? Palette.okInk : Palette.warnInk,
         bg: r['final'] == true ? Palette.okSoft : Palette.warnSoft,
       ),
@@ -506,7 +509,7 @@ class _UjianTabState extends State<UjianTab> {
           radius: t.radius,
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Container(width: 26, height: 26, alignment: Alignment.center, decoration: BoxDecoration(color: rv['correct'] == true ? Palette.ok : (rv['needs_review'] == true ? Palette.warnInk : Palette.bad), shape: BoxShape.circle), child: Text(rv['correct'] == true ? '✓' : (rv['needs_review'] == true ? '?' : '✕'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13))),
+              Container(width: 26, height: 26, alignment: Alignment.center, decoration: BoxDecoration(color: rv['correct'] == true ? Palette.ok : (rv['needs_review'] == true ? Palette.devInk : Palette.warn), shape: BoxShape.circle), child: Text(rv['correct'] == true ? '✓' : (rv['needs_review'] == true ? '?' : '✕'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13))),
               const SizedBox(width: 10),
               Expanded(child: Text('${rv['n']}. ${rv['question']}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, height: 1.4))),
             ]),

@@ -1,6 +1,6 @@
 # Status Milestone
 
-Status per 2026-11-23 (versi 1.2.0, mode lokal, konten Kelas 1–9). "Terverifikasi" berarti diuji otomatis di lingkungan pengembangan.
+Status per 2026-11-23 (versi 1.3.0, mode lokal, konten Kelas 1–9, suara & UX per jenjang). "Terverifikasi" berarti diuji otomatis di lingkungan pengembangan.
 
 | Milestone | Status | Bukti |
 |---|---|---|
@@ -13,6 +13,6 @@ Status per 2026-11-23 (versi 1.2.0, mode lokal, konten Kelas 1–9). "Terverifik
 | M6 Dashboard orang tua | Selesai, terverifikasi backend | KPI, status penguasaan, rekomendasi berbasis bukti, Tanya BOBO |
 | M7 Offline | Selesai, terverifikasi tes aplikasi | 1.1.0 lokal penuh: mesin belajar di HP, paket materi dibundel, tanpa izin internet; 14 tes mesin lokal + 7 tes logika lulus di CI |
 | M9 Pendampingan anak tertinggal | Selesai, terverifikasi backend; aplikasi terkompilasi | ulang terjadwal, langkah kecil, jalur pondasi lintas kelas, mode bantuan, bacakan (TTS), alat peraga, Tutor jelaskan ulang, Kemajuanku, sinyal + rencana 7 hari, ringkasan guru; editor prasyarat & langkah kecil di CMS |
-| M8 QA & rilis | Rilis 1.2.0 siap unggah | Folder `release\1.2.0` (di luar git): App Bundle dan APK bertanda tangan upload key (diverifikasi `bundletool validate`, `jarsigner -verify`, `apksigtool verify`), manifest tanpa izin internet, draf listing & Data safety (`PLAY_STORE.md`). Belum: uji perangkat nyata, tinjauan hukum, tinjauan guru atas draf konten, unggah ke Play Console |
+| M8 QA & rilis | Rilis 1.3.0 siap unggah | Folder `release\1.3.0` (di luar git): App Bundle dan APK bertanda tangan upload key (diverifikasi `bundletool validate`, `jarsigner -verify`, `apksigtool verify`), manifest tanpa izin internet, draf listing & Data safety (`PLAY_STORE.md`). Belum: uji perangkat nyata, tinjauan hukum, tinjauan guru atas draf konten, unggah ke Play Console |
 
 Build terbaru dibangun otomatis setiap push ke `main` (Flutter stable) dan diunggah ke GitHub Release `android-latest`. `flutter analyze`: 0 error, 0 warning (hanya info deprecation `material.dart`).

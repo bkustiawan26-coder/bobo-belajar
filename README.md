@@ -1,6 +1,6 @@
 # BOBO BELAJAR
 
-Teman belajar Android untuk siswa SD kelas 1–SMP kelas 9, dengan mode orang tua di aplikasi yang sama. Versi 1.2.0 (Android 7.0+): berjalan **lokal penuh** di HP, tanpa server, tanpa akun, tanpa internet. Berisi draf materi, latihan, dan asesmen Kelas 1–9 untuk semua mapel (belum ditinjau guru).
+Teman belajar Android untuk siswa SD kelas 1–SMP kelas 9, dengan mode orang tua di aplikasi yang sama. Versi 1.3.0 (Android 7.0+): berjalan **lokal penuh** di HP, tanpa server, tanpa akun, tanpa internet. Berisi draf materi, latihan, dan asesmen Kelas 1–9 untuk semua mapel (belum ditinjau guru).
 
 | Bagian | Teknologi | Folder |
 |---|---|---|

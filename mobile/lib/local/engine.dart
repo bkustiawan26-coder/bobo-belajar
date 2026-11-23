@@ -1160,7 +1160,8 @@ class LocalEngine {
       throw ApiException(409, 'Maksimal $maxChildren profil anak');
     }
     final id = _uuid.v4();
-    final c = <String, dynamic>{'id': id, 'nickname': _cleanNickname(b['nickname']), 'grade': _cleanGrade(b['grade']), 'settings': cleanSettings(null), 'tutor_limit': defaultTutorLimit, 'created_at': _iso(now)};
+    final grade = _cleanGrade(b['grade']);
+    final c = <String, dynamic>{'id': id, 'nickname': _cleanNickname(b['nickname']), 'grade': grade, 'settings': cleanSettings(b['settings'] ?? (grade <= 2 ? {'read_aloud': true} : null)), 'tutor_limit': defaultTutorLimit, 'created_at': _iso(now)};
     await _put('children', id, c);
     await _log(id, 'profile', 'Profil dibuat oleh orang tua');
     return childInfo(c);

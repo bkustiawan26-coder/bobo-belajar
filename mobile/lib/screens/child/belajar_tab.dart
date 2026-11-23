@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../app_state.dart';
 import '../../core/api.dart';
 import '../../core/models.dart';
+import '../../core/persona.dart';
 import '../../core/speech.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
@@ -258,7 +259,7 @@ class _LessonReaderState extends State<LessonReader> {
     if (!mounted) {
       return;
     }
-    showToast(context, 'Materi selesai! Yuk, coba latihannya.');
+    showToast(context, Persona.forGrade(context.read<AppState>().child!.grade).lessonDone());
     widget.onClose();
     nav.practice(_lesson!['topic_id'] as int);
   }
@@ -277,12 +278,25 @@ class _LessonReaderState extends State<LessonReader> {
     }
     final blocks = asList(_lesson!['blocks']);
     final b = blocks[_step.clamp(0, blocks.length - 1)];
-    final points = (b['points'] as List?)?.map((e) => e.toString()).toList();
+    final points = (b['points'] as List?)?.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList();
     final last = _step + 1 >= blocks.length;
-    final speakText = [b['kind'], if (b['text'] != null) b['text'], ...?points].join('. ');
-    if (_spoken != _step && context.read<AppState>().setting('read_aloud')) {
+    final app = context.read<AppState>();
+    final child = app.child!;
+    final persona = Persona.forGrade(child.grade);
+    final kind = b['kind'] as String;
+    final bodyText = (b['text'] as String?)?.trim();
+    final speakText = [if (bodyText != null && bodyText.isNotEmpty) bodyText, ...?points].join('\n');
+    final intro = '${_step == 0 ? '${persona.lessonIntro(child.nickname, _lesson!['title'] as String, (_lesson!['minutes'] as num).toInt())} ' : ''}${persona.blockIntro(kind)}';
+    final pointOffsets = <int>[];
+    var offset = bodyText == null || bodyText.isEmpty ? 0 : segmentsOf(bodyText).length;
+    for (final p in points ?? const <String>[]) {
+      pointOffsets.add(offset);
+      offset += segmentsOf(p).length;
+    }
+    final lineHeight = persona.young ? 1.8 : 1.65;
+    if (_spoken != _step && app.setting('read_aloud')) {
       _spoken = _step;
-      WidgetsBinding.instance.addPostFrameCallback((_) => Speech.instance.speak(speakText));
+      WidgetsBinding.instance.addPostFrameCallback((_) => Speech.instance.speak(speakText, intro: intro));
     }
     return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 24), children: [
       Row(children: List.generate(blocks.length, (i) => Expanded(
@@ -290,7 +304,7 @@ class _LessonReaderState extends State<LessonReader> {
           ))),
       const SizedBox(height: 14),
       Row(children: [
-        Tag('Bagian ${_step + 1} dari ${blocks.length} · ${b['kind']}', fg: t.ink, bg: t.soft, size: 13),
+        Tag('Bagian ${_step + 1} dari ${blocks.length} · ${persona.blockLabel(kind)}', fg: t.ink, bg: t.soft, size: 13),
         const Spacer(),
         if (_lesson!['reviewed'] == true) const Tag('✓ Sudah ditinjau', fg: Palette.okInk, bg: Palette.okSoft),
       ]),
@@ -304,7 +318,7 @@ class _LessonReaderState extends State<LessonReader> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             const Spacer(),
-            SpeakButton(text: speakText, color: t.ink, label: 'Dengarkan'),
+            SpeakButton(text: speakText, intro: intro, color: t.ink, label: persona.young ? 'Dengarkan BOBO' : 'Dengarkan'),
           ]),
           if (b['visual'] != null) ...[
             LessonVisual(kind: b['visual'] as String, theme: t),
@@ -319,15 +333,15 @@ class _LessonReaderState extends State<LessonReader> {
             ),
             const SizedBox(height: 8),
           ],
-          if (b['text'] != null) Text(b['text'] as String, style: TextStyle(fontSize: t.body, height: 1.65)),
+          if (bodyText != null && bodyText.isNotEmpty) ReadAlongText(speechKey: speakText, text: bodyText, offset: 0, style: TextStyle(fontSize: t.body, height: lineHeight, color: Palette.ink), highlight: t.soft),
           if (points != null)
-            for (final p in points)
+            for (final (pi, p) in points.indexed)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Container(width: 24, height: 24, alignment: Alignment.center, decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle), child: Icon(Icons.check_rounded, size: 15, color: t.ink)),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(p, style: TextStyle(fontSize: t.body, height: 1.5))),
+                  Expanded(child: ReadAlongText(speechKey: speakText, text: p, offset: pointOffsets[pi], style: TextStyle(fontSize: t.body, height: 1.5, color: Palette.ink), highlight: t.soft)),
                 ]),
               ),
         ]),

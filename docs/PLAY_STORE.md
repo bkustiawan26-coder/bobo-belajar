@@ -3,8 +3,8 @@
 ## Berkas
 | Berkas | Untuk |
 |---|---|
-| `BOBO-Belajar-1.2.0.aab` (ditandatangani upload key) | unggah ke Play Console |
-| `BOBO-Belajar-1.2.0.apk` (ditandatangani upload key) | pasang langsung di HP |
+| `BOBO-Belajar-1.3.0.aab` (ditandatangani upload key) | unggah ke Play Console |
+| `BOBO-Belajar-1.3.0.apk` (ditandatangani upload key) | pasang langsung di HP |
 | `play-store-icon-512.png` | ikon listing |
 
 Aktifkan **Play App Signing** saat unggah pertama. Upload key (`upload-keystore.jks` + `key.properties`) disimpan di `F:\BOBOCUAN2026\BOBO Belajar\release-signing\`. Jika hilang, upload key bisa direset lewat Play Console, tetapi simpan cadangannya di dua tempat.
@@ -21,7 +21,7 @@ Aktifkan **Play App Signing** saat unggah pertama. Upload key (`upload-keystore.
 - Tidak ada iklan, SDK iklan, analitik pihak ketiga, atau pembelian dalam aplikasi di versi ini.
 - Tutor: jawaban disusun di HP dari materi aplikasi (bukan AI generatif di internet), dengan filter keselamatan dan batas harian (lihat `CHILD_SAFETY.md`).
 
-## Data safety (isian yang sesuai kode 1.2.0)
+## Data safety (isian yang sesuai kode 1.3.0)
 - **Mengumpulkan data pengguna: Tidak.** Aplikasi tidak punya izin internet; semua data disimpan di HP dan tidak dikirim ke developer atau pihak ketiga.
 - **Membagikan data: Tidak.** Ringkasan guru dan berkas cadangan hanya dibagikan atas tindakan orang tua sendiri lewat menu bagikan Android.
 - Penghapusan data: tersedia di aplikasi (hapus profil / hapus semua data) dan otomatis saat aplikasi dihapus.
