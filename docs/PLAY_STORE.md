@@ -3,8 +3,8 @@
 ## Berkas
 | Berkas | Untuk |
 |---|---|
-| `BOBO-Belajar-1.3.0.aab` (ditandatangani upload key) | unggah ke Play Console |
-| `BOBO-Belajar-1.3.0.apk` (ditandatangani upload key) | pasang langsung di HP |
+| `BOBO-Belajar-1.4.0.aab` (ditandatangani upload key) | unggah ke Play Console |
+| `BOBO-Belajar-1.4.0.apk` (ditandatangani upload key) | pasang langsung di HP |
 | `play-store-icon-512.png` | ikon listing |
 
 Aktifkan **Play App Signing** saat unggah pertama. Upload key (`upload-keystore.jks` + `key.properties`) disimpan di `F:\BOBOCUAN2026\BOBO Belajar\release-signing\`. Jika hilang, upload key bisa direset lewat Play Console, tetapi simpan cadangannya di dua tempat.
@@ -21,14 +21,14 @@ Aktifkan **Play App Signing** saat unggah pertama. Upload key (`upload-keystore.
 - Tidak ada iklan, SDK iklan, analitik pihak ketiga, atau pembelian dalam aplikasi di versi ini.
 - Tutor: jawaban disusun di HP dari materi aplikasi (bukan AI generatif di internet), dengan filter keselamatan dan batas harian (lihat `CHILD_SAFETY.md`).
 
-## Data safety (isian yang sesuai kode 1.3.0)
+## Data safety (isian yang sesuai kode 1.4.0)
 - **Mengumpulkan data pengguna: Tidak.** Aplikasi tidak punya izin internet; semua data disimpan di HP dan tidak dikirim ke developer atau pihak ketiga.
 - **Membagikan data: Tidak.** Ringkasan guru dan berkas cadangan hanya dibagikan atas tindakan orang tua sendiri lewat menu bagikan Android.
 - Penghapusan data: tersedia di aplikasi (hapus profil / hapus semua data) dan otomatis saat aplikasi dihapus.
 
 ## Sebelum menekan "Kirim untuk ditinjau"
 1. Kebijakan privasi terpasang di URL publik, dengan nama pengelola dan email kontak.
-2. Konten 1.2.0 masih draf buatan AI yang belum ditinjau guru. Jangan iklankan sebagai materi resmi/sesuai kurikulum sebelum ditinjau; deskripsi listing harus menyebut "draf materi".
+2. Konten 1.4.0 masih draf buatan AI yang belum ditinjau guru. Jangan iklankan sebagai materi resmi/sesuai kurikulum sebelum ditinjau; deskripsi listing harus menyebut "draf materi".
 3. Kebijakan privasi ditinjau ahli hukum (UU PDP).
 4. Uji di minimal 2 perangkat nyata (layar kecil, TalkBack, offline) memakai jalur uji internal Play Console.
 5. Screenshot 2–8 per jenis perangkat dari aplikasi sungguhan.

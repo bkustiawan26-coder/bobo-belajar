@@ -23,6 +23,7 @@ class _BelajarTabState extends State<BelajarTab> {
   Map<String, dynamic>? _catalog;
   Object? _error;
   int? _subjectId;
+  int? _semester;
   int? _lessonId;
   int _seenVersion = 0;
 
@@ -94,7 +95,10 @@ class _BelajarTabState extends State<BelajarTab> {
       );
     }
     final s = subjects.firstWhere((x) => x['id'] == _subjectId, orElse: () => subjects.isEmpty ? <String, dynamic>{} : subjects.first);
-    final chapters = asList(s['chapters']);
+    final allChapters = asList(s['chapters']);
+    final semesters = {for (final ch in allChapters) ((ch['semester'] as num?) ?? 1).toInt()}.toList()..sort();
+    final sem = semesters.contains(_semester) ? _semester! : (semesters.contains(_catalog!['semester']) ? (_catalog!['semester'] as num).toInt() : (semesters.isEmpty ? 1 : semesters.first));
+    final chapters = allChapters.where((ch) => ((ch['semester'] as num?) ?? 1).toInt() == sem).toList();
     return ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 24), children: [
       Align(
         alignment: Alignment.centerLeft,
@@ -102,6 +106,16 @@ class _BelajarTabState extends State<BelajarTab> {
       ),
       Text((s['name'] ?? '') as String, style: TextStyle(fontSize: t.title, fontWeight: FontWeight.w800)),
       const SizedBox(height: 12),
+      if (semesters.length > 1) ...[
+        SegmentedButton<int>(
+          segments: [for (final x in semesters) ButtonSegment<int>(value: x, label: Text('Semester $x'), icon: x == _catalog!['semester'] ? const Icon(Icons.today_rounded, size: 18) : null)],
+          selected: {sem},
+          showSelectedIcon: false,
+          onSelectionChanged: (v) => setState(() => _semester = v.first),
+          style: SegmentedButton.styleFrom(selectedBackgroundColor: t.soft, selectedForegroundColor: t.ink, minimumSize: const Size(0, 44)),
+        ),
+        const SizedBox(height: 16),
+      ],
       if (s['ready'] != true)
         AppCard(
           radius: t.radius,

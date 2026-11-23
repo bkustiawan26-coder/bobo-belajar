@@ -8,6 +8,8 @@ List<Map<String, dynamic>> _list(Object? v) => v == null ? <Map<String, dynamic>
 
 int _int(Object? v) => (v as num).toInt();
 
+int schoolSemester(DateTime d) => d.month >= 7 ? 1 : 2;
+
 class Content {
   Content(Map<String, dynamic> raw)
       : curriculum = raw['curriculum'] as String?,
@@ -93,6 +95,12 @@ class Content {
     final out = chapters.where((c) => _int(c['subject_id']) == subjectId).toList();
     out.sort((a, b) => _int(a['number']).compareTo(_int(b['number'])));
     return out;
+  }
+
+  int semesterOfTopic(int topicId) {
+    final t = topicById[topicId];
+    final c = t == null ? null : chapterById[_int(t['chapter_id'])];
+    return c == null ? 1 : ((c['semester'] as num?) ?? 1).toInt();
   }
 
   List<Map<String, dynamic>> topicsOfChapter(int chapterId) {

@@ -27,9 +27,10 @@ void main() {
 
   test('bundle berisi materi, latihan, dan asesmen untuk kelas 1 sampai 9', () {
     expect(content.includesSample, isTrue);
+    const expected = {1: 5, 2: 5, 3: 6, 4: 6, 5: 8, 6: 8, 7: 10, 8: 10, 9: 10};
     for (var g = 1; g <= 9; g++) {
       final subjects = content.subjectsOfGrade(g);
-      expect(subjects.length, g <= 4 ? 4 : 5, reason: 'kelas $g');
+      expect(subjects.length, expected[g], reason: 'kelas $g');
       for (final s in subjects) {
         final sid = (s['id'] as num).toInt();
         final topics = [for (final ch in content.chaptersOfSubject(sid)) ...content.topicsOfChapter((ch['id'] as num).toInt())];
@@ -39,9 +40,14 @@ void main() {
           expect(content.lessonForTopic(tid), isNotNull, reason: 'materi ${t['title']}');
           expect(content.practiceCount(tid), greaterThanOrEqualTo(4), reason: 'latihan ${t['title']}');
         }
+        final chapters = content.chaptersOfSubject(sid);
+        expect({for (final ch in chapters) (ch['semester'] as num).toInt()}, {1, 2}, reason: 'semester kelas $g ${s['name']}');
         final exams = content.assessments.where((a) => (a['grade'] as num).toInt() == g && a['short_title'] == s['name']).toList();
-        expect(exams.length, 1, reason: 'asesmen kelas $g ${s['name']}');
-        expect((exams.single['questions'] as List).length, greaterThanOrEqualTo(5));
+        expect(exams.length, 2, reason: 'asesmen kelas $g ${s['name']}');
+        expect({for (final a in exams) (a['semester'] as num).toInt()}, {1, 2});
+        for (final a in exams) {
+          expect((a['questions'] as List).length, greaterThanOrEqualTo(5));
+        }
       }
     }
   });
@@ -73,7 +79,8 @@ void main() {
       final practice = (await e.student(id, 'GET', '/student/practice') as Map)['questions'] as List;
       expect(practice.length, greaterThanOrEqualTo(subjects.length * 16));
       final exams = (await e.student(id, 'GET', '/student/assessments') as Map)['assessments'] as List;
-      expect(exams.length, subjects.length);
+      expect(exams.length, subjects.length * 2);
+      expect((exams.first as Map)['semester'], 1);
     }
   });
 }

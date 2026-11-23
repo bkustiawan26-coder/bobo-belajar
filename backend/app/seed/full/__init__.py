@@ -1,6 +1,10 @@
+import copy
+import functools
 import hashlib
 import importlib
 import random
+from dataclasses import replace
+from types import SimpleNamespace
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -18,8 +22,33 @@ DIFF = ["mudah", "mudah", "sedang", "menantang"]
 VISUALS = {"frac", "tens", "tri"}
 
 
+@functools.lru_cache(maxsize=None)
 def load_grade(n: int):
-    return importlib.import_module(f"app.seed.full.g{n}")
+    base = importlib.import_module(f"app.seed.full.g{n}")
+    subjects = copy.deepcopy(base.SUBJECTS)
+    prereq = list(base.PREREQ)
+    try:
+        ext = importlib.import_module(f"app.seed.full.x{n}")
+    except ModuleNotFoundError:
+        ext = None
+    for s in subjects:
+        sems = getattr(ext, "BASE_SEM", {}).get(s.code) if ext else None
+        sems = sems or [1] + [2] * (len(s.chapters) - 1)
+        for c, sem in zip(s.chapters, sems):
+            c.semester = sem
+        if ext and s.code in getattr(ext, "EXTEND", {}):
+            chapters, exam = ext.EXTEND[s.code]
+            offset = sum(len(c.topics) for c in s.chapters)
+            s.chapters = s.chapters + copy.deepcopy(chapters)
+            s.exam = s.exam + [replace(q, topic=q.topic + offset) for q in exam]
+    if ext:
+        subjects += copy.deepcopy(getattr(ext, "NEW", []))
+        prereq += list(getattr(ext, "PREREQ", []))
+    return SimpleNamespace(GRADE=n, SUBJECTS=subjects, PREREQ=prereq)
+
+
+def topic_semesters(s: S) -> list[int]:
+    return [c.semester for c in s.chapters for _ in c.topics]
 
 
 def validate_question(q: Q, where: str) -> list[str]:
@@ -64,8 +93,13 @@ def validate_all(subject_codes: dict[int, list[str]]) -> list[str]:
             flat = [t for c in s.chapters for t in c.topics]
             if len(flat) < 4:
                 errs.append(f"Kelas {n} {s.code}: topik kurang dari 4")
-            if len(s.exam) < 5:
-                errs.append(f"Kelas {n} {s.code}: asesmen kurang dari 5 soal")
+            sems = topic_semesters(s)
+            if sorted(set(c.semester for c in s.chapters)) != [1, 2]:
+                errs.append(f"Kelas {n} {s.code}: harus ada bab Semester 1 dan Semester 2")
+            for sem in (1, 2):
+                k = sum(1 for q in s.exam if 0 <= q.topic < len(sems) and sems[q.topic] == sem)
+                if k < 5:
+                    errs.append(f"Kelas {n} {s.code}: asesmen Semester {sem} baru {k} soal (minimal 5)")
             for t in flat:
                 if t.title in titles:
                     errs.append(f"Kelas {n}: judul topik kembar {t.title}")
@@ -116,7 +150,7 @@ def _question(topic_id: int, q: Q, usage: str, diff: str, status: str, publish: 
 
 def seed_full(db: Session, v: CurriculumVersion, publish: bool = False) -> dict:
     status = "published" if publish else "in_review"
-    tpl = db.scalar(select(AssessmentTemplate).where(AssessmentTemplate.code == "ASLM"))
+    tpl = db.scalar(select(AssessmentTemplate).where(AssessmentTemplate.code == "ASAS")) or db.scalar(select(AssessmentTemplate).where(AssessmentTemplate.code == "ASLM"))
     counts = {"topics": 0, "lessons": 0, "questions": 0, "assessments": 0}
     topic_ids: dict[tuple[int, str], int] = {}
     mods = {n: load_grade(n) for n in GRADES}
@@ -128,8 +162,10 @@ def seed_full(db: Session, v: CurriculumVersion, publish: bool = False) -> dict:
             if sub is None or db.scalar(select(Chapter.id).where(Chapter.subject_id == sub.id)) is not None:
                 continue
             flat: list[Topic] = []
+            order = sorted(range(len(s.chapters)), key=lambda i: (s.chapters[i].semester, i))
+            numbers = {ci: rank + 1 for rank, ci in enumerate(order)}
             for ci, c in enumerate(s.chapters):
-                ch = Chapter(subject_id=sub.id, number=ci + 1, title=c.title, semester=1 if ci < max(1, len(s.chapters) // 2) else 2)
+                ch = Chapter(subject_id=sub.id, number=numbers[ci], title=c.title, semester=c.semester)
                 db.add(ch)
                 db.flush()
                 for ti, t in enumerate(c.topics):
@@ -152,12 +188,16 @@ def seed_full(db: Session, v: CurriculumVersion, publish: bool = False) -> dict:
                     if ti > 0:
                         db.add(TopicPrerequisite(topic_id=topic.id, prerequisite_topic_id=flat[-2].id))
             db.flush()
-            if s.exam:
-                exam = Assessment(template_id=tpl.id, title=s.exam_title or f"Asesmen Lingkup Materi: {sub.name} Kelas {n}", short_title=sub.name, subject_id=sub.id, grade_number=n, semester=1,
-                                  duration_minutes=max(10, 2 * len(s.exam)), status="published" if publish else "draft", is_sample=True)
+            sems = topic_semesters(s)
+            for sem in (1, 2):
+                qs = [q for q in s.exam if sems[q.topic] == sem]
+                if not qs:
+                    continue
+                exam = Assessment(template_id=tpl.id, title=f"Asesmen Akhir Semester {sem}: {sub.name} Kelas {n}", short_title=sub.name, subject_id=sub.id, grade_number=n, semester=sem,
+                                  duration_minutes=max(10, 2 * len(qs)), status="published" if publish else "draft", is_sample=True)
                 db.add(exam)
                 db.flush()
-                for pos, q in enumerate(s.exam):
+                for pos, q in enumerate(qs):
                     row = _question(flat[q.topic].id, q, "assessment", "sedang", status, publish)
                     db.add(row)
                     db.flush()

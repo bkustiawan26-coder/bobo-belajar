@@ -732,11 +732,11 @@ class LocalEngine {
           });
         }
         nTopics += tOut.length;
-        chOut.add({'id': ch['id'], 'number': ch['number'], 'title': ch['title'], 'topics': tOut});
+        chOut.add({'id': ch['id'], 'number': ch['number'], 'title': ch['title'], 'semester': ch['semester'] ?? 1, 'topics': tOut});
       }
       subjects.add({'id': sub['id'], 'name': sub['name'], 'short_label': sub['short_label'], 'ready': ready, 'topic_count': nTopics, 'chapters': ready ? chOut : <Json>[]});
     }
-    return {'grade': g, 'phase': phase(g), 'curriculum': content.curriculum, 'sample_content': content.includesSample, 'subjects': subjects};
+    return {'grade': g, 'phase': phase(g), 'curriculum': content.curriculum, 'sample_content': content.includesSample, 'semester': schoolSemester(now), 'subjects': subjects};
   }
 
   Future<Json> _applyProgress(Json c, Json l, int step, bool completed) async {
@@ -824,7 +824,10 @@ class LocalEngine {
     final quota = await _tutorQuota(c);
     final progress = await _col('progress');
     final lessons = <Json>[];
-    for (final t in content.gradeTopics(_grade(c))) {
+    final sem = schoolSemester(now);
+    final all = content.gradeTopics(_grade(c));
+    final topics = [...all.where((t) => content.semesterOfTopic(_i(t['id'])) == sem), ...all.where((t) => content.semesterOfTopic(_i(t['id'])) != sem)];
+    for (final t in topics) {
       lessons.addAll(content.lessons.where((l) => _i(l['topic_id']) == _i(t['id'])));
     }
     Json? pick = lessons.where((l) {
@@ -914,7 +917,8 @@ class LocalEngine {
   Future<Json> _assessments(Json c) async {
     await _finalizeExpired(c);
     final sessions = (await _col('sessions')).values.where((s) => s['child_id'] == c['id']).toList();
-    final list = content.assessments.where((a) => _i(a['grade']) == _grade(c)).toList();
+    final mine0 = content.assessments.where((a) => _i(a['grade']) == _grade(c)).toList();
+    final list = [for (final sem in [1, 2]) ...mine0.where((a) => ((a['semester'] as num?) ?? 1).toInt() == sem)];
     final out = <Json>[];
     for (final a in list) {
       final mine = sessions.where((s) => s['assessment_id'] == a['id']).toList();
@@ -922,13 +926,13 @@ class LocalEngine {
       final active = mine.where((s) => s['status'] == 'active').firstOrNull;
       final last = done.firstOrNull;
       out.add({
-        'id': a['id'], 'type': a['template'], 'title': a['title'], 'duration_minutes': a['duration_minutes'], 'question_count': _jl(a['questions']).length, 'sample': a['sample'] == true,
+        'id': a['id'], 'type': a['template'], 'semester': a['semester'] ?? 1, 'title': a['title'], 'duration_minutes': a['duration_minutes'], 'question_count': _jl(a['questions']).length, 'sample': a['sample'] == true,
         'active_session_id': active?['id'],
         'last_result': last == null ? null : {'score': (_j(last['result'])['score'] as num).round(), 'date': relativeLabel(_parse(last['submitted_at'])), 'final': true},
       });
     }
     final available = list.map((a) => a['template']).toSet();
-    return {'assessments': out, 'upcoming': content.templates.where((t) => !available.contains(t)).toList()};
+    return {'assessments': out, 'upcoming': out.isEmpty ? content.templates.where((t) => !available.contains(t)).toList() : const <String>[]};
   }
 
   Json _sessionPayload(Json sess) {

@@ -32,7 +32,7 @@ def build_bundle(db: Session, include_sample: bool = False) -> dict:
         out["subjects"].append({"id": s.id, "grade": g, "name": s.name, "short_label": s.short_label, "sort_order": s.sort_order})
     chapters = list(db.scalars(select(Chapter).where(Chapter.subject_id.in_(subject_ids or [-1])).order_by(Chapter.subject_id, Chapter.number)))
     for c in chapters:
-        out["chapters"].append({"id": c.id, "subject_id": c.subject_id, "number": c.number, "title": c.title})
+        out["chapters"].append({"id": c.id, "subject_id": c.subject_id, "number": c.number, "title": c.title, "semester": c.semester or 1})
     topics = list(db.scalars(select(Topic).where(Topic.chapter_id.in_([c.id for c in chapters] or [-1])).order_by(Topic.chapter_id, Topic.sort_order, Topic.id)))
     topic_ids = {t.id for t in topics}
     for t in topics:
@@ -66,7 +66,7 @@ def build_bundle(db: Session, include_sample: bool = False) -> dict:
         if not links:
             continue
         out["assessments"].append({
-            "id": a.id, "template": labels.get(a.template_id, "Asesmen"), "title": a.title, "short_title": a.short_title, "grade": a.grade_number,
+            "id": a.id, "template": labels.get(a.template_id, "Asesmen"), "title": a.title, "short_title": a.short_title, "grade": a.grade_number, "semester": a.semester or 1,
             "duration_minutes": a.duration_minutes, "shuffle_questions": a.shuffle_questions, "shuffle_options": a.shuffle_options, "passing_score": a.passing_score,
             "sample": a.is_sample, "questions": [{"id": x.question_id, "points": x.points} for x in links],
         })

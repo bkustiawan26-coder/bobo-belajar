@@ -37,6 +37,7 @@ class T:
 class C:
     title: str
     topics: list[T]
+    semester: int = 1
 
 
 @dataclass

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.0 — 2026-11-23
+Materi dan latihan Semester 1 dan Semester 2 untuk semua mapel umum Kelas 1–9, mengikuti kurikulum tahun ajaran 2026/2027:
+- Acuan: Capaian Pembelajaran Keputusan Kepala BSKAP No. 046/H/KR/2025 (masih berlaku 2026/2027), Keputusan Kepala BKPDM No. 020/2026 (hanya mengubah CP Pendidikan Agama), Permendikdasmen No. 13/2025 (struktur kurikulum, mapel pilihan Koding dan Kecerdasan Artifisial), dan urutan bab buku teks Kurikulum Merdeka Kemendikdasmen.
+- Mapel baru: Seni dan Budaya dan PJOK (Kelas 1–9), Pendidikan Pancasila (SMP), Informatika (Kelas 7–9), Koding dan Kecerdasan Artifisial (Kelas 5–9). Total 68 mapel.
+- Setiap mapel kini punya bab Semester 1 dan Semester 2. Mapel inti 8–9 topik per tahun; Seni, PJOK, Informatika, KKA 4–8 topik.
+- 455 materi, 1.820 soal latihan dengan pembahasan (525 dengan langkah kecil), 136 Asesmen Akhir Semester (770 soal, satu per semester per mapel), 282 relasi prasyarat.
+- Aplikasi: pilihan Semester 1/Semester 2 di tab Belajar (otomatis sesuai bulan: Juli–Desember Semester 1, Januari–Juni Semester 2), topik semester berjalan didahulukan di beranda, daftar asesmen diurutkan per semester.
+- Pendidikan Agama dan Budi Pekerti belum disertakan: materinya berbeda per agama dan perlu ditinjau guru agama, dan aplikasi tidak menanyakan agama anak.
+- Tes diperbarui: validasi minimal 5 soal asesmen per semester, struktur semester di paket materi.
+
 ## 1.3.0 — 2026-11-23
 Suara dan UX menyesuaikan tahap perkembangan anak (lihat `CHILD_UX_PSYCHOLOGY.md`):
 - Suara BOBO per jenjang: kecepatan, nada, dan jeda berbeda untuk Kelas 1–2, 3–4, 5–6, 7–9; dibacakan per kalimat dengan sorotan kalimat yang sedang dibaca.

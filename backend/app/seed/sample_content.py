@@ -87,10 +87,10 @@ SAMPLE = {
 }
 
 SUBJECTS = {
-    1: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("PPK", "Pendidikan Pancasila", "PP"), ("SBD", "Seni Budaya", "SB")],
-    2: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("IPAS", "IPAS", "IP"), ("PPK", "Pendidikan Pancasila", "PP")],
-    3: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("IPAS", "IPAS", "IP"), ("PPK", "Pendidikan Pancasila", "PP"), ("BIG", "Bahasa Inggris", "En")],
-    4: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("IPA", "IPA", "IA"), ("IPS", "IPS", "IS"), ("BIG", "Bahasa Inggris", "En")],
+    1: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("PPK", "Pendidikan Pancasila", "PP"), ("SBD", "Seni dan Budaya", "SB"), ("PJOK", "PJOK", "PJ")],
+    2: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("IPAS", "IPAS", "IP"), ("PPK", "Pendidikan Pancasila", "PP"), ("SBD", "Seni dan Budaya", "SB"), ("PJOK", "PJOK", "PJ")],
+    3: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("IPAS", "IPAS", "IP"), ("PPK", "Pendidikan Pancasila", "PP"), ("BIG", "Bahasa Inggris", "En"), ("SBD", "Seni dan Budaya", "SB"), ("PJOK", "PJOK", "PJ"), ("KKA", "Koding dan KA", "KA")],
+    4: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("IPA", "IPA", "IA"), ("IPS", "IPS", "IS"), ("BIG", "Bahasa Inggris", "En"), ("PPK", "Pendidikan Pancasila", "PP"), ("SBD", "Seni dan Budaya", "SB"), ("PJOK", "PJOK", "PJ"), ("INF", "Informatika", "If"), ("KKA", "Koding dan KA", "KA")],
 }
 
 SCAFFOLDS = {
