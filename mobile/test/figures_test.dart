@@ -48,7 +48,7 @@ void main() {
     testWidgets('semua jenis aktivitas tampil tanpa galat di lebar $width', (tester) async {
       await setWidth(tester, width);
       for (final spec in listOf('activities')) {
-        await tester.pumpWidget(host(FigureActivity(spec: spec, theme: theme, say: quiet)));
+        await tester.pumpWidget(host(FigureActivity(key: UniqueKey(), spec: spec, theme: theme, say: quiet)));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull, reason: spec['mode'].toString());
         expect(find.text(spec['ask'].toString()), findsOneWidget);

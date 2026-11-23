@@ -101,7 +101,7 @@ void main() {
       final firstTopic = ((subjects.first['chapters'] as List).first as Map)['topics'] as List;
       final lessonId = ((firstTopic.first as Map)['lesson'] as Map)['id'];
       final lesson = await e.student(id, 'GET', '/student/lessons/$lessonId') as Map;
-      expect((lesson['blocks'] as List).length, 4);
+      expect((lesson['blocks'] as List).length, 5);
       final practice = (await e.student(id, 'GET', '/student/practice') as Map)['questions'] as List;
       expect(practice.length, greaterThanOrEqualTo(subjects.length * 16));
       final exams = (await e.student(id, 'GET', '/student/assessments') as Map)['assessments'] as List;

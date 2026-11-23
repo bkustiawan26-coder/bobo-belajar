@@ -21,7 +21,7 @@ class PrivacyScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Kebijakan privasi', style: TextStyle(fontWeight: FontWeight.w800))),
       body: ListView(padding: const EdgeInsets.all(20), children: [
-        const Text('Berlaku untuk BOBO Belajar versi lokal (1.6.0), November 2026.', style: TextStyle(fontSize: 13, color: Palette.muted)),
+        const Text('Berlaku untuk BOBO Belajar versi lokal (1.7.0), November 2026.', style: TextStyle(fontSize: 13, color: Palette.muted)),
         const SizedBox(height: 12),
         for (final (title, body) in sections) ...[
           Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),

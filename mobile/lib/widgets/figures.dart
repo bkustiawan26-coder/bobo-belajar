@@ -126,6 +126,14 @@ class LessonFigure extends StatefulWidget {
 class _LessonFigureState extends State<LessonFigure> {
   int _active = -1;
 
+  @override
+  void didUpdateWidget(covariant LessonFigure oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.spec != widget.spec) {
+      _active = -1;
+    }
+  }
+
   void _tap(int i, String text) {
     setState(() => _active = i);
     widget.say(text);

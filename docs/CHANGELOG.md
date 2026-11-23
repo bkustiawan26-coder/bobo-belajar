@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.0 — 2026-11-23
+Materi kini bergambar dan interaktif, dengan suara yang lebih ramah anak:
+- Setiap materi (471) punya gambar penjelas di bagian Penjelasan: diagram alur dan siklus, peta pikiran, perbandingan dua/tiga kelompok, diagram Venn, diagram batang, garis bilangan, pecahan (batang dan lingkaran), nilai tempat, susunan benda, gambar hitung, bangun datar dan ruang berlabel, bidang koordinat dan grafik fungsi, jam analog, kode program, kartu kosakata bergambar, rangkaian listrik, mata angin, timbangan persamaan, dan percakapan. Semua digambar oleh aplikasi, tetap offline.
+- Gambar bisa diketuk: BOBO membacakan bagian yang diketuk.
+- Langkah baru "Ayo coba" ("Ayo main" untuk kelas 1–2) di setiap materi: aktivitas singkat yang dibuat dari gambarnya, yaitu mengurutkan kartu, mengelompokkan, memasangkan, mencari gambar yang disebut, mewarnai pecahan, menyusun bilangan dengan tombol + dan −, mengetuk letak angka di garis bilangan, memilih jawaban, atau menebak hasil program. Ada petunjuk lembut saat keliru, pujian dan animasi saat berhasil, serta tombol "Main lagi".
+- Suara: nada lebih ceria untuk SD (pitch 1,25 kelas 1–2; 1,18 kelas 3–4; 1,08 kelas 5–6), sapaan pembuka lebih hangat, kalimat pengantar tiap bagian lebih ramah, emoji tidak ikut dibacakan.
+- Data: kolom `figure` (JSON) di blok materi (migrasi 0003), bank gambar per kelas di `backend/app/seed/full/fig<kelas>.py` dengan validasi format.
+
 ## 1.6.0 — 2026-11-23
 Format SAS disesuaikan dengan contoh soal SAS Kurikulum Merdeka 2026/2027 yang banyak dipakai sekolah (acuan: websiteedukasi.com):
 - SD (Kelas 1–6): 35 soal per SAS = 20 pilihan ganda + 10 isian + 5 uraian.

@@ -67,11 +67,26 @@ class _FigureActivityState extends State<FigureActivity> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
+    _prepare();
+  }
+
+  void _prepare() {
     if (mode == 'order' && s['fixed_first'] == true) {
       _picked.add(0);
     }
     if (mode == 'build') {
       _digits = List<int>.filled(s['value'].toString().length, 0);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant FigureActivity oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.spec != widget.spec) {
+      _digits = [];
+      _reset();
+      _picked.clear();
+      _prepare();
     }
   }
 
@@ -114,7 +129,7 @@ class _FigureActivityState extends State<FigureActivity> with SingleTickerProvid
       _selected = -1;
       _visited.clear();
       _colored.clear();
-      _digits = List<int>.filled(_digits.length, 0);
+      _digits = mode == 'build' ? List<int>.filled(s['value'].toString().length, 0) : <int>[];
       _point = null;
       _pointOk = null;
       _pickWrong = -1;
