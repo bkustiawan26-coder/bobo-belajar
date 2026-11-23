@@ -89,15 +89,15 @@
    "type": "flow",
    "items": [
     {
-     "icon": "🍎",
+     "icon": "👏",
      "label": "sa"
     },
     {
-     "icon": "🐄",
+     "icon": "👏",
      "label": "pi"
     },
     {
-     "icon": "🐮",
+     "icon": "🐄",
      "label": "sapi"
     }
    ],
@@ -507,6 +507,203 @@
    "polys": [],
    "range": 6,
    "caption": "m = (5 − 1) : (2 − 0) = 2. Persamaan garis: y = 2x + 1."
+  },
+  {
+   "type": "compare",
+   "groups": [
+    {
+     "title": {
+      "icon": "❓",
+      "label": "Tanda tanya"
+     },
+     "items": [
+      {
+       "label": "Siapa namamu?"
+      },
+      {
+       "label": "Di mana rumahmu?"
+      }
+     ]
+    },
+    {
+     "title": {
+      "icon": "❗",
+      "label": "Tanda seru"
+     },
+     "items": [
+      {
+       "label": "Ayo, cepat ke sini!"
+      },
+      {
+       "label": "Hore, kita menang!"
+      }
+     ]
+    },
+    {
+     "title": {
+      "icon": "⏺️",
+      "label": "Tanda titik"
+     },
+     "items": [
+      {
+       "label": "Aku suka apel."
+      },
+      {
+       "label": "Adik sedang tidur."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "line",
+   "from": -5.0,
+   "to": 5.0,
+   "step": 1.0,
+   "marks": [
+    -3.0,
+    2.0
+   ],
+   "jumps": [],
+   "caption": "Makin ke kanan makin besar: −3 < 2."
+  },
+  {
+   "type": "compare",
+   "groups": [
+    {
+     "title": {
+      "icon": "🔒",
+      "label": "Rahasiakan"
+     },
+     "items": [
+      {
+       "label": "alamat rumah"
+      },
+      {
+       "label": "nomor telepon"
+      },
+      {
+       "label": "kata sandi"
+      }
+     ]
+    },
+    {
+     "title": {
+      "icon": "🌐",
+      "label": "Boleh dibagikan"
+     },
+     "items": [
+      {
+       "label": "gambar karya sendiri"
+      },
+      {
+       "label": "pendapat yang sopan"
+      },
+      {
+       "label": "info sekolah yang umum"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "shape",
+   "shape": "right",
+   "labels": [
+    "a = 6 cm",
+    "b = 8 cm",
+    "c = 10 cm"
+   ],
+   "caption": "c² = a² + b² = 36 + 64 = 100, jadi c = 10 cm."
+  },
+  {
+   "type": "coord",
+   "points": [
+    {
+     "name": "A",
+     "x": -2.0,
+     "y": 0.0
+    },
+    {
+     "name": "B",
+     "x": 3.0,
+     "y": 0.0
+    }
+   ],
+   "lines": [
+    {
+     "label": "y=x²-x-6",
+     "abc": [
+      1.0,
+      -1.0,
+      -6.0
+     ]
+    }
+   ],
+   "polys": [],
+   "range": 7,
+   "caption": "x² − x − 6 = (x + 2)(x − 3) = 0, jadi x = −2 atau x = 3."
+  },
+  {
+   "type": "shape",
+   "shape": "cone",
+   "labels": [
+    "r = 3 cm",
+    "t = 4 cm",
+    "s = 5 cm"
+   ],
+   "caption": "V kerucut = 1/3 × π × r² × t. V bola = 4/3 × π × r³."
+  },
+  {
+   "type": "shape",
+   "shape": "box",
+   "labels": [
+    "p = 6 cm",
+    "l = 3 cm",
+    "t = 2 cm"
+   ],
+   "caption": "V = 6 × 3 × 2 = 36 cm³."
+  },
+  {
+   "type": "flow",
+   "items": [
+    {
+     "icon": "☀️",
+     "label": "Matahari"
+    },
+    {
+     "icon": "🪨",
+     "label": "Merkurius"
+    },
+    {
+     "icon": "🌕",
+     "label": "Venus"
+    },
+    {
+     "icon": "🌍",
+     "label": "Bumi"
+    },
+    {
+     "icon": "🔴",
+     "label": "Mars"
+    },
+    {
+     "icon": "🟠",
+     "label": "Jupiter"
+    },
+    {
+     "icon": "🪐",
+     "label": "Saturnus"
+    },
+    {
+     "icon": "🔵",
+     "label": "Uranus"
+    },
+    {
+     "icon": "🌀",
+     "label": "Neptunus"
+    }
+   ]
   }
  ],
  "activities": [
@@ -588,15 +785,15 @@
    "ask": "Ketuk kartu sesuai urutan yang benar.",
    "items": [
     {
-     "icon": "🍎",
+     "icon": "👏",
      "label": "sa"
     },
     {
-     "icon": "🐄",
+     "icon": "👏",
      "label": "pi"
     },
     {
-     "icon": "🐮",
+     "icon": "🐄",
      "label": "sapi"
     }
    ],
@@ -720,6 +917,27 @@
     "caption": "Perulangan membuat program lebih singkat."
    },
    "answer": "Robot maju 4 langkah, lalu belok kanan."
+  },
+  {
+   "type": "activity",
+   "mode": "pick",
+   "ask": "Ada berapa ⚽?",
+   "options": [
+    "7",
+    "8",
+    "6",
+    "9"
+   ],
+   "answer": 0,
+   "show": {
+    "type": "count",
+    "terms": [
+     {
+      "n": 7,
+      "icon": "⚽"
+     }
+    ]
+   }
   }
  ]
 }

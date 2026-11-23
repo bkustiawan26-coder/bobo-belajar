@@ -10,7 +10,7 @@ Membandingkan panjang benda :: bars ✏️ Pensil 6 ; 🥤 Sedotan 9 ; 🖍️ K
 Diagram gambar :: bars 🍎 Apel 3 ; 🍊 Jeruk 5 ; 🍌 Pisang 2 ~ Satu gambar mewakili satu buah. Jeruk paling banyak.
 ## BIN
 Huruf vokal dan konsonan :: compare 🅰️ Vokal = a ; i ; u ; e ; o || 🅱️ Konsonan = b ; k ; m ; s ; d ~ Huruf vokal hanya ada lima.
-Suku kata :: flow 🍎 sa > 🐄 pi > 🐮 sapi ~ sa + pi = sapi. Tepuk tangan setiap suku kata!
+Suku kata :: flow 👏 sa > 👏 pi > 🐄 sapi ~ sa + pi = sapi. Tepuk tangan setiap suku kata!
 Membaca kalimat sederhana :: steps 👧 Siapa? Siti > 🌻 Sedang apa? Menyiram bunga > 🔠 Diawali huruf kapital > ⏺️ Diakhiri tanda titik ~ Siti menyiram bunga.
 Menyimak cerita pendek :: flow 🦌 Kancil haus > 🏞️ Pergi ke sungai > 💧 Minum air > 😊 Kancil segar ~ Tokoh, tempat, dan kejadian cerita.
 Bunyi huruf awal kata :: icons ⚽ bola ; 📘 buku ; 👕 baju ; 🪑 meja ; 👁️ mata ; 🍯 madu ~ Dengarkan bunyi pertamanya: b atau m?

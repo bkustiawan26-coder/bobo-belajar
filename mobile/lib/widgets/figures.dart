@@ -248,33 +248,10 @@ class _LessonFigureState extends State<LessonFigure> {
         ]);
       case 'compare':
         final groups = figList(s['groups']);
-        return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          for (final (gi, g) in groups.indexed) ...[
-            if (gi > 0) const SizedBox(width: 8),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: figSoft[gi % 8].withValues(alpha: 0.6), borderRadius: BorderRadius.circular(14)),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  _chip(Map<String, dynamic>.from(g['title'] as Map), gi, big: true),
-                  const SizedBox(height: 6),
-                  for (final it in figList(g['items']))
-                    GestureDetector(
-                      onTap: () => widget.say(figText(it)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text((it['icon'] ?? '•').toString(), style: TextStyle(fontSize: (it['icon'] ?? '').toString().isEmpty ? 16 : 18, color: figInk[gi % 8], fontWeight: FontWeight.w900)),
-                          const SizedBox(width: 6),
-                          Expanded(child: Text((it['label'] ?? '').toString(), style: const TextStyle(fontSize: 13.5, color: Palette.ink, height: 1.3))),
-                        ]),
-                      ),
-                    ),
-                ]),
-              ),
-            ),
-          ],
-        ]);
+        if (groups.length >= 3) {
+          return LayoutBuilder(builder: (context, box) => box.maxWidth < 520 ? _compareRows(groups) : _compareColumns(groups));
+        }
+        return _compareColumns(groups);
       case 'venn':
         final groups = figList(s['groups']);
         return GestureDetector(
@@ -324,7 +301,7 @@ class _LessonFigureState extends State<LessonFigure> {
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE2E8F0))),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Wrap(alignment: WrapAlignment.center, children: [for (var k = 0; k < (t['n'] as num).toInt(); k++) Text(t['icon'].toString(), style: const TextStyle(fontSize: 22))]),
-                  Text('${t['n']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                  if (!widget.quiz) Text('${t['n']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                 ]),
               ),
         ]);
@@ -411,6 +388,64 @@ class _LessonFigureState extends State<LessonFigure> {
     }
   }
 
+  Widget _compareColumns(List<Map<String, dynamic>> groups) {
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      for (final (gi, g) in groups.indexed) ...[
+        if (gi > 0) const SizedBox(width: 8),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: figSoft[gi % 8].withValues(alpha: 0.6), borderRadius: BorderRadius.circular(14)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              _chip(Map<String, dynamic>.from(g['title'] as Map), gi, big: true),
+              const SizedBox(height: 6),
+              for (final it in figList(g['items']))
+                GestureDetector(
+                  onTap: () => widget.say(figText(it)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text((it['icon'] ?? '•').toString(), style: TextStyle(fontSize: (it['icon'] ?? '').toString().isEmpty ? 16 : 18, color: figInk[gi % 8], fontWeight: FontWeight.w900)),
+                      const SizedBox(width: 6),
+                      Expanded(child: Text((it['label'] ?? '').toString(), style: const TextStyle(fontSize: 13.5, color: Palette.ink, height: 1.3))),
+                    ]),
+                  ),
+                ),
+            ]),
+          ),
+        ),
+      ],
+    ]);
+  }
+
+  Widget _compareRows(List<Map<String, dynamic>> groups) {
+    return Column(children: [
+      for (final (gi, g) in groups.indexed)
+        Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: figSoft[gi % 8].withValues(alpha: 0.6), borderRadius: BorderRadius.circular(14)),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            SizedBox(width: 108, child: _chip(Map<String, dynamic>.from(g['title'] as Map), gi)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Wrap(spacing: 6, runSpacing: 6, children: [
+                for (final it in figList(g['items']))
+                  GestureDetector(
+                    onTap: () => widget.say(figText(it)),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+                      child: Text('${(it['icon'] ?? '').toString().isEmpty ? '' : '${it['icon']} '}${it['label'] ?? ''}', style: TextStyle(fontSize: 13.5, color: figInk[gi % 8], fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+              ]),
+            ),
+          ]),
+        ),
+    ]);
+  }
+
   Widget _bubble(Map<String, dynamic> it, int i, bool right) {
     final c = right ? 2 : 0;
     final avatar = Column(children: [
@@ -445,20 +480,20 @@ class _LessonFigureState extends State<LessonFigure> {
       final w = box.maxWidth.isFinite ? box.maxWidth : 340.0;
       final n = items.length;
       final chipW = math.min(116.0, w * (n > 4 ? 0.3 : 0.36));
-      final h = w * (n > 4 ? 0.95 : 0.8) + 20;
+      final h = w * (n > 4 ? 1.0 : 0.85) + 60;
       final cx = w / 2;
       final cy = h / 2;
       final rx = w / 2 - chipW / 2 - 2;
-      final ry = h / 2 - 44;
+      final ry = h / 2 - 58;
       final pos = [for (var i = 0; i < n; i++) Offset(cx + rx * math.sin(2 * math.pi * i / n), cy - ry * math.cos(2 * math.pi * i / n))];
       return SizedBox(
         height: h,
-        child: Stack(children: [
+        child: Stack(clipBehavior: Clip.none, children: [
           Positioned.fill(child: CustomPaint(painter: RingPainter(points: pos, center: center == null ? null : Offset(cx, cy), arrows: arrows, color: widget.theme.accent))),
           if (center != null)
             Positioned(left: cx - chipW / 2 - 6, top: cy - 40, width: chipW + 12, child: Center(child: FigChip(item: center, index: 5, big: true, active: _active == 99, onTap: () => _tap(99, figText(center))))),
           for (final (i, it) in items.indexed)
-            Positioned(left: pos[i].dx - chipW / 2, top: pos[i].dy - 34, width: chipW, child: Center(child: _chip(it, i))),
+            Positioned(left: pos[i].dx - chipW / 2, top: pos[i].dy - 40, width: chipW, child: Center(child: _chip(it, i))),
         ]),
       );
     });
@@ -569,7 +604,7 @@ String groupDigits(String digits) {
 }
 
 void paintLabel(Canvas canvas, String text, Offset at, {double size = 13, Color color = Palette.ink, FontWeight weight = FontWeight.w700, double maxWidth = 140, bool center = true, Color? bg}) {
-  final tp = TextPainter(text: TextSpan(text: text, style: TextStyle(fontSize: size, color: color, fontWeight: weight)), textDirection: TextDirection.ltr, textAlign: TextAlign.center, maxLines: 3, ellipsis: '…')..layout(maxWidth: maxWidth);
+  final tp = TextPainter(text: TextSpan(text: text, style: TextStyle(fontFamily: 'PlusJakartaSans', fontSize: size, color: color, fontWeight: weight)), textDirection: TextDirection.ltr, textAlign: TextAlign.center, maxLines: 3, ellipsis: '…')..layout(maxWidth: maxWidth);
   final o = center ? at - Offset(tp.width / 2, tp.height / 2) : at;
   if (bg != null) {
     canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(o.dx - 4, o.dy - 2, tp.width + 8, tp.height + 4), const Radius.circular(6)), Paint()..color = bg);
@@ -804,7 +839,9 @@ class ShapePainter extends CustomPainter {
 
     void lab(String t, Offset at) {
       if (t.isNotEmpty) {
-        paintLabel(canvas, t, at, size: 13, bg: Colors.white, color: Palette.ink);
+        final half = math.min(70.0, 4.0 + t.length * 3.9);
+        final safe = Offset(at.dx.clamp(half, math.max(half, w - half)), at.dy.clamp(10.0, math.max(10.0, h - 10)));
+        paintLabel(canvas, t, safe, size: 13, bg: Colors.white, color: Palette.ink);
       }
     }
 
@@ -815,7 +852,7 @@ class ShapePainter extends CustomPainter {
         lab(_l(0), Offset(cx, cy + s / 2 + 12));
         lab(_l(0), Offset(cx + s / 2 + 30, cy));
       case 'rect':
-        final rw = math.min(w * 0.7, 260.0);
+        final rw = math.min(w * 0.58, 240.0);
         final rh = h * 0.5;
         poly([Offset(cx - rw / 2, cy - rh / 2), Offset(cx + rw / 2, cy - rh / 2), Offset(cx + rw / 2, cy + rh / 2), Offset(cx - rw / 2, cy + rh / 2)]);
         lab(_l(0), Offset(cx, cy + rh / 2 + 14));
