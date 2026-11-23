@@ -1,6 +1,6 @@
 # Panduan Deployment
 
-Aplikasi Android 1.1.0 tidak butuh server. Server di bawah hanya untuk tim konten (CMS).
+Aplikasi Android 1.2.0 tidak butuh server. Server di bawah hanya untuk tim konten (CMS).
 
 ## Memperbarui materi di aplikasi
 1. Tim konten menyusun dan meninjau materi di CMS sampai terbit.
@@ -11,7 +11,7 @@ Aplikasi Android 1.1.0 tidak butuh server. Server di bawah hanya untuk tim konte
 1. Siapkan server Linux dengan Docker. Minimal 2 vCPU, 2 GB RAM, 20 GB disk.
 2. `cp .env.example .env`, isi `POSTGRES_PASSWORD`, `BOBO_JWT_SECRET` (acak 64 hex), `BOBO_CORS_ORIGINS` (alamat CMS), `CMS_API_BASE_URL` (alamat publik API).
 3. `docker compose up -d --build` — API menjalankan migrasi otomatis saat start.
-4. `docker compose exec api python -m app.cli seed --sample` lalu buat akun staf: `docker compose exec api python -m app.cli create-staff --email ... --name ... --role admin` (juga buat akun `reviewer` terpisah).
+4. `docker compose exec api python -m app.cli seed --full` lalu buat akun staf: `docker compose exec api python -m app.cli create-staff --email ... --name ... --role admin` (juga buat akun `reviewer` terpisah).
 5. Pasang reverse proxy TLS (Caddy/Nginx) untuk `api.domainmu` → `:8000` dan `cms.domainmu` → `:3000`. Jangan buka port database.
 6. Backup harian otomatis ke `./backups` (simpan 14 hari); salin ke penyimpanan lain secara berkala.
 7. Layanan `maintenance` menghapus percakapan AI berumur lebih dari 30 hari setiap hari (`python -m app.cli purge`).

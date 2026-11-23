@@ -296,7 +296,7 @@ class _LessonReaderState extends State<LessonReader> {
       ]),
       const SizedBox(height: 14),
       Text(_lesson!['title'] as String, style: TextStyle(fontSize: t.title, fontWeight: FontWeight.w800, height: 1.2)),
-      Text('${_lesson!['minutes']} menit${_lesson!['sample'] == true ? ' · materi contoh, belum ditinjau tim kurikulum' : ''}', style: const TextStyle(fontSize: 13, color: Palette.muted)),
+      Text('${_lesson!['minutes']} menit${_lesson!['sample'] == true ? ' · draf materi, belum ditinjau guru' : ''}', style: const TextStyle(fontSize: 13, color: Palette.muted)),
       const SizedBox(height: 16),
       AppCard(
         radius: t.radius,

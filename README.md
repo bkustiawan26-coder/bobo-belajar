@@ -1,6 +1,6 @@
 # BOBO BELAJAR
 
-Teman belajar Android untuk siswa SD kelas 1–SMP kelas 9, dengan mode orang tua di aplikasi yang sama. Versi 1.1.0 (Android 7.0+): berjalan **lokal penuh** di HP, tanpa server, tanpa akun, tanpa internet.
+Teman belajar Android untuk siswa SD kelas 1–SMP kelas 9, dengan mode orang tua di aplikasi yang sama. Versi 1.2.0 (Android 7.0+): berjalan **lokal penuh** di HP, tanpa server, tanpa akun, tanpa internet. Berisi draf materi, latihan, dan asesmen Kelas 1–9 untuk semua mapel (belum ditinjau guru).
 
 | Bagian | Teknologi | Folder |
 |---|---|---|
@@ -15,14 +15,14 @@ Teman belajar Android untuk siswa SD kelas 1–SMP kelas 9, dengan mode orang tu
 cp .env.example .env
 # isi POSTGRES_PASSWORD dan BOBO_JWT_SECRET (python -c "import secrets;print(secrets.token_hex(32))")
 docker compose up -d --build
-docker compose exec api python -m app.cli seed --sample            # struktur kurikulum + konten contoh (status review)
+docker compose exec api python -m app.cli seed --full              # struktur kurikulum + draf konten Kelas 1–9 (status review)
 docker compose exec api python -m app.cli create-staff --email admin@contoh.id --name Admin --role admin
 ```
 
 - API: `http://SERVER:8000` (dokumentasi interaktif `/docs` hanya di non-production)
 - CMS: `http://SERVER:3000`
 
-Konten contoh masuk sebagai **menunggu review**; terbitkan lewat CMS setelah ditinjau. Untuk demo lokal saja: `seed --sample --publish-sample` (ditolak di `BOBO_ENV=production`).
+Konten contoh masuk sebagai **menunggu review**; terbitkan lewat CMS setelah ditinjau. Untuk demo lokal saja: `seed --full --publish-sample` (ditolak di `BOBO_ENV=production`).
 
 ## Aplikasi Android
 

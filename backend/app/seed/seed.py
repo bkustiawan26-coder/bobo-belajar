@@ -135,8 +135,13 @@ def seed_prerequisites(db: Session, v: CurriculumVersion) -> int:
     return n
 
 
-def run(db: Session, sample: bool, publish_sample: bool) -> dict:
+def run(db: Session, sample: bool, publish_sample: bool, full: bool = False) -> dict:
     v = seed_base(db)
+    if full:
+        from app.seed.full import seed_full
+        counts = seed_full(db, v, publish_sample)
+        db.commit()
+        return {"curriculum_version_id": v.id, **counts}
     n = seed_sample(db, v, publish_sample) if sample else 0
     if sample:
         db.flush()

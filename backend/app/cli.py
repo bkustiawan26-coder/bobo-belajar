@@ -18,6 +18,7 @@ def main() -> None:
     s = sub.add_parser("seed")
     s.add_argument("--sample", action="store_true")
     s.add_argument("--publish-sample", action="store_true")
+    s.add_argument("--full", action="store_true")
     sub.add_parser("purge")
     b = sub.add_parser("export-bundle")
     b.add_argument("--out", required=True)
@@ -33,7 +34,7 @@ def main() -> None:
             if args.publish_sample and get_settings().env == "production":
                 print("Konten contoh tidak boleh langsung terbit di production. Jalankan tanpa --publish-sample lalu tinjau lewat CMS.", file=sys.stderr)
                 sys.exit(2)
-            print(json.dumps(run(db, args.sample, args.publish_sample)))
+            print(json.dumps(run(db, args.sample, args.publish_sample, args.full)))
         elif args.cmd == "purge":
             from app.services.support import purge_old_conversations
             print(json.dumps({"deleted_messages": purge_old_conversations(db, 30)}))

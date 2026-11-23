@@ -1,0 +1,174 @@
+import hashlib
+import importlib
+import random
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.core.db import utcnow
+from app.models import (
+    Assessment, AssessmentQuestion, AssessmentTemplate, Chapter, CurriculumVersion, Grade, Lesson, LessonBlock, Question, QuestionExplanation,
+    QuestionOption, QuestionSource, Subject, Topic, TopicPrerequisite,
+)
+from app.seed.full.dsl import Q, S
+
+GRADES = range(1, 10)
+SOURCE_NOTE = "Draf materi BOBO buatan AI, belum ditinjau guru/tim kurikulum"
+DIFF = ["mudah", "mudah", "sedang", "menantang"]
+VISUALS = {"frac", "tens", "tri"}
+
+
+def load_grade(n: int):
+    return importlib.import_module(f"app.seed.full.g{n}")
+
+
+def validate_question(q: Q, where: str) -> list[str]:
+    errs = []
+    if not q.body.strip() or not q.explanation.strip():
+        errs.append(f"{where}: soal/pembahasan kosong")
+    if q.type in ("mc", "tf"):
+        idx = q.answer.get("index")
+        if not isinstance(idx, int) or not 0 <= idx < len(q.options):
+            errs.append(f"{where}: indeks jawaban di luar pilihan")
+        if q.type == "mc" and len(q.options) < 3:
+            errs.append(f"{where}: pilihan ganda kurang dari 3")
+        if len(set(q.options)) != len(q.options):
+            errs.append(f"{where}: pilihan kembar")
+    elif q.type == "multi":
+        ids = q.answer.get("indices") or []
+        if not ids or any(not 0 <= i < len(q.options) for i in ids) or len(set(q.options)) != len(q.options):
+            errs.append(f"{where}: jawaban multi tidak valid")
+    elif q.type == "fill":
+        if not q.answer.get("accepted"):
+            errs.append(f"{where}: jawaban isian kosong")
+    else:
+        errs.append(f"{where}: tipe {q.type} tidak didukung")
+    if q.scaffold is not None and (not q.scaffold.get("steps") or len(q.scaffold["steps"]) > 8):
+        errs.append(f"{where}: langkah kecil tidak valid")
+    return errs
+
+
+def validate_all(subject_codes: dict[int, list[str]]) -> list[str]:
+    errs = []
+    for n in GRADES:
+        try:
+            mod = load_grade(n)
+        except ModuleNotFoundError:
+            errs.append(f"Kelas {n}: belum ada")
+            continue
+        codes = [s.code for s in mod.SUBJECTS]
+        if sorted(codes) != sorted(subject_codes[n]):
+            errs.append(f"Kelas {n}: mapel {codes} tidak sama dengan {subject_codes[n]}")
+        titles = set()
+        for s in mod.SUBJECTS:
+            flat = [t for c in s.chapters for t in c.topics]
+            if len(flat) < 4:
+                errs.append(f"Kelas {n} {s.code}: topik kurang dari 4")
+            if len(s.exam) < 5:
+                errs.append(f"Kelas {n} {s.code}: asesmen kurang dari 5 soal")
+            for t in flat:
+                if t.title in titles:
+                    errs.append(f"Kelas {n}: judul topik kembar {t.title}")
+                titles.add(t.title)
+                if len(t.qs) < 4:
+                    errs.append(f"Kelas {n} {t.title}: soal kurang dari 4")
+                if t.lesson.visual and t.lesson.visual not in VISUALS:
+                    errs.append(f"Kelas {n} {t.title}: visual tidak dikenal")
+                for i, q in enumerate(t.qs):
+                    errs += validate_question(q, f"Kelas {n} {s.code} {t.title} #{i + 1}")
+            for i, q in enumerate(s.exam):
+                if not 0 <= q.topic < len(flat):
+                    errs.append(f"Kelas {n} {s.code} asesmen #{i + 1}: topik {q.topic} tidak ada")
+                errs += validate_question(q, f"Kelas {n} {s.code} asesmen #{i + 1}")
+        for topic, pg, ptopic in mod.PREREQ:
+            if topic not in titles:
+                errs.append(f"Kelas {n} prasyarat: topik {topic} tidak ada")
+            try:
+                ptitles = {t.title for s in load_grade(pg).SUBJECTS for c in s.chapters for t in c.topics}
+            except ModuleNotFoundError:
+                ptitles = set()
+            if ptopic not in ptitles:
+                errs.append(f"Kelas {n} prasyarat: {ptopic} (Kelas {pg}) tidak ada")
+    return errs
+
+
+def arrange(q: Q) -> tuple[list[str], dict]:
+    if q.type not in ("mc", "multi"):
+        return list(q.options), dict(q.answer)
+    order = list(range(len(q.options)))
+    random.Random(int(hashlib.sha256(q.body.encode()).hexdigest(), 16)).shuffle(order)
+    options = [q.options[i] for i in order]
+    if q.type == "mc":
+        return options, {"index": order.index(q.answer["index"])}
+    return options, {"indices": sorted(order.index(i) for i in q.answer["indices"])}
+
+
+def _question(topic_id: int, q: Q, usage: str, diff: str, status: str, publish: bool) -> Question:
+    options, answer = arrange(q)
+    row = Question(topic_id=topic_id, type=q.type, body=q.body, difficulty=q.difficulty or diff, answer=answer, usage=usage, scaffold=q.scaffold if usage == "practice" else None,
+                   status=status, version=1 if publish else 0, is_sample=True, published_at=utcnow() if publish else None)
+    for j, label in enumerate(options):
+        row.options.append(QuestionOption(position=j, label=label))
+    row.explanation = QuestionExplanation(explanation=q.explanation, mistake_hint=q.hint)
+    row.sources.append(QuestionSource(source=SOURCE_NOTE))
+    return row
+
+
+def seed_full(db: Session, v: CurriculumVersion, publish: bool = False) -> dict:
+    status = "published" if publish else "in_review"
+    tpl = db.scalar(select(AssessmentTemplate).where(AssessmentTemplate.code == "ASLM"))
+    counts = {"topics": 0, "lessons": 0, "questions": 0, "assessments": 0}
+    topic_ids: dict[tuple[int, str], int] = {}
+    mods = {n: load_grade(n) for n in GRADES}
+    for n, mod in mods.items():
+        g = db.scalar(select(Grade).where(Grade.number == n))
+        s: S
+        for s in mod.SUBJECTS:
+            sub = db.scalar(select(Subject).where(Subject.curriculum_version_id == v.id, Subject.grade_id == g.id, Subject.code == s.code))
+            if sub is None or db.scalar(select(Chapter.id).where(Chapter.subject_id == sub.id)) is not None:
+                continue
+            flat: list[Topic] = []
+            for ci, c in enumerate(s.chapters):
+                ch = Chapter(subject_id=sub.id, number=ci + 1, title=c.title, semester=1 if ci < max(1, len(s.chapters) // 2) else 2)
+                db.add(ch)
+                db.flush()
+                for ti, t in enumerate(c.topics):
+                    topic = Topic(chapter_id=ch.id, title=t.title, sort_order=len(flat), home_activity=t.act, common_mistake=t.mistake)
+                    db.add(topic)
+                    db.flush()
+                    flat.append(topic)
+                    topic_ids[(n, t.title)] = topic.id
+                    counts["topics"] += 1
+                    ls = t.lesson
+                    lesson = Lesson(topic_id=topic.id, title=t.title, minutes=ls.minutes, status=status, version=1 if publish else 0, is_sample=True, published_at=utcnow() if publish else None)
+                    blocks = [("Penjelasan", ls.explain, None, ls.visual), ("Contoh", ls.example, None, None), ("Poin penting", None, ls.points, None), ("Ringkasan", ls.summary, None, None)]
+                    for bi, (kind, text, points, visual) in enumerate(blocks):
+                        lesson.blocks.append(LessonBlock(position=bi, kind=kind, text=text, points=points, visual=visual))
+                    db.add(lesson)
+                    counts["lessons"] += 1
+                    for qi, q in enumerate(t.qs):
+                        db.add(_question(topic.id, q, "practice", DIFF[min(qi, 3)], status, publish))
+                        counts["questions"] += 1
+                    if ti > 0:
+                        db.add(TopicPrerequisite(topic_id=topic.id, prerequisite_topic_id=flat[-2].id))
+            db.flush()
+            if s.exam:
+                exam = Assessment(template_id=tpl.id, title=s.exam_title or f"Asesmen Lingkup Materi: {sub.name} Kelas {n}", short_title=sub.name, subject_id=sub.id, grade_number=n, semester=1,
+                                  duration_minutes=max(10, 2 * len(s.exam)), status="published" if publish else "draft", is_sample=True)
+                db.add(exam)
+                db.flush()
+                for pos, q in enumerate(s.exam):
+                    row = _question(flat[q.topic].id, q, "assessment", "sedang", status, publish)
+                    db.add(row)
+                    db.flush()
+                    db.add(AssessmentQuestion(assessment_id=exam.id, question_id=row.id, position=pos))
+                    counts["questions"] += 1
+                counts["assessments"] += 1
+    db.flush()
+    for n, mod in mods.items():
+        for topic, pg, ptopic in mod.PREREQ:
+            a, b = topic_ids.get((n, topic)), topic_ids.get((pg, ptopic))
+            if a and b and db.scalar(select(TopicPrerequisite.id).where(TopicPrerequisite.topic_id == a, TopicPrerequisite.prerequisite_topic_id == b)) is None:
+                db.add(TopicPrerequisite(topic_id=a, prerequisite_topic_id=b))
+    db.flush()
+    return counts

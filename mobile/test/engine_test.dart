@@ -8,7 +8,7 @@ import 'package:bobo_belajar/local/pin.dart';
 import 'package:bobo_belajar/local/store.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Content loadContent() => Content(Map<String, dynamic>.from(jsonDecode(File('assets/content/bobo-content.json').readAsStringSync()) as Map));
+Content loadContent() => Content(Map<String, dynamic>.from(jsonDecode(File('test/fixtures/sample-content.json').readAsStringSync()) as Map));
 
 class Clock {
   DateTime t = DateTime.utc(2026, 11, 2, 3);

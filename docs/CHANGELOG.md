@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0 — 2026-11-23
+Materi dan soal lengkap untuk semua kelas dan mapel di aplikasi:
+- Kelas 1–9, 41 mapel (SD 1–4: MAT, BIN, PPK, SBD/IPAS; SD 5–6: + BIG; SMP: MAT, BIN, IPA, IPS, BIG), masing-masing 2 bab × 2 topik.
+- 165 materi (penjelasan, contoh, poin penting, ringkasan), 660 soal latihan dengan pembahasan (229 dengan langkah kecil), 41 asesmen lingkup materi (246 soal), 112 relasi prasyarat termasuk lintas kelas untuk jalur pondasi.
+- Semua konten adalah draf buatan AI, diperiksa otomatis (kunci jawaban, pilihan, prasyarat), ditandai "draf materi, belum ditinjau guru" di aplikasi. Belum ditinjau guru/tim kurikulum.
+- Urutan pilihan jawaban diacak tetap saat seeding agar kunci tidak menumpuk di satu huruf.
+- Backend: `python -m app.cli seed --full` (konten masuk sebagai menunggu tinjauan; `--publish-sample` hanya untuk demo).
+- Tes baru: validasi konten dan seeding penuh (backend), cakupan paket materi Kelas 1–9 dan konsistensi kunci (aplikasi).
+
 ## 1.1.0 — 2026-11-21
 Aplikasi berjalan **lokal penuh**, tanpa alamat server, tanpa akun, tanpa internet:
 - Mesin belajar di HP (`mobile/lib/local`): penilaian, penguasaan, rekomendasi, ulang terjadwal, jalur pondasi, sinyal pendampingan, ringkasan guru, asesmen ber-waktu, Tutor dan Tanya BOBO lokal dengan filter keselamatan yang sama.
