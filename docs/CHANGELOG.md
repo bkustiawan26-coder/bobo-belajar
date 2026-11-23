@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.6.0 — 2026-11-23
+Format SAS disesuaikan dengan contoh soal SAS Kurikulum Merdeka 2026/2027 yang banyak dipakai sekolah (acuan: websiteedukasi.com):
+- SD (Kelas 1–6): 35 soal per SAS = 20 pilihan ganda + 10 isian + 5 uraian.
+- SMP (Kelas 7–9): 45 soal per SAS = 35 pilihan ganda + 5 isian + 5 uraian.
+- Total 140 SAS berisi 5.500 soal (2.700 soal baru, termasuk 700 uraian dengan contoh jawaban dan poin penting). Soal latihan tetap 2.637.
+- Aplikasi: soal uraian dijawab di kotak teks panjang. Nilai dihitung dari PG dan isian; uraian tidak dinilai otomatis dan ditampilkan bersama contoh jawaban di Pembahasan untuk dicocokkan bersama orang tua atau guru.
+- Durasi SAS dihitung ulang (2 menit per soal + 3 menit per uraian).
+- Lembar Soal Latihan SAS cetak (18 PDF) kini punya Bagian C. Uraian dengan baris jawaban, kisi-kisi dengan kolom nomor uraian, dan kunci berisi contoh jawaban.
+- Validasi dan tes mengikuti komposisi baru per jenjang.
+
 ## 1.5.0 — 2026-11-23
 Sumatif Akhir Semester (SAS) mengikuti format soal latihan SAS Kurikulum Merdeka:
 - Setiap mapel di setiap kelas punya SAS Ganjil dan SAS Genap berisi tepat 20 soal: 15 pilihan ganda (A–D) + 5 isian, mencakup semua topik semester itu. Total 140 SAS, 2.800 soal baru.

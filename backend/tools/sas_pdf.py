@@ -16,6 +16,7 @@ from reportlab.platypus import KeepTogether, PageBreak, Paragraph, SimpleDocTemp
 from xml.sax.saxutils import escape
 
 from app.seed.full import arrange, load_grade, topic_semesters
+from app.seed.full.sas import target
 
 FONT_DIR = "/usr/share/fonts/truetype/dejavu"
 pdfmetrics.registerFont(TTFont("DV", os.path.join(FONT_DIR, "DejaVuSans.ttf")))
@@ -76,24 +77,26 @@ def unit(s, sem):
     qs = [q for q in s.exam if sems[q.topic] == sem]
     pg = [q for q in qs if q.type == "mc"]
     isian = [q for q in qs if q.type == "fill"]
-    return flat, pg, isian
+    uraian = [q for q in qs if q.type == "essay"]
+    return flat, pg, isian, uraian
 
 
 def kisi(s, sem):
-    flat, pg, isian = unit(s, sem)
+    flat, pg, isian, uraian = unit(s, sem)
     order = []
-    for q in pg + isian:
+    for q in pg + isian + uraian:
         if q.topic not in order:
             order.append(q.topic)
-    rows = [[p("No", "smallb"), p("Materi", "smallb"), p("Indikator Soal", "smallb"), p("No. PG", "smallb"), p("No. Isian", "smallb")]]
+    rows = [[p("No", "smallb"), p("Materi", "smallb"), p("Indikator Soal", "smallb"), p("No. PG", "smallb"), p("No. Isian", "smallb"), p("No. Uraian", "smallb")]]
     for i, t in enumerate(order, 1):
         topic = flat[t]
         rows.append([
             p(str(i), "small"), p(esc(topic.title), "small"), p(esc(topic.lesson.summary), "small"),
             p(ranges([k + 1 for k, q in enumerate(pg) if q.topic == t]), "small"),
             p(ranges([k + 1 for k, q in enumerate(isian) if q.topic == t]), "small"),
+            p(ranges([k + 1 for k, q in enumerate(uraian) if q.topic == t]), "small"),
         ])
-    tbl = Table(rows, colWidths=[9 * mm, 42 * mm, 83 * mm, 22 * mm, 20 * mm], repeatRows=1)
+    tbl = Table(rows, colWidths=[10 * mm, 37 * mm, 71 * mm, 20 * mm, 18 * mm, 18 * mm], repeatRows=1)
     tbl.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), ACCENT), ("GRID", (0, 0), (-1, -1), 0.4, LINE),
         ("VALIGN", (0, 0), (-1, -1), "TOP"), ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, SOFT]),
@@ -113,7 +116,7 @@ def header(n, name):
 
 
 def soal(n, s, sem):
-    _, pg, isian = unit(s, sem)
+    _, pg, isian, uraian = unit(s, sem)
     out = [p(NAMES[s.code].upper(), "h1"), header(n, NAMES[s.code]), Spacer(1, 6), p("<b>A. Pilihan Ganda</b>", "h2"),
            p("Berilah tanda silang (X) pada huruf A, B, C, atau D di depan jawaban yang paling tepat!", "small"), Spacer(1, 4)]
     keys = []
@@ -129,24 +132,31 @@ def soal(n, s, sem):
     for k, q in enumerate(isian, 1):
         answers.append(q.answer["accepted"][0])
         out.append(KeepTogether([p(f"{k}.&nbsp;&nbsp;{esc(q.body)}", "q"), p("&nbsp;" * 6 + "Jawab: " + "." * 90, "body"), Spacer(1, 6)]))
+    out += [p("<b>C. Uraian</b>", "h2"), p("Jawablah pertanyaan berikut dengan jelas dan lengkap!", "small"), Spacer(1, 4)]
+    for k, q in enumerate(uraian, 1):
+        lines = [p("&nbsp;" * 6 + "." * 110, "body") for _ in range(3)]
+        out.append(KeepTogether([p(f"{k}.&nbsp;&nbsp;{esc(q.body)}", "q"), p("&nbsp;" * 6 + "Jawab:", "body"), *lines, Spacer(1, 6)]))
     out.append(PageBreak())
-    return out, keys, answers, pg, isian
+    return out, keys, answers, pg, isian, uraian
 
 
-def kunci(s, keys, answers, pg, isian):
+def kunci(s, keys, answers, pg, isian, uraian):
     cells = [p(f"{i}. <b>{k}</b>", "body") for i, k in enumerate(keys, 1)]
     while len(cells) % 5:
         cells.append(p("", "body"))
     grid = Table([cells[i:i + 5] for i in range(0, len(cells), 5)], colWidths=[34 * mm] * 5)
     grid.setStyle(TableStyle([("GRID", (0, 0), (-1, -1), 0.4, LINE), ("TOPPADDING", (0, 0), (-1, -1), 2), ("BOTTOMPADDING", (0, 0), (-1, -1), 2)]))
     rows = [p(f"{i}. {esc(a)} <font size=8 color='#475569'>({esc(q.explanation)})</font>", "small") for i, (a, q) in enumerate(zip(answers, isian), 1)]
-    return [KeepTogether([p(NAMES[s.code].upper(), "h2"), p("<b>A. Pilihan Ganda</b>", "small"), grid, Spacer(1, 4), p("<b>B. Isian</b>", "small"), *rows, Spacer(1, 6)])]
+    essays = [p(f"{i}. {esc(q.answer['model'])} <font size=8 color='#475569'>(Poin penting: {esc('; '.join(q.answer['keys']))})</font>", "small") for i, q in enumerate(uraian, 1)]
+    return [KeepTogether([p(NAMES[s.code].upper(), "h2"), p("<b>A. Pilihan Ganda</b>", "small"), grid, Spacer(1, 4), p("<b>B. Isian</b>", "small"), *rows]),
+            Spacer(1, 3), p("<b>C. Uraian</b> (contoh jawaban; jawaban lain yang memuat poin penting dapat diterima)", "small"), *essays, Spacer(1, 8)]
 
 
 def build(n, sem, path):
     term = "Ganjil" if sem == 1 else "Genap"
     level = "SD/MI" if n <= 6 else "SMP/MTs"
     subjects = load_grade(n).SUBJECTS
+    want = target(n)
     footer = f"Soal Latihan SAS {term} Kelas {n} {level.split('/')[0]} – Kurikulum Merdeka · BOBO Belajar"
 
     def deco(canvas, doc):
@@ -167,22 +177,22 @@ def build(n, sem, path):
     note = Table([[p(
         "<b>Petunjuk umum:</b> 1) Berdoalah sebelum mengerjakan. 2) Tulis nama di tempat yang disediakan. "
         "3) Bagian A: berilah tanda silang (X) pada huruf A, B, C, atau D di depan jawaban yang paling tepat. "
-        "4) Bagian B: isilah titik-titik dengan jawaban yang benar. 5) Periksa kembali jawabanmu. "
+        "4) Bagian B: isilah titik-titik dengan jawaban yang benar. 5) Bagian C: jawablah dengan kalimat yang jelas. 6) Periksa kembali jawabanmu. "
         "Kisi-kisi ada di bagian awal, kunci jawaban di bagian akhir. Soal yang sama tersedia di aplikasi BOBO Belajar "
         f"(tab Ujian, SAS {term}).<br/><br/><font size=8 color='#475569'>Draf materi BOBO Belajar disusun dengan bantuan AI mengacu pada Capaian Pembelajaran "
         "Kurikulum Merdeka 2025 untuk tahun ajaran 2026/2027; belum ditinjau guru. Pendidikan Agama belum disertakan.</font>", "body")]],
         colWidths=[174 * mm])
     note.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 0.8, ACCENT), ("BACKGROUND", (0, 0), (-1, -1), SOFT), ("LEFTPADDING", (0, 0), (-1, -1), 8), ("RIGHTPADDING", (0, 0), (-1, -1), 8), ("TOPPADDING", (0, 0), (-1, -1), 8), ("BOTTOMPADDING", (0, 0), (-1, -1), 8)]))
     story += [note, PageBreak(), p("KISI-KISI SOAL", "h1"),
-              p(f"Kelas/Semester: {ROMAN[n]} / {sem} ({term}) • Kurikulum Merdeka • Bentuk soal: 15 Pilihan Ganda (PG) + 5 Isian per mata pelajaran", "small")]
+              p(f"Kelas/Semester: {ROMAN[n]} / {sem} ({term}) • Kurikulum Merdeka • Bentuk soal per mata pelajaran: {want[0]} Pilihan Ganda (PG) + {want[1]} Isian + {want[2]} Uraian", "small")]
     for s in subjects:
         story += kisi(s, sem)
     story.append(PageBreak())
     keysets = []
     for s in subjects:
-        part, keys, answers, pg, isian = soal(n, s, sem)
+        part, keys, answers, pg, isian, uraian = soal(n, s, sem)
         story += part
-        keysets.append((s, keys, answers, pg, isian))
+        keysets.append((s, keys, answers, pg, isian, uraian))
     story.append(p("KUNCI JAWABAN", "h1"))
     for item in keysets:
         story += kunci(*item)

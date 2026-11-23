@@ -390,8 +390,8 @@ class _UjianTabState extends State<UjianTab> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(q['body'] as String, style: TextStyle(fontSize: t.question, fontWeight: FontWeight.w700, height: 1.45)),
           const SizedBox(height: 16),
-          if (type == 'fill' || type == 'short')
-            _ExamTextAnswer(key: ValueKey('t-$key'), initial: (resp?['text'] ?? '') as String, onSaved: (v) => _answer(q['id'] as int, {'text': v}))
+          if (type == 'fill' || type == 'short' || type == 'essay')
+            _ExamTextAnswer(key: ValueKey('t-$key'), initial: (resp?['text'] ?? '') as String, multiline: type == 'essay', onSaved: (v) => _answer(q['id'] as int, {'text': v}))
           else
             for (final o in asList(q['options']))
               Builder(builder: (context) {
@@ -480,6 +480,14 @@ class _UjianTabState extends State<UjianTab> {
         fg: r['final'] == true ? Palette.okInk : Palette.warnInk,
         bg: r['final'] == true ? Palette.okSoft : Palette.warnSoft,
       ),
+      if (((r['essays'] ?? 0) as num) > 0) ...[
+        const SizedBox(height: 10),
+        Notice(
+          'Nilai dihitung dari soal pilihan ganda dan isian. ${r['essays']} soal uraian tidak dinilai otomatis: cocokkan jawabanmu dengan contoh jawaban di Pembahasan bersama orang tua atau guru.',
+          fg: Palette.warnInk,
+          bg: Palette.warnSoft,
+        ),
+      ],
       const SizedBox(height: 16),
       AppCard(
         radius: t.radius,
@@ -517,7 +525,7 @@ class _UjianTabState extends State<UjianTab> {
               padding: const EdgeInsets.only(left: 36, top: 8),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text.rich(TextSpan(children: [const TextSpan(text: 'Jawabanmu: ', style: TextStyle(color: Palette.muted)), TextSpan(text: '${rv['your_answer']}', style: const TextStyle(fontWeight: FontWeight.w800))]), style: const TextStyle(fontSize: 14)),
-                if (rv['correct'] != true) Text.rich(TextSpan(children: [const TextSpan(text: 'Jawaban benar: ', style: TextStyle(color: Palette.muted)), TextSpan(text: '${rv['correct_answer']}', style: const TextStyle(fontWeight: FontWeight.w800))]), style: const TextStyle(fontSize: 14)),
+                if (rv['correct'] != true) Text.rich(TextSpan(children: [TextSpan(text: rv['essay'] == true ? 'Contoh jawaban: ' : 'Jawaban benar: ', style: const TextStyle(color: Palette.muted)), TextSpan(text: '${rv['correct_answer']}', style: const TextStyle(fontWeight: FontWeight.w800))]), style: const TextStyle(fontSize: 14)),
                 const SizedBox(height: 6),
                 Text('${rv['explanation']}', style: const TextStyle(fontSize: 14, color: Palette.inkSoft, height: 1.55)),
               ]),
@@ -543,9 +551,10 @@ class _UjianTabState extends State<UjianTab> {
 }
 
 class _ExamTextAnswer extends StatefulWidget {
-  const _ExamTextAnswer({super.key, required this.initial, required this.onSaved});
+  const _ExamTextAnswer({super.key, required this.initial, required this.onSaved, this.multiline = false});
 
   final String initial;
+  final bool multiline;
   final ValueChanged<String> onSaved;
 
   @override
@@ -567,7 +576,10 @@ class _ExamTextAnswerState extends State<_ExamTextAnswer> {
   Widget build(BuildContext context) {
     return TextField(
       controller: _c,
-      decoration: const InputDecoration(labelText: 'Jawabanmu'),
+      minLines: widget.multiline ? 3 : 1,
+      maxLines: widget.multiline ? 8 : 1,
+      keyboardType: widget.multiline ? TextInputType.multiline : TextInputType.text,
+      decoration: InputDecoration(labelText: widget.multiline ? 'Tulis jawaban uraianmu' : 'Jawabanmu'),
       onChanged: (v) {
         _debounce?.cancel();
         _debounce = Timer(const Duration(milliseconds: 700), () => widget.onSaved(v.trim()));

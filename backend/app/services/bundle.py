@@ -49,7 +49,7 @@ def build_bundle(db: Session, include_sample: bool = False) -> dict:
         })
     kept_questions: set[int] = set()
     for q in db.scalars(select(Question).where(Question.topic_id.in_(topic_ids or {-1})).order_by(Question.topic_id, Question.id)):
-        if q.type == "essay" or not _content_ok(q.status, q.is_sample, include_sample):
+        if not _content_ok(q.status, q.is_sample, include_sample):
             continue
         kept_questions.add(q.id)
         out["questions"].append({

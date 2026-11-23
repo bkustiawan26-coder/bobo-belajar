@@ -34,13 +34,14 @@ def test_seed_full_builds_every_grade(db):
         c.execute(text("TRUNCATE " + ", ".join(f'"{t}"' for t in tables) + " RESTART IDENTITY CASCADE"))
     out = run(db, sample=False, publish_sample=False, full=True)
     assert out["topics"] == 471 and out["lessons"] == 471 and out["assessments"] == 140
-    assert out["questions"] >= 5000
+    assert out["questions"] >= 8000
     b = build_bundle(db, include_sample=True)
     assert len(b["lessons"]) == 471 and len(b["assessments"]) == 140
     qtype = {q["id"]: q["type"] for q in b["questions"]}
     for a in b["assessments"]:
         types = [qtype[x["id"]] for x in a["questions"]]
-        assert types.count("mc") == 15 and types.count("fill") == 5, a["title"]
+        want = (20, 10, 5) if a["grade"] <= 6 else (35, 5, 5)
+        assert (types.count("mc"), types.count("fill"), types.count("essay")) == want, a["title"]
     assert {a["semester"] for a in b["assessments"]} == {1, 2}
     assert {c["semester"] for c in b["chapters"]} == {1, 2}
     assert all(x["sample"] for x in b["lessons"])

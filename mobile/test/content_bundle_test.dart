@@ -17,6 +17,8 @@ Map<String, dynamic> correctResponse(Map<String, dynamic> q) {
       return {'index': a['index']};
     case 'multi':
       return {'indices': a['indices']};
+    case 'essay':
+      return {'text': a['model']};
     default:
       return {'text': (a['accepted'] as List).first};
   }
@@ -46,11 +48,13 @@ void main() {
         final exams = content.assessments.where((a) => (a['grade'] as num).toInt() == g && a['short_title'] == s['name']).toList();
         expect(exams.length, 2, reason: 'asesmen kelas $g ${s['name']}');
         expect({for (final a in exams) (a['semester'] as num).toInt()}, {1, 2});
+        final want = g <= 6 ? [20, 10, 5] : [35, 5, 5];
         for (final a in exams) {
           final types = [for (final x in a['questions'] as List) typeOf[((x as Map)['id'] as num).toInt()]];
-          expect(types.length, 20, reason: '${a['title']}');
-          expect(types.where((t) => t == 'mc').length, 15, reason: '${a['title']}');
-          expect(types.where((t) => t == 'fill').length, 5, reason: '${a['title']}');
+          expect(types.length, want[0] + want[1] + want[2], reason: '${a['title']}');
+          expect(types.where((t) => t == 'mc').length, want[0], reason: '${a['title']}');
+          expect(types.where((t) => t == 'fill').length, want[1], reason: '${a['title']}');
+          expect(types.where((t) => t == 'essay').length, want[2], reason: '${a['title']}');
         }
       }
     }
@@ -63,7 +67,12 @@ void main() {
       if (q['type'] == 'mc' || q['type'] == 'tf') {
         expect((a['index'] as num).toInt(), inInclusiveRange(0, opts.length - 1), reason: '${q['id']}');
       }
-      expect(gradeLocally(q, correctResponse(q)), isTrue, reason: 'soal ${q['id']}');
+      if (q['type'] == 'essay') {
+        expect((a['model'] as String).isNotEmpty, isTrue, reason: 'contoh jawaban ${q['id']}');
+        expect((a['keys'] as List).isNotEmpty, isTrue, reason: 'poin penting ${q['id']}');
+      } else {
+        expect(gradeLocally(q, correctResponse(q)), isTrue, reason: 'soal ${q['id']}');
+      }
       expect((q['explanation'] as String?)?.isNotEmpty, isTrue, reason: 'pembahasan ${q['id']}');
     }
   });
@@ -86,5 +95,24 @@ void main() {
       expect(exams.length, subjects.length * 2);
       expect((exams.first as Map)['semester'], 1);
     }
+  });
+
+  test('SAS dengan uraian: nilai dari PG dan isian, uraian dicocokkan dengan contoh jawaban', () async {
+    final e = LocalEngine(MemoryStore(), content);
+    final c = Map<String, dynamic>.from(await e.parent('POST', '/parent/children', body: {'nickname': 'Sari', 'grade': 4}) as Map);
+    final id = c['id'] as String;
+    final exams = ((await e.student(id, 'GET', '/student/assessments') as Map)['assessments'] as List).cast<Map>();
+    final sess = await e.student(id, 'POST', '/student/assessments/${exams.first['id']}/start') as Map;
+    final answers = [
+      for (final q in (sess['questions'] as List).cast<Map>())
+        {'question_id': q['id'], 'response': correctResponse(Map<String, dynamic>.from(content.questionById[(q['id'] as num).toInt()]!))},
+    ];
+    final res = await e.student(id, 'POST', '/student/assessment-sessions/${sess['session_id']}/submit', body: {'idempotency_key': 'uraian-0001', 'answers': answers}) as Map;
+    expect(res['score'], 100);
+    expect(res['total'], 30);
+    expect(res['essays'], 5);
+    final review = (res['review'] as List).cast<Map>();
+    expect(review.length, 35);
+    expect(review.where((r) => r['essay'] == true && r['needs_review'] == true).length, 5);
   });
 }

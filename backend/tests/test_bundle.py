@@ -8,7 +8,7 @@ def test_bundle_contains_published_content_with_keys(db):
     assert b["lessons"] and b["questions"] and b["assessments"]
     q = b["questions"][0]
     assert {"answer", "explanation", "options", "usage", "scaffold"} <= set(q)
-    assert all(x["type"] != "essay" for x in b["questions"])
+    assert all(x["answer"].get("model") and x["answer"].get("keys") for x in b["questions"] if x["type"] == "essay")
     ids = {x["id"] for x in b["questions"]}
     assert all(x["id"] in ids for a in b["assessments"] for x in a["questions"])
     topic_ids = {t["id"] for t in b["topics"]}

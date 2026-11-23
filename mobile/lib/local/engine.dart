@@ -444,6 +444,8 @@ class LocalEngine {
         return acc.isEmpty ? '' : acc.first.toString();
       case 'matching':
         return _j(a['pairs']).entries.map((e) => '${labels[int.tryParse(e.key)] ?? e.key} → ${labels[int.tryParse(e.value.toString())] ?? e.value}').join('; ');
+      case 'essay':
+        return (a['model'] ?? '').toString();
       default:
         return '';
     }
@@ -463,6 +465,7 @@ class LocalEngine {
         return s.isEmpty ? 'Tidak dijawab' : s;
       case 'fill':
       case 'short':
+      case 'essay':
         final t = response['text']?.toString() ?? '';
         return t.isEmpty ? 'Tidak dijawab' : t;
       case 'matching':
@@ -1042,12 +1045,20 @@ class LocalEngine {
     var total = 0.0;
     var got = 0.0;
     var correct = 0;
+    var objective = 0;
+    var essays = 0;
     final weak = <int>[];
     for (final qid in order) {
       final q = content.questionById[qid];
       if (q == null) {
         continue;
       }
+      if (q['type'] == 'essay') {
+        essays++;
+        graded['$qid'] = null;
+        continue;
+      }
+      objective++;
       final pts = points[qid] ?? 1.0;
       total += pts;
       final resp = answers['$qid'] == null ? null : _j(answers['$qid']);
@@ -1066,7 +1077,7 @@ class LocalEngine {
     final passing = a['passing_score'] == null ? null : score >= (a['passing_score'] as num).toDouble();
     final out = <String, dynamic>{
       ...sess, 'status': 'submitted', 'submitted_at': _iso(now), 'auto_submitted': auto, 'submit_key': key,
-      'result': {'score': score, 'correct': correct, 'total': order.length, 'weak_topic_ids': weak, 'graded': graded, 'passed': passing},
+      'result': {'score': score, 'correct': correct, 'total': objective, 'essays': essays, 'weak_topic_ids': weak, 'graded': graded, 'passed': passing},
     };
     await _put('sessions', sess['id'] as String, out);
     await _log(childId, 'assessment', 'Asesmen ${a['short_title']}: nilai ${score.round()}');
@@ -1079,7 +1090,7 @@ class LocalEngine {
     final answers = _j(sess['answers']);
     final order = (sess['order'] as List).map((e) => (e as num).toInt()).toList();
     return {
-      'session_id': sess['id'], 'score': (r['score'] as num).round(), 'correct': r['correct'], 'total': r['total'], 'pending_review': 0, 'final': true, 'auto_submitted': sess['auto_submitted'] == true,
+      'session_id': sess['id'], 'score': (r['score'] as num).round(), 'correct': r['correct'], 'total': r['total'], 'pending_review': 0, 'essays': r['essays'] ?? 0, 'final': true, 'auto_submitted': sess['auto_submitted'] == true,
       'weak_topics': [for (final t in (r['weak_topic_ids'] as List)) {'id': t, 'title': content.topicTitle((t as num).toInt())}],
       'submitted_at': sess['submitted_at'], 'verified_by_server': false,
       'review': [
@@ -1089,7 +1100,7 @@ class LocalEngine {
               final q = content.questionById[order[i]]!;
               return <String, dynamic>{
                 'n': i + 1, 'question_id': order[i], 'question': q['body'], 'your_answer': responseText(q, answers['${order[i]}'] == null ? null : _j(answers['${order[i]}'])),
-                'correct_answer': answerText(q), 'correct': graded['${order[i]}'] == true, 'needs_review': false, 'explanation': q['explanation'] ?? '', 'topic': content.topicTitle(_i(q['topic_id'])),
+                'correct_answer': answerText(q), 'correct': graded['${order[i]}'] == true, 'needs_review': q['type'] == 'essay', 'essay': q['type'] == 'essay', 'explanation': q['explanation'] ?? '', 'topic': content.topicTitle(_i(q['topic_id'])),
               };
             }(),
       ],

@@ -45,10 +45,13 @@ def load_grade(n: int):
     if ext:
         subjects += copy.deepcopy(getattr(ext, "NEW", []))
         prereq += list(getattr(ext, "PREREQ", []))
-    try:
-        bank = sas.parse(importlib.import_module(f"app.seed.full.sas{n}").BANK)
-    except ModuleNotFoundError:
-        bank = {}
+    texts = []
+    for name in (f"sas{n}", f"sasx{n}"):
+        try:
+            texts.append(importlib.import_module(f"app.seed.full.{name}").BANK)
+        except ModuleNotFoundError:
+            pass
+    bank = sas.parse("\n".join(texts))
     for s in subjects:
         _apply_sas(s, bank)
     return SimpleNamespace(GRADE=n, SUBJECTS=subjects, PREREQ=prereq)
@@ -70,6 +73,7 @@ def _apply_sas(s: S, bank: dict) -> None:
                     t.qs.append(replace(q, topic=0))
             else:
                 keep.append(q)
+        items = sorted(items, key=lambda it: (sas.RANK[it[1].type], it[0]))
         s.exam = keep + [replace(q, topic=idx[local] if 0 <= local < len(idx) else -1) for local, q in items]
 
 
@@ -96,6 +100,9 @@ def validate_question(q: Q, where: str) -> list[str]:
     elif q.type == "fill":
         if not q.answer.get("accepted"):
             errs.append(f"{where}: jawaban isian kosong")
+    elif q.type == "essay":
+        if not str(q.answer.get("model") or "").strip() or not q.answer.get("keys"):
+            errs.append(f"{where}: uraian wajib punya contoh jawaban dan poin penting")
     else:
         errs.append(f"{where}: tipe {q.type} tidak didukung")
     if q.scaffold is not None and (not q.scaffold.get("steps") or len(q.scaffold["steps"]) > 8):
@@ -127,8 +134,14 @@ def validate_all(subject_codes: dict[int, list[str]]) -> list[str]:
                 qs = [q for q in s.exam if 0 <= q.topic < len(sems) and sems[q.topic] == sem]
                 pg = [q for q in qs if q.type == "mc"]
                 isian = [q for q in qs if q.type == "fill"]
-                if len(pg) != sas.PG or len(isian) != sas.ISIAN or len(qs) != sas.PG + sas.ISIAN:
-                    errs.append(f"Kelas {n} {s.code}: SAS Semester {sem} harus {sas.PG} PG + {sas.ISIAN} isian, sekarang {len(pg)} PG + {len(isian)} isian dari {len(qs)} soal")
+                uraian = [q for q in qs if q.type == "essay"]
+                want = sas.target(n)
+                if (len(pg), len(isian), len(uraian)) != want or len(qs) != sum(want):
+                    errs.append(f"Kelas {n} {s.code}: SAS Semester {sem} harus {want[0]} PG + {want[1]} isian + {want[2]} uraian, sekarang {len(pg)} PG + {len(isian)} isian + {len(uraian)} uraian dari {len(qs)} soal")
+                covered = {q.topic for q in qs}
+                missing = [i for i, x in enumerate(sems) if x == sem and i not in covered]
+                if missing:
+                    errs.append(f"Kelas {n} {s.code}: SAS Semester {sem} belum mencakup topik {[flat[i].title for i in missing]}")
                 if any(len(q.options) != 4 for q in pg):
                     errs.append(f"Kelas {n} {s.code}: SAS Semester {sem} ada PG yang pilihannya bukan 4")
                 bodies = [q.body for q in qs]
@@ -179,6 +192,8 @@ def _question(topic_id: int, q: Q, usage: str, diff: str, status: str, publish: 
                    status=status, version=1 if publish else 0, is_sample=True, published_at=utcnow() if publish else None)
     for j, label in enumerate(options):
         row.options.append(QuestionOption(position=j, label=label))
+    if q.type == "essay":
+        row.rubric = f"{q.answer['model']}\nPoin penting: " + "; ".join(q.answer["keys"])
     row.explanation = QuestionExplanation(explanation=q.explanation, mistake_hint=q.hint)
     row.sources.append(QuestionSource(source=SOURCE_NOTE))
     return row
@@ -230,7 +245,7 @@ def seed_full(db: Session, v: CurriculumVersion, publish: bool = False) -> dict:
                 if not qs:
                     continue
                 exam = Assessment(template_id=tpl.id, title=f"SAS {'Ganjil' if sem == 1 else 'Genap'} (Semester {sem}): {sub.name} Kelas {n}", short_title=sub.name, subject_id=sub.id, grade_number=n, semester=sem,
-                                  duration_minutes=max(10, 2 * len(qs)), status="published" if publish else "draft", is_sample=True)
+                                  duration_minutes=max(10, 2 * len(qs) + 3 * sum(1 for q in qs if q.type == "essay")), status="published" if publish else "draft", is_sample=True)
                 db.add(exam)
                 db.flush()
                 for pos, q in enumerate(qs):

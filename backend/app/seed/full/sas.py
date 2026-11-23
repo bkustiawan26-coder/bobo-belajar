@@ -1,9 +1,13 @@
 import re
 
-from app.seed.full.dsl import Q, fill, mc
+from app.seed.full.dsl import Q, essay, fill, mc
 
-PG = 15
-ISIAN = 5
+RANK = {"mc": 0, "fill": 1, "essay": 2}
+
+
+def target(grade: int) -> tuple[int, int, int]:
+    return (20, 10, 5) if grade <= 6 else (35, 5, 5)
+
 _NUM = re.compile(r"^-?\d{1,3}(\.\d{3})+(,\d+)?$")
 
 
@@ -49,9 +53,15 @@ def parse(text: str) -> dict[tuple[str, int], list[tuple[int, Q]]]:
         if key is None:
             raise ValueError(f"baris {no}: soal sebelum judul mapel")
         isian = line.startswith("=")
-        parts = [p.strip() for p in line.lstrip("=").split("|")]
+        uraian = line.startswith("?")
+        parts = [p.strip() for p in line.lstrip("=?").split("|")]
         local = int(parts[0])
-        if isian:
+        if uraian:
+            if len(parts) != 4:
+                raise ValueError(f"baris {no}: uraian harus 4 kolom")
+            keys = [k.strip() for k in parts[3].split(";") if k.strip()]
+            q = essay(parts[1], parts[2], keys, "Poin penting: " + "; ".join(keys) + ".")
+        elif isian:
             if len(parts) != 4:
                 raise ValueError(f"baris {no}: isian harus 4 kolom")
             q = fill(parts[1], _variants(parts[2].split(";")), parts[3])

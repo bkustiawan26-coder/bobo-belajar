@@ -70,3 +70,7 @@ def fill(body, accepted, explanation, hint=None, sc=None, t=0, d=None):
 
 def multi(body, options, indices, explanation, hint=None, sc=None, t=0, d=None):
     return Q("multi", body, list(options), {"indices": sorted(indices)}, explanation, hint, _sc(sc), t, d)
+
+
+def essay(body, model, keys, explanation, t=0, d=None):
+    return Q("essay", body, [], {"model": model, "keys": list(keys)}, explanation, None, None, t, d)
