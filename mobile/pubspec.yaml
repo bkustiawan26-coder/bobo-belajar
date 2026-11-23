@@ -1,7 +1,7 @@
 name: bobo_belajar
 description: BOBO BELAJAR — teman belajar untuk siswa SD dan SMP serta pendamping orang tua.
 publish_to: "none"
-version: 1.4.0+6
+version: 1.5.0+7
 
 environment:
   sdk: ">=3.5.0 <4.0.0"

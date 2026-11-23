@@ -33,10 +33,14 @@ def test_seed_full_builds_every_grade(db):
         tables = [r[0] for r in c.execute(text("select tablename from pg_tables where schemaname='public' and tablename <> 'alembic_version'"))]
         c.execute(text("TRUNCATE " + ", ".join(f'"{t}"' for t in tables) + " RESTART IDENTITY CASCADE"))
     out = run(db, sample=False, publish_sample=False, full=True)
-    assert out["topics"] == 455 and out["lessons"] == 455 and out["assessments"] == 136
-    assert out["questions"] >= 2500
+    assert out["topics"] == 471 and out["lessons"] == 471 and out["assessments"] == 140
+    assert out["questions"] >= 5000
     b = build_bundle(db, include_sample=True)
-    assert len(b["lessons"]) == 455 and len(b["assessments"]) == 136
+    assert len(b["lessons"]) == 471 and len(b["assessments"]) == 140
+    qtype = {q["id"]: q["type"] for q in b["questions"]}
+    for a in b["assessments"]:
+        types = [qtype[x["id"]] for x in a["questions"]]
+        assert types.count("mc") == 15 and types.count("fill") == 5, a["title"]
     assert {a["semester"] for a in b["assessments"]} == {1, 2}
     assert {c["semester"] for c in b["chapters"]} == {1, 2}
     assert all(x["sample"] for x in b["lessons"])
@@ -45,6 +49,6 @@ def test_seed_full_builds_every_grade(db):
     for s in b["subjects"]:
         by_grade.setdefault(s["grade"], 0)
         by_grade[s["grade"]] += 1
-    assert by_grade == {1: 5, 2: 5, 3: 6, 4: 6, 5: 8, 6: 8, 7: 10, 8: 10, 9: 10}
+    assert by_grade == {1: 5, 2: 5, 3: 7, 4: 7, 5: 8, 6: 8, 7: 10, 8: 10, 9: 10}
     again = run(db, sample=False, publish_sample=False, full=True)
     assert again["lessons"] == 0

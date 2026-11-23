@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.0 — 2026-11-23
+Sumatif Akhir Semester (SAS) mengikuti format soal latihan SAS Kurikulum Merdeka:
+- Setiap mapel di setiap kelas punya SAS Ganjil dan SAS Genap berisi tepat 20 soal: 15 pilihan ganda (A–D) + 5 isian, mencakup semua topik semester itu. Total 140 SAS, 2.800 soal baru.
+- Soal asesmen lama (770 soal) dipindah menjadi soal latihan tambahan, sehingga latihan bertambah menjadi 2.637 soal.
+- Bahasa Inggris ditambahkan untuk Kelas 3–4 (8 topik per kelas: salam, angka, warna, benda di kelas, keluarga, bagian tubuh, hari, hewan; ungkapan sopan, angka 21–100, bulan, ruangan, buah dan sayur, pakaian, perasaan, olahraga).
+- Nama asesmen di aplikasi: "SAS Ganjil (Semester 1)" dan "SAS Genap (Semester 2)".
+- Lembar Soal Latihan SAS cetak per kelas (18 PDF: Ganjil/Genap Kelas 1–9) dengan kisi-kisi, lembar soal per mapel, dan kunci jawaban; urutan pilihan sama dengan di aplikasi. Generator: `backend/tools/sas_pdf.py`.
+- Validasi baru: setiap SAS wajib 15 PG berpilihan 4 + 5 isian, tanpa soal kembar, dan tidak sama dengan soal latihan.
+
 ## 1.4.0 — 2026-11-23
 Materi dan latihan Semester 1 dan Semester 2 untuk semua mapel umum Kelas 1–9, mengikuti kurikulum tahun ajaran 2026/2027:
 - Acuan: Capaian Pembelajaran Keputusan Kepala BSKAP No. 046/H/KR/2025 (masih berlaku 2026/2027), Keputusan Kepala BKPDM No. 020/2026 (hanya mengubah CP Pendidikan Agama), Permendikdasmen No. 13/2025 (struktur kurikulum, mapel pilihan Koding dan Kecerdasan Artifisial), dan urutan bab buku teks Kurikulum Merdeka Kemendikdasmen.

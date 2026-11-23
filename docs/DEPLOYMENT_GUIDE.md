@@ -36,3 +36,6 @@ Aplikasi Android 1.2.0 tidak butuh server. Server di bawah hanya untuk tim konte
   python mobile/tool/apk_sign_v2.py app-https.apk BOBO-Belajar-release.apk upload-keystore.jks <password>
   ```
   `apk_sign_v2.py` membuat tanda tangan APK Signature Scheme v2 (cukup untuk minSdk 24). Jika Android SDK tersedia, `apksigner sign` boleh dipakai sebagai gantinya.
+
+## Lembar Soal Latihan SAS (PDF)
+Setelah mengubah bank soal di `backend/app/seed/full/sas<kelas>.py`, buat ulang PDF cetak per kelas (Ganjil/Genap) dengan `cd backend && python tools/sas_pdf.py --out <folder>` (butuh `reportlab` dari `requirements-dev.txt` dan font DejaVu). Urutan pilihan A–D di PDF sama dengan di aplikasi karena memakai fungsi pengacak yang sama dengan seeding.

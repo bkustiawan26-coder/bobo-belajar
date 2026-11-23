@@ -1,4 +1,5 @@
 from app.seed.full.dsl import C, L, S, T, fill, mc, multi, tf
+from app.seed.full.big34 import BIG3
 
 EXTEND = {
     "MAT": ([
@@ -281,6 +282,7 @@ EXTEND = {
 }
 
 NEW = [
+    BIG3,
     S("SBD", [
         C("Seni Rupa", [
             T("Gambar ilustrasi",

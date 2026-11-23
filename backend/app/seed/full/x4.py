@@ -1,4 +1,5 @@
 from app.seed.full.dsl import C, L, S, T, fill, mc, multi, tf
+from app.seed.full.big34 import BIG4
 
 BASE_SEM = {"MAT": [1, 1]}
 
@@ -285,6 +286,7 @@ EXTEND = {
 }
 
 NEW = [
+    BIG4,
     S("SBD", [
         C("Seni Rupa dan Musik", [
             T("Teknik arsir",

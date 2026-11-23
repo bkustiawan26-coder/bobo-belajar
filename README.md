@@ -1,6 +1,6 @@
 # BOBO BELAJAR
 
-Teman belajar Android untuk siswa SD kelas 1–SMP kelas 9, dengan mode orang tua di aplikasi yang sama. Versi 1.4.0 (Android 7.0+): berjalan **lokal penuh** di HP, tanpa server, tanpa akun, tanpa internet. Berisi draf materi, latihan, dan asesmen Semester 1 dan 2 untuk Kelas 1–9: Matematika, Bahasa Indonesia, IPAS/IPA/IPS, Pendidikan Pancasila, Bahasa Inggris, Seni dan Budaya, PJOK, Informatika, serta Koding dan Kecerdasan Artifisial (belum ditinjau guru; Pendidikan Agama belum tersedia).
+Teman belajar Android untuk siswa SD kelas 1–SMP kelas 9, dengan mode orang tua di aplikasi yang sama. Versi 1.5.0 (Android 7.0+): berjalan **lokal penuh** di HP, tanpa server, tanpa akun, tanpa internet. Berisi draf materi, latihan, dan asesmen Semester 1 dan 2 untuk Kelas 1–9: Matematika, Bahasa Indonesia, IPAS/IPA/IPS, Pendidikan Pancasila, Bahasa Inggris, Seni dan Budaya, PJOK, Informatika, serta Koding dan Kecerdasan Artifisial, dengan Sumatif Akhir Semester (SAS) 15 PG + 5 isian per mapel per semester (belum ditinjau guru; Pendidikan Agama belum tersedia). Lembar soal latihan SAS cetak (PDF, dengan kisi-kisi dan kunci) dibuat dengan `python backend/tools/sas_pdf.py --out <folder>`.
 
 | Bagian | Teknologi | Folder |
 |---|---|---|

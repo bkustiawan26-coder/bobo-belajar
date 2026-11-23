@@ -27,7 +27,8 @@ void main() {
 
   test('bundle berisi materi, latihan, dan asesmen untuk kelas 1 sampai 9', () {
     expect(content.includesSample, isTrue);
-    const expected = {1: 5, 2: 5, 3: 6, 4: 6, 5: 8, 6: 8, 7: 10, 8: 10, 9: 10};
+    const expected = {1: 5, 2: 5, 3: 7, 4: 7, 5: 8, 6: 8, 7: 10, 8: 10, 9: 10};
+    final typeOf = {for (final q in content.questions) (q['id'] as num).toInt(): q['type']};
     for (var g = 1; g <= 9; g++) {
       final subjects = content.subjectsOfGrade(g);
       expect(subjects.length, expected[g], reason: 'kelas $g');
@@ -46,7 +47,10 @@ void main() {
         expect(exams.length, 2, reason: 'asesmen kelas $g ${s['name']}');
         expect({for (final a in exams) (a['semester'] as num).toInt()}, {1, 2});
         for (final a in exams) {
-          expect((a['questions'] as List).length, greaterThanOrEqualTo(5));
+          final types = [for (final x in a['questions'] as List) typeOf[((x as Map)['id'] as num).toInt()]];
+          expect(types.length, 20, reason: '${a['title']}');
+          expect(types.where((t) => t == 'mc').length, 15, reason: '${a['title']}');
+          expect(types.where((t) => t == 'fill').length, 5, reason: '${a['title']}');
         }
       }
     }

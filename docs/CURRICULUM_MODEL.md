@@ -19,7 +19,7 @@ Seed `--sample` membuat 1 bab Matematika untuk kelas 2, 5, dan 8 (materi, latiha
 Draft → Kirim review → Disetujui/ditolak peninjau (tidak boleh penulisnya sendiri, kecuali admin) → Terbit (versi naik, snapshot disimpan, diindeks untuk Tutor). Mengubah konten terbit mengembalikannya ke draft dan menariknya dari aplikasi.
 
 ## Semester dan mapel (1.4.0, tahun ajaran 2026/2027)
-- Setiap bab punya `semester` (1 atau 2). Asesmen Akhir Semester dibuat per mapel per semester. Aplikasi memilih semester otomatis dari bulan (Juli–Desember = 1, Januari–Juni = 2); anak bisa berpindah semester di tab Belajar.
-- Mapel per jenjang: Kelas 1–2 MAT, BIN, PPK, Seni dan Budaya, PJOK; Kelas 3–4 + IPAS; Kelas 5–6 + Bahasa Inggris, Koding dan KA; Kelas 7–9 MAT, BIN, IPA, IPS, Bahasa Inggris, PPK, Seni dan Budaya, PJOK, Informatika, Koding dan KA.
+- Setiap bab punya `semester` (1 atau 2). SAS Ganjil/Genap dibuat per mapel per semester, masing-masing 15 PG + 5 isian (format soal latihan SAS Kurikulum Merdeka), ditulis di `backend/app/seed/full/sas<kelas>.py`. Aplikasi memilih semester otomatis dari bulan (Juli–Desember = 1, Januari–Juni = 2); anak bisa berpindah semester di tab Belajar.
+- Mapel per jenjang: Kelas 1–2 MAT, BIN, PPK, Seni dan Budaya, PJOK; Kelas 3–4 + IPAS, Bahasa Inggris; Kelas 5–6 + Bahasa Inggris, Koding dan KA; Kelas 7–9 MAT, BIN, IPA, IPS, Bahasa Inggris, PPK, Seni dan Budaya, PJOK, Informatika, Koding dan KA.
 - Acuan draf konten (wajib dicatat sebagai sumber di CMS saat ditinjau): Keputusan Kepala BSKAP No. 046/H/KR/2025 tentang Capaian Pembelajaran, Keputusan Kepala BKPDM No. 020/2026 (perubahan CP Pendidikan Agama), Permendikdasmen No. 13/2025, dan buku teks Kurikulum Merdeka di buku.kemendikdasmen.go.id.
 - Pendidikan Agama dan Budi Pekerti tidak disertakan sampai ada konten per agama yang ditinjau guru agama.

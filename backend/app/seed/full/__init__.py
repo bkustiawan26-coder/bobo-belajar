@@ -14,6 +14,7 @@ from app.models import (
     Assessment, AssessmentQuestion, AssessmentTemplate, Chapter, CurriculumVersion, Grade, Lesson, LessonBlock, Question, QuestionExplanation,
     QuestionOption, QuestionSource, Subject, Topic, TopicPrerequisite,
 )
+from app.seed.full import sas
 from app.seed.full.dsl import Q, S
 
 GRADES = range(1, 10)
@@ -44,7 +45,32 @@ def load_grade(n: int):
     if ext:
         subjects += copy.deepcopy(getattr(ext, "NEW", []))
         prereq += list(getattr(ext, "PREREQ", []))
+    try:
+        bank = sas.parse(importlib.import_module(f"app.seed.full.sas{n}").BANK)
+    except ModuleNotFoundError:
+        bank = {}
+    for s in subjects:
+        _apply_sas(s, bank)
     return SimpleNamespace(GRADE=n, SUBJECTS=subjects, PREREQ=prereq)
+
+
+def _apply_sas(s: S, bank: dict) -> None:
+    flat = [t for c in s.chapters for t in c.topics]
+    sems = topic_semesters(s)
+    for sem in (1, 2):
+        items = bank.get((s.code, sem))
+        if items is None:
+            continue
+        idx = [i for i, x in enumerate(sems) if x == sem]
+        keep = []
+        for q in s.exam:
+            if 0 <= q.topic < len(sems) and sems[q.topic] == sem:
+                t = flat[q.topic]
+                if q.body not in {x.body for x in t.qs}:
+                    t.qs.append(replace(q, topic=0))
+            else:
+                keep.append(q)
+        s.exam = keep + [replace(q, topic=idx[local] if 0 <= local < len(idx) else -1) for local, q in items]
 
 
 def topic_semesters(s: S) -> list[int]:
@@ -96,10 +122,20 @@ def validate_all(subject_codes: dict[int, list[str]]) -> list[str]:
             sems = topic_semesters(s)
             if sorted(set(c.semester for c in s.chapters)) != [1, 2]:
                 errs.append(f"Kelas {n} {s.code}: harus ada bab Semester 1 dan Semester 2")
+            practice = {q.body for t in flat for q in t.qs}
             for sem in (1, 2):
-                k = sum(1 for q in s.exam if 0 <= q.topic < len(sems) and sems[q.topic] == sem)
-                if k < 5:
-                    errs.append(f"Kelas {n} {s.code}: asesmen Semester {sem} baru {k} soal (minimal 5)")
+                qs = [q for q in s.exam if 0 <= q.topic < len(sems) and sems[q.topic] == sem]
+                pg = [q for q in qs if q.type == "mc"]
+                isian = [q for q in qs if q.type == "fill"]
+                if len(pg) != sas.PG or len(isian) != sas.ISIAN or len(qs) != sas.PG + sas.ISIAN:
+                    errs.append(f"Kelas {n} {s.code}: SAS Semester {sem} harus {sas.PG} PG + {sas.ISIAN} isian, sekarang {len(pg)} PG + {len(isian)} isian dari {len(qs)} soal")
+                if any(len(q.options) != 4 for q in pg):
+                    errs.append(f"Kelas {n} {s.code}: SAS Semester {sem} ada PG yang pilihannya bukan 4")
+                bodies = [q.body for q in qs]
+                if len(set(bodies)) != len(bodies):
+                    errs.append(f"Kelas {n} {s.code}: SAS Semester {sem} ada soal kembar")
+                for b in set(bodies) & practice:
+                    errs.append(f"Kelas {n} {s.code}: SAS Semester {sem} sama dengan soal latihan: {b}")
             for t in flat:
                 if t.title in titles:
                     errs.append(f"Kelas {n}: judul topik kembar {t.title}")
@@ -193,7 +229,7 @@ def seed_full(db: Session, v: CurriculumVersion, publish: bool = False) -> dict:
                 qs = [q for q in s.exam if sems[q.topic] == sem]
                 if not qs:
                     continue
-                exam = Assessment(template_id=tpl.id, title=f"Asesmen Akhir Semester {sem}: {sub.name} Kelas {n}", short_title=sub.name, subject_id=sub.id, grade_number=n, semester=sem,
+                exam = Assessment(template_id=tpl.id, title=f"SAS {'Ganjil' if sem == 1 else 'Genap'} (Semester {sem}): {sub.name} Kelas {n}", short_title=sub.name, subject_id=sub.id, grade_number=n, semester=sem,
                                   duration_minutes=max(10, 2 * len(qs)), status="published" if publish else "draft", is_sample=True)
                 db.add(exam)
                 db.flush()
