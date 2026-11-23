@@ -60,6 +60,19 @@ void main() {
     }
   });
 
+  test('setiap materi punya gambar dan aktivitas Ayo coba', () {
+    expect(content.lessons.length, 471);
+    for (final l in content.lessons) {
+      final blocks = [for (final b in l['blocks'] as List) Map<String, dynamic>.from(b as Map)];
+      expect(blocks.map((b) => b['kind']).toList(), ['Penjelasan', 'Contoh', 'Ayo coba', 'Poin penting', 'Ringkasan'], reason: l['title'].toString());
+      expect((blocks[0]['figure'] as Map)['type'], isNotNull, reason: l['title'].toString());
+      final act = blocks[2]['figure'] as Map;
+      expect(act['type'], 'activity');
+      expect(const ['order', 'sort', 'match', 'find', 'color', 'build', 'point', 'pick', 'reveal', 'explore'], contains(act['mode']));
+      expect((blocks[2]['text'] as String).isNotEmpty, isTrue);
+    }
+  });
+
   test('setiap kunci jawaban konsisten dengan pilihannya', () {
     for (final q in content.questions) {
       final opts = (q['options'] as List?) ?? const [];

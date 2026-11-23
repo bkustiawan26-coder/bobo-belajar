@@ -1,0 +1,725 @@
+{
+ "figures": [
+  {
+   "type": "count",
+   "terms": [
+    {
+     "n": 7,
+     "icon": "⚽"
+    }
+   ],
+   "caption": "Hitung satu per satu: 1, 2, 3, 4, 5, 6, 7. Ada 7 bola."
+  },
+  {
+   "type": "bars",
+   "items": [
+    {
+     "icon": "🍬",
+     "label": "Rina",
+     "value": 8.0
+    },
+    {
+     "icon": "🍬",
+     "label": "Doni",
+     "value": 5.0
+    },
+    {
+     "icon": "🍬",
+     "label": "Sari",
+     "value": 6.0
+    }
+   ],
+   "caption": "8 lebih besar dari 5, ditulis 8 > 5. Batang paling tinggi = paling banyak."
+  },
+  {
+   "type": "compare",
+   "groups": [
+    {
+     "title": {
+      "icon": "🔺",
+      "label": "Segitiga"
+     },
+     "items": [
+      {
+       "icon": "🍕",
+       "label": "potongan roti lapis"
+      },
+      {
+       "icon": "🚩",
+       "label": "bendera segitiga"
+      }
+     ]
+    },
+    {
+     "title": {
+      "icon": "🟦",
+      "label": "Segi empat"
+     },
+     "items": [
+      {
+       "icon": "🚪",
+       "label": "pintu"
+      },
+      {
+       "icon": "📖",
+       "label": "buku"
+      }
+     ]
+    },
+    {
+     "title": {
+      "icon": "⚪",
+      "label": "Lingkaran"
+     },
+     "items": [
+      {
+       "icon": "🕒",
+       "label": "jam dinding"
+      },
+      {
+       "icon": "🍪",
+       "label": "kue bulat"
+      }
+     ]
+    }
+   ],
+   "caption": "Segitiga 3 sisi, segi empat 4 sisi, lingkaran tidak bersudut."
+  },
+  {
+   "type": "flow",
+   "items": [
+    {
+     "icon": "🍎",
+     "label": "sa"
+    },
+    {
+     "icon": "🐄",
+     "label": "pi"
+    },
+    {
+     "icon": "🐮",
+     "label": "sapi"
+    }
+   ],
+   "caption": "sa + pi = sapi. Tepuk tangan setiap suku kata!"
+  },
+  {
+   "type": "steps",
+   "items": [
+    {
+     "icon": "👧",
+     "label": "Siapa? Siti"
+    },
+    {
+     "icon": "🌻",
+     "label": "Sedang apa? Menyiram bunga"
+    },
+    {
+     "icon": "🔠",
+     "label": "Diawali huruf kapital"
+    },
+    {
+     "icon": "⏺️",
+     "label": "Diakhiri tanda titik"
+    }
+   ],
+   "caption": "Siti menyiram bunga."
+  },
+  {
+   "type": "icons",
+   "items": [
+    {
+     "icon": "⚽",
+     "label": "bola"
+    },
+    {
+     "icon": "📘",
+     "label": "buku"
+    },
+    {
+     "icon": "👕",
+     "label": "baju"
+    },
+    {
+     "icon": "🪑",
+     "label": "meja"
+    },
+    {
+     "icon": "👁️",
+     "label": "mata"
+    },
+    {
+     "icon": "🍯",
+     "label": "madu"
+    }
+   ],
+   "caption": "Dengarkan bunyi pertamanya: b atau m?"
+  },
+  {
+   "type": "chat",
+   "items": [
+    {
+     "icon": "👧",
+     "label": "Dina",
+     "say": "Halo, namaku Dina."
+    },
+    {
+     "icon": "👦",
+     "label": "Raka",
+     "say": "Halo, Dina! Namaku Raka."
+    },
+    {
+     "icon": "👧",
+     "label": "Dina",
+     "say": "Aku suka menggambar. Kamu suka apa?"
+    },
+    {
+     "icon": "👦",
+     "label": "Raka",
+     "say": "Aku suka bermain bola."
+    }
+   ]
+  },
+  {
+   "type": "mind",
+   "center": {
+    "icon": "🧒",
+    "label": "Identitas diri"
+   },
+   "items": [
+    {
+     "icon": "📛",
+     "label": "nama"
+    },
+    {
+     "icon": "🎂",
+     "label": "umur"
+    },
+    {
+     "icon": "🏠",
+     "label": "alamat"
+    },
+    {
+     "icon": "👨‍👩‍👧",
+     "label": "nama orang tua"
+    },
+    {
+     "icon": "❤️",
+     "label": "hal yang kusukai"
+    }
+   ],
+   "caption": "Setiap anak unik dan berharga."
+  },
+  {
+   "type": "layers",
+   "items": [
+    {
+     "icon": "🟥",
+     "label": "Merah: berani"
+    },
+    {
+     "icon": "⬜",
+     "label": "Putih: suci"
+    }
+   ],
+   "caption": "Saat bendera naik, berdiri tegak dan beri hormat."
+  },
+  {
+   "type": "table",
+   "head": [
+    "Campuran",
+    "Hasil"
+   ],
+   "rows": [
+    [
+     "🔴 merah + 🟡 kuning",
+     "🟠 jingga"
+    ],
+    [
+     "🟡 kuning + 🔵 biru",
+     "🟢 hijau"
+    ],
+    [
+     "🔴 merah + 🔵 biru",
+     "🟣 ungu"
+    ]
+   ],
+   "caption": "Warna primer: merah, kuning, biru."
+  },
+  {
+   "type": "cycle",
+   "items": [
+    {
+     "icon": "🚿",
+     "label": "Mandi 2 kali sehari"
+    },
+    {
+     "icon": "🪥",
+     "label": "Gosok gigi"
+    },
+    {
+     "icon": "🧼",
+     "label": "Cuci tangan pakai sabun"
+    },
+    {
+     "icon": "✂️",
+     "label": "Potong kuku"
+    },
+    {
+     "icon": "👕",
+     "label": "Pakai baju bersih"
+    }
+   ]
+  },
+  {
+   "type": "place",
+   "value": "47",
+   "caption": "4 puluhan dan 7 satuan."
+  },
+  {
+   "type": "line",
+   "from": 40.0,
+   "to": 60.0,
+   "step": 1.0,
+   "marks": [
+    45.0,
+    52.0
+   ],
+   "jumps": [],
+   "caption": "Di garis bilangan, yang lebih kanan lebih besar: 45 < 52."
+  },
+  {
+   "type": "pie",
+   "items": [
+    {
+     "n": 1,
+     "d": 2
+    },
+    {
+     "n": 1,
+     "d": 4
+    }
+   ],
+   "caption": "Setengah = 1 dari 2 bagian. Seperempat = 1 dari 4 bagian."
+  },
+  {
+   "type": "array",
+   "rows": 3,
+   "cols": 4,
+   "icon": "🍪",
+   "caption": "3 piring berisi 4 kue: 4 + 4 + 4 = 3 × 4."
+  },
+  {
+   "type": "compass",
+   "mark": [
+    "Utara",
+    "Timur",
+    "Selatan",
+    "Barat"
+   ],
+   "caption": "Matahari terbit di timur dan terbenam di barat."
+  },
+  {
+   "type": "pyramid",
+   "items": [
+    {
+     "icon": "🇮🇩",
+     "label": "Negara Indonesia"
+    },
+    {
+     "icon": "🗺️",
+     "label": "Provinsi"
+    },
+    {
+     "icon": "🏙️",
+     "label": "Kabupaten/kota"
+    },
+    {
+     "icon": "🏢",
+     "label": "Kecamatan"
+    },
+    {
+     "icon": "🏘️",
+     "label": "Desa/kelurahan"
+    },
+    {
+     "icon": "🏡",
+     "label": "RW"
+    },
+    {
+     "icon": "🏠",
+     "label": "RT"
+    }
+   ],
+   "caption": "Dari wilayah terbesar sampai terkecil."
+  },
+  {
+   "type": "frac",
+   "items": [
+    {
+     "n": 3,
+     "d": 8
+    }
+   ],
+   "caption": "Pizza 8 potong, dimakan 3 potong: 3/8. Pembilang 3, penyebut 8."
+  },
+  {
+   "type": "shape",
+   "shape": "rect",
+   "labels": [
+    "p = 8 cm",
+    "l = 5 cm"
+   ],
+   "caption": "K = 2 × (8 + 5) = 26 cm. L = 8 × 5 = 40 cm²."
+  },
+  {
+   "type": "venn",
+   "groups": [
+    {
+     "title": {
+      "label": "Faktor 12"
+     },
+     "items": [
+      {
+       "label": "4"
+      },
+      {
+       "label": "12"
+      }
+     ]
+    },
+    {
+     "title": {
+      "label": "Faktor 18"
+     },
+     "items": [
+      {
+       "label": "9"
+      },
+      {
+       "label": "18"
+      }
+     ]
+    },
+    {
+     "title": {
+      "label": "Faktor bersama"
+     },
+     "items": [
+      {
+       "label": "1"
+      },
+      {
+       "label": "2"
+      },
+      {
+       "label": "3"
+      },
+      {
+       "label": "6"
+      }
+     ]
+    }
+   ],
+   "caption": "Faktor bersama terbesar: FPB 12 dan 18 = 6."
+  },
+  {
+   "type": "time",
+   "items": [
+    {
+     "icon": "🏛️",
+     "label": "Sidang pertama BPUPKI dimulai",
+     "tag": "29 Mei 1945"
+    },
+    {
+     "icon": "🎤",
+     "label": "Soekarno menyampaikan Pancasila",
+     "tag": "1 Juni 1945"
+    },
+    {
+     "icon": "📜",
+     "label": "Piagam Jakarta",
+     "tag": "22 Juni 1945"
+    },
+    {
+     "icon": "✅",
+     "label": "PPKI mengesahkan dasar negara",
+     "tag": "18 Agustus 1945"
+    }
+   ]
+  },
+  {
+   "type": "clock",
+   "h": 7,
+   "m": 30,
+   "caption": "It's half past seven."
+  },
+  {
+   "type": "circuit",
+   "mode": "seri",
+   "n": 2,
+   "caption": "Rangkaian seri: satu jalur. Rangkaian paralel: bercabang."
+  },
+  {
+   "type": "code",
+   "lines": [
+    "ulangi 4 kali:",
+    "    maju 1 langkah",
+    "belok kanan"
+   ],
+   "output": "Robot maju 4 langkah, lalu belok kanan.",
+   "caption": "Perulangan membuat program lebih singkat."
+  },
+  {
+   "type": "balance",
+   "left": "2x + 3",
+   "right": "11",
+   "solve": {
+    "var": "x",
+    "value": 4
+   },
+   "caption": "Kurangi 3 di kedua sisi: 2x = 8. Bagi 2: x = 4."
+  },
+  {
+   "type": "coord",
+   "points": [
+    {
+     "name": "B",
+     "x": 2.0,
+     "y": 5.0
+    },
+    {
+     "name": "A",
+     "x": 0.0,
+     "y": 1.0
+    }
+   ],
+   "lines": [
+    {
+     "label": "y=2x+1",
+     "abc": [
+      0.0,
+      2.0,
+      1.0
+     ]
+    }
+   ],
+   "polys": [],
+   "range": 6,
+   "caption": "m = (5 − 1) : (2 − 0) = 2. Persamaan garis: y = 2x + 1."
+  }
+ ],
+ "activities": [
+  {
+   "type": "activity",
+   "mode": "pick",
+   "ask": "Ada berapa ⚽?",
+   "options": [
+    "7",
+    "8",
+    "6",
+    "9"
+   ],
+   "answer": 0,
+   "show": {
+    "type": "count",
+    "terms": [
+     {
+      "n": 7,
+      "icon": "⚽"
+     }
+    ]
+   }
+  },
+  {
+   "type": "activity",
+   "mode": "sort",
+   "ask": "Ketuk kartu, lalu ketuk kelompok yang cocok.",
+   "groups": [
+    {
+     "icon": "🔺",
+     "label": "Segitiga"
+    },
+    {
+     "icon": "🟦",
+     "label": "Segi empat"
+    },
+    {
+     "icon": "⚪",
+     "label": "Lingkaran"
+    }
+   ],
+   "cards": [
+    {
+     "icon": "🍕",
+     "label": "potongan roti lapis",
+     "group": 0
+    },
+    {
+     "icon": "🚩",
+     "label": "bendera segitiga",
+     "group": 0
+    },
+    {
+     "icon": "🚪",
+     "label": "pintu",
+     "group": 1
+    },
+    {
+     "icon": "📖",
+     "label": "buku",
+     "group": 1
+    },
+    {
+     "icon": "🕒",
+     "label": "jam dinding",
+     "group": 2
+    },
+    {
+     "icon": "🍪",
+     "label": "kue bulat",
+     "group": 2
+    }
+   ]
+  },
+  {
+   "type": "activity",
+   "mode": "order",
+   "ask": "Ketuk kartu sesuai urutan yang benar.",
+   "items": [
+    {
+     "icon": "🍎",
+     "label": "sa"
+    },
+    {
+     "icon": "🐄",
+     "label": "pi"
+    },
+    {
+     "icon": "🐮",
+     "label": "sapi"
+    }
+   ],
+   "fixed_first": false
+  },
+  {
+   "type": "activity",
+   "mode": "find",
+   "ask": "Dengarkan, lalu ketuk gambar yang disebut.",
+   "items": [
+    {
+     "icon": "⚽",
+     "label": "bola"
+    },
+    {
+     "icon": "📘",
+     "label": "buku"
+    },
+    {
+     "icon": "👕",
+     "label": "baju"
+    },
+    {
+     "icon": "🪑",
+     "label": "meja"
+    },
+    {
+     "icon": "👁️",
+     "label": "mata"
+    },
+    {
+     "icon": "🍯",
+     "label": "madu"
+    }
+   ]
+  },
+  {
+   "type": "activity",
+   "mode": "explore",
+   "ask": "Ketuk setiap bagian untuk mendengarkan BOBO menjelaskan.",
+   "items": [
+    {
+     "icon": "🧒",
+     "label": "Identitas diri"
+    },
+    {
+     "icon": "📛",
+     "label": "nama"
+    },
+    {
+     "icon": "🎂",
+     "label": "umur"
+    },
+    {
+     "icon": "🏠",
+     "label": "alamat"
+    },
+    {
+     "icon": "👨‍👩‍👧",
+     "label": "nama orang tua"
+    },
+    {
+     "icon": "❤️",
+     "label": "hal yang kusukai"
+    }
+   ]
+  },
+  {
+   "type": "activity",
+   "mode": "match",
+   "ask": "Pasangkan Campuran dengan Hasil yang cocok.",
+   "pairs": [
+    [
+     "🔴 merah + 🟡 kuning",
+     "🟠 jingga"
+    ],
+    [
+     "🟡 kuning + 🔵 biru",
+     "🟢 hijau"
+    ],
+    [
+     "🔴 merah + 🔵 biru",
+     "🟣 ungu"
+    ]
+   ]
+  },
+  {
+   "type": "activity",
+   "mode": "build",
+   "ask": "Susun bilangan 47 dengan tombol + dan −.",
+   "value": "47"
+  },
+  {
+   "type": "activity",
+   "mode": "point",
+   "ask": "Ketuk letak 45 pada garis bilangan.",
+   "from": 40.0,
+   "to": 60.0,
+   "step": 1.0,
+   "target": 45.0
+  },
+  {
+   "type": "activity",
+   "mode": "color",
+   "ask": "Warnai 1/2 bagian dengan mengetuk kotaknya.",
+   "n": 1,
+   "d": 2
+  },
+  {
+   "type": "activity",
+   "mode": "reveal",
+   "ask": "Tebak dulu hasil programnya di kepalamu, lalu ketuk untuk melihat jawabannya.",
+   "show": {
+    "type": "code",
+    "lines": [
+     "ulangi 4 kali:",
+     "    maju 1 langkah",
+     "belok kanan"
+    ],
+    "output": "Robot maju 4 langkah, lalu belok kanan.",
+    "caption": "Perulangan membuat program lebih singkat."
+   },
+   "answer": "Robot maju 4 langkah, lalu belok kanan."
+  }
+ ]
+}

@@ -8,6 +8,8 @@ import '../../core/persona.dart';
 import '../../core/speech.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
+import '../../widgets/figure_activity.dart';
+import '../../widgets/figures.dart';
 import '../../widgets/playground.dart';
 import '../../widgets/visuals.dart';
 import 'child_shell.dart';
@@ -334,6 +336,20 @@ class _LessonReaderState extends State<LessonReader> {
             const Spacer(),
             SpeakButton(text: speakText, intro: intro, color: t.ink, label: persona.young ? 'Dengarkan BOBO' : 'Dengarkan'),
           ]),
+          if (b['figure'] is Map && kind != 'Ayo coba') ...[
+            LessonFigure(spec: Map<String, dynamic>.from(b['figure'] as Map), theme: t),
+            const SizedBox(height: 14),
+          ],
+          if (b['figure'] is Map && kind == 'Ayo coba') ...[
+            FigureActivity(
+              key: ValueKey('act-${_lesson!['id']}'),
+              spec: Map<String, dynamic>.from(b['figure'] as Map),
+              theme: t,
+              cheers: persona.cheers(),
+              retry: persona.tryAgain(),
+            ),
+            const SizedBox(height: 8),
+          ],
           if (b['visual'] != null) ...[
             LessonVisual(kind: b['visual'] as String, theme: t),
             Align(
@@ -347,7 +363,7 @@ class _LessonReaderState extends State<LessonReader> {
             ),
             const SizedBox(height: 8),
           ],
-          if (bodyText != null && bodyText.isNotEmpty) ReadAlongText(speechKey: speakText, text: bodyText, offset: 0, style: TextStyle(fontSize: t.body, height: lineHeight, color: Palette.ink), highlight: t.soft),
+          if (bodyText != null && bodyText.isNotEmpty && kind != 'Ayo coba') ReadAlongText(speechKey: speakText, text: bodyText, offset: 0, style: TextStyle(fontSize: t.body, height: lineHeight, color: Palette.ink), highlight: t.soft),
           if (points != null)
             for (final (pi, p) in points.indexed)
               Padding(

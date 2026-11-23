@@ -9,6 +9,7 @@ void main() {
     test('simbol matematika dibaca sebagai kata', () {
       expect(toSpoken('c² = a² + b²'), 'c kuadrat sama dengan a kuadrat tambah b kuadrat');
       expect(toSpoken('6 × 8 = 48'), '6 kali 8 sama dengan 48');
+      expect(toSpoken('🍎 Apel ☀️ pagi'), 'Apel pagi');
       expect(toSpoken('a = 30 : 6 = 5'), 'a sama dengan 30 bagi 6 sama dengan 5');
       expect(toSpoken('MM : Mm : mm = 1 : 2 : 1'), contains('1 banding 2 banding 1'));
       expect(toSpoken('y = −3x + 7'), contains('negatif 3x tambah 7'));
@@ -60,7 +61,9 @@ void main() {
           p.greeting('Raka', 8),
           p.homeNudge('Raka', 'Pecahan'),
           p.breakBody(20),
-          for (final k in ['Penjelasan', 'Contoh', 'Poin penting', 'Ringkasan']) p.blockIntro(k),
+          for (final k in ['Penjelasan', 'Contoh', 'Ayo coba', 'Poin penting', 'Ringkasan']) p.blockIntro(k),
+          ...p.cheers(),
+          p.tryAgain(),
         ];
 
     test('memuji usaha dan strategi, bukan kecerdasan, dan tidak merendahkan', () {

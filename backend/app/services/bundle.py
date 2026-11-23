@@ -45,7 +45,7 @@ def build_bundle(db: Session, include_sample: bool = False) -> dict:
             continue
         out["lessons"].append({
             "id": l.id, "topic_id": l.topic_id, "title": l.title, "minutes": l.minutes, "version": l.version, "sample": l.is_sample,
-            "blocks": [{"kind": b.kind, "text": b.text, "points": b.points, "visual": b.visual} for b in l.blocks],
+            "blocks": [{"kind": b.kind, "text": b.text, "points": b.points, "visual": b.visual, "figure": b.figure} for b in l.blocks],
         })
     kept_questions: set[int] = set()
     for q in db.scalars(select(Question).where(Question.topic_id.in_(topic_ids or {-1})).order_by(Question.topic_id, Question.id)):

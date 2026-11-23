@@ -57,7 +57,7 @@ def question_payload(q: Question, topic_title: str | None = None, order: list[in
 def lesson_payload(l: Lesson, prog: LessonProgress | None) -> dict:
     return {
         "id": l.id, "topic_id": l.topic_id, "title": l.title, "minutes": l.minutes, "version": l.version, "reviewed": l.status == "published",
-        "blocks": [{"position": b.position, "kind": b.kind, "text": b.text, "points": b.points, "visual": b.visual} for b in l.blocks],
+        "blocks": [{"position": b.position, "kind": b.kind, "text": b.text, "points": b.points, "visual": b.visual, "figure": b.figure} for b in l.blocks],
         "step": prog.step if prog else 0, "completed": bool(prog and prog.completed_at), "downloaded": bool(prog and prog.downloaded),
     }
 

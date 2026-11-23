@@ -44,6 +44,10 @@ def test_seed_full_builds_every_grade(db):
         assert (types.count("mc"), types.count("fill"), types.count("essay")) == want, a["title"]
     assert {a["semester"] for a in b["assessments"]} == {1, 2}
     assert {c["semester"] for c in b["chapters"]} == {1, 2}
+    for lesson in b["lessons"]:
+        kinds = [x["kind"] for x in lesson["blocks"]]
+        assert kinds == ["Penjelasan", "Contoh", "Ayo coba", "Poin penting", "Ringkasan"], lesson["title"]
+        assert lesson["blocks"][0]["figure"]["type"] and lesson["blocks"][2]["figure"]["type"] == "activity"
     assert all(x["sample"] for x in b["lessons"])
     assert build_bundle(db)["lessons"] == []
     by_grade = {}

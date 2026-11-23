@@ -14,7 +14,7 @@ from app.models import (
     Assessment, AssessmentQuestion, AssessmentTemplate, Chapter, CurriculumVersion, Grade, Lesson, LessonBlock, Question, QuestionExplanation,
     QuestionOption, QuestionSource, Subject, Topic, TopicPrerequisite,
 )
-from app.seed.full import sas
+from app.seed.full import fig, sas
 from app.seed.full.dsl import Q, S
 
 GRADES = range(1, 10)
@@ -55,6 +55,15 @@ def load_grade(n: int):
     for s in subjects:
         _apply_sas(s, bank)
     return SimpleNamespace(GRADE=n, SUBJECTS=subjects, PREREQ=prereq)
+
+
+@functools.lru_cache(maxsize=None)
+def figures(n: int) -> dict:
+    try:
+        mod = importlib.import_module(f"app.seed.full.fig{n}")
+    except ModuleNotFoundError:
+        return {}
+    return fig.parse_bank(mod.BANK)
 
 
 def _apply_sas(s: S, bank: dict) -> None:
@@ -149,7 +158,17 @@ def validate_all(subject_codes: dict[int, list[str]]) -> list[str]:
                     errs.append(f"Kelas {n} {s.code}: SAS Semester {sem} ada soal kembar")
                 for b in set(bodies) & practice:
                     errs.append(f"Kelas {n} {s.code}: SAS Semester {sem} sama dengan soal latihan: {b}")
+            try:
+                pics = figures(n)
+            except fig.FigError as e:
+                errs.append(f"Kelas {n}: {e}")
+                pics = {}
             for t in flat:
+                pic = pics.get((s.code, t.title))
+                if pic is None:
+                    errs.append(f"Kelas {n} {s.code} {t.title}: belum ada gambar materi")
+                elif fig.activity(pic)["mode"] == "explore" and pic["type"] in ("place", "frac", "line", "array", "count", "bars", "clock"):
+                    errs.append(f"Kelas {n} {s.code} {t.title}: aktivitas gambar tidak terbentuk")
                 if t.title in titles:
                     errs.append(f"Kelas {n}: judul topik kembar {t.title}")
                 titles.add(t.title)
@@ -228,9 +247,14 @@ def seed_full(db: Session, v: CurriculumVersion, publish: bool = False) -> dict:
                     counts["topics"] += 1
                     ls = t.lesson
                     lesson = Lesson(topic_id=topic.id, title=t.title, minutes=ls.minutes, status=status, version=1 if publish else 0, is_sample=True, published_at=utcnow() if publish else None)
-                    blocks = [("Penjelasan", ls.explain, None, ls.visual), ("Contoh", ls.example, None, None), ("Poin penting", None, ls.points, None), ("Ringkasan", ls.summary, None, None)]
-                    for bi, (kind, text, points, visual) in enumerate(blocks):
-                        lesson.blocks.append(LessonBlock(position=bi, kind=kind, text=text, points=points, visual=visual))
+                    pic = figures(n).get((s.code, t.title))
+                    act = fig.activity(pic) if pic else None
+                    blocks = [("Penjelasan", ls.explain, None, ls.visual, pic), ("Contoh", ls.example, None, None, None)]
+                    if act:
+                        blocks.append(("Ayo coba", act["ask"], None, None, act))
+                    blocks += [("Poin penting", None, ls.points, None, None), ("Ringkasan", ls.summary, None, None, None)]
+                    for bi, (kind, text, points, visual, figure) in enumerate(blocks):
+                        lesson.blocks.append(LessonBlock(position=bi, kind=kind, text=text, points=points, visual=visual, figure=figure))
                     db.add(lesson)
                     counts["lessons"] += 1
                     for qi, q in enumerate(t.qs):

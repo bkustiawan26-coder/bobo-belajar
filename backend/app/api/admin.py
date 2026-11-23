@@ -323,6 +323,7 @@ class BlockIn(BaseModel):
     text: str | None = Field(default=None, max_length=5000)
     points: list[str] | None = None
     visual: str | None = Field(default=None, max_length=30)
+    figure: dict | None = None
 
 
 class LessonIn(BaseModel):
@@ -334,7 +335,7 @@ class LessonIn(BaseModel):
 
 def _lesson_out(l: Lesson, db: Session | None = None) -> dict:
     d = {"id": l.id, "topic_id": l.topic_id, "title": l.title, "minutes": l.minutes, "status": l.status, "version": l.version, "is_sample": l.is_sample,
-         "blocks": [{"kind": b.kind, "text": b.text, "points": b.points, "visual": b.visual} for b in l.blocks], "updated_at": l.updated_at.isoformat() if l.updated_at else None}
+         "blocks": [{"kind": b.kind, "text": b.text, "points": b.points, "visual": b.visual, "figure": b.figure} for b in l.blocks], "updated_at": l.updated_at.isoformat() if l.updated_at else None}
     if db is not None:
         d["reviews"] = [{"decision": r.decision, "notes": r.notes, "at": r.created_at.isoformat()} for r in db.scalars(select(ContentReview).where(ContentReview.entity_type == "lesson", ContentReview.entity_id == l.id).order_by(ContentReview.id.desc()))]
         d["topic"] = db.get(Topic, l.topic_id).title
@@ -359,7 +360,7 @@ def get_lesson(lid: int, ctx: ParentCtx = Depends(staff), db: Session = Depends(
 def _set_blocks(l: Lesson, blocks: list[BlockIn]) -> None:
     l.blocks.clear()
     for i, b in enumerate(blocks):
-        l.blocks.append(LessonBlock(position=i, kind=b.kind, text=b.text, points=b.points, visual=b.visual))
+        l.blocks.append(LessonBlock(position=i, kind=b.kind, text=b.text, points=b.points, visual=b.visual, figure=b.figure))
 
 
 @router.post("/lessons", status_code=201)

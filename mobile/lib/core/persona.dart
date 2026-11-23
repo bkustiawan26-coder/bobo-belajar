@@ -7,7 +7,7 @@ class VoiceProfile {
   final double pitch;
   final int pauseMs;
 
-  static const _all = [VoiceProfile(0.40, 1.10, 650), VoiceProfile(0.43, 1.05, 500), VoiceProfile(0.46, 1.00, 380), VoiceProfile(0.49, 0.97, 280)];
+  static const _all = [VoiceProfile(0.40, 1.25, 600), VoiceProfile(0.43, 1.18, 480), VoiceProfile(0.46, 1.08, 360), VoiceProfile(0.49, 1.00, 280)];
 
   static VoiceProfile forGrade(int grade) => _all[stageOf(grade)];
 }
@@ -58,7 +58,7 @@ String _superscripts(String s) => s.replaceAllMapped(RegExp('[${_sup.keys.join()
     });
 
 String toSpoken(String raw) {
-  var s = raw.trim();
+  var s = raw.replaceAll(RegExp(r'[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{20E3}]', unicode: true), ' ').trim();
   if (s.isEmpty) {
     return s;
   }
@@ -146,16 +146,17 @@ class Persona {
   }
 
   String lessonIntro(String name, String title, int minutes) => switch (stage) {
-        0 => 'Hai, $name! Hari ini kita belajar $title. Dengarkan pelan-pelan, ya.',
-        1 => 'Halo, $name. Kita belajar $title. Cuma sekitar $minutes menit.',
+        0 => 'Hai, $name! Aku BOBO. Hari ini kita belajar $title bareng-bareng. Siap? Yuk!',
+        1 => 'Halo, $name! Kita belajar $title, yuk. Cuma sekitar $minutes menit, kok.',
         2 => 'Hai, $name. Topik kita: $title. Sekitar $minutes menit.',
         _ => 'Oke, $name. Topik kali ini: $title. Sekitar $minutes menit.',
       };
 
   String blockIntro(String kind) {
     const lines = {
-      'Penjelasan': ['Yuk, kita simak.', 'Pertama, kita pahami dulu.', 'Kita mulai dari penjelasannya.', 'Penjelasan.'],
-      'Contoh': ['Sekarang, lihat contohnya.', 'Ayo lihat contohnya.', 'Perhatikan contoh ini.', 'Contoh.'],
+      'Penjelasan': ['Yuk, lihat gambarnya dulu, ya!', 'Ayo kita pahami pelan-pelan sambil lihat gambarnya.', 'Kita mulai dari penjelasan dan gambarnya.', 'Penjelasan.'],
+      'Contoh': ['Sekarang, kita lihat contohnya, yuk!', 'Ayo lihat contohnya!', 'Perhatikan contoh ini.', 'Contoh.'],
+      'Ayo coba': ['Sekarang giliranmu main! Ayo coba, ya.', 'Saatnya mencoba sendiri! Kamu pasti bisa.', 'Ayo coba sendiri.', 'Coba sendiri.'],
       'Poin penting': ['Ini yang perlu kamu ingat.', 'Ingat tiga hal ini, ya.', 'Poin pentingnya begini.', 'Poin penting.'],
       'Ringkasan': ['Jadi, intinya begini.', 'Jadi, kesimpulannya begini.', 'Ringkasnya begini.', 'Ringkasan.'],
     };
@@ -167,8 +168,17 @@ class Persona {
     if (stage > 0) {
       return kind;
     }
-    return const {'Penjelasan': 'Yuk simak', 'Contoh': 'Lihat contoh', 'Poin penting': 'Ingat ini', 'Ringkasan': 'Intinya'}[kind] ?? kind;
+    return const {'Penjelasan': 'Yuk simak', 'Contoh': 'Lihat contoh', 'Ayo coba': 'Ayo main', 'Poin penting': 'Ingat ini', 'Ringkasan': 'Intinya'}[kind] ?? kind;
   }
+
+  List<String> cheers() => const [
+        ['Yeay, kamu berhasil! Hebat!', 'Hore, betul semua! Tos dulu!', 'Keren! Kamu teliti sekali.', 'Wah, berhasil! Usahamu hebat.'],
+        ['Mantap, kamu berhasil!', 'Hore, semuanya tepat!', 'Keren, kamu teliti!', 'Berhasil! Usahamu kelihatan.'],
+        ['Berhasil! Langkahmu tepat.', 'Tepat semua. Mantap!', 'Bagus, kamu menyelesaikannya.', 'Selesai dengan tepat!'],
+        ['Selesai, semua tepat.', 'Tepat.', 'Bagus, selesai.', 'Semua benar.'],
+      ][stage];
+
+  String tryAgain() => const ['Ups, belum pas. Tidak apa-apa, coba lagi, ya!', 'Belum pas. Ayo coba lagi!', 'Belum tepat. Coba lagi.', 'Belum tepat.'][stage];
 
   String lessonDone() => switch (stage) {
         0 => 'Kamu sudah selesai belajar! Sekarang coba latihannya, yuk.',

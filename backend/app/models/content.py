@@ -30,6 +30,7 @@ class LessonBlock(Base, TimestampMixin):
     text: Mapped[str | None] = mapped_column(Text)
     points: Mapped[list | None] = mapped_column(JSON)
     visual: Mapped[str | None] = mapped_column(String(30))
+    figure: Mapped[dict | None] = mapped_column(JSON)
     media_asset_id: Mapped[int | None] = mapped_column(ForeignKey("media_assets.id", ondelete="SET NULL"))
     lesson: Mapped[Lesson] = relationship(back_populates="blocks")
 
