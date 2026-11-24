@@ -668,11 +668,12 @@ class LocalEngine {
       case 'GET practice':
         final tid = int.tryParse(q['topic_id'] ?? '');
         final allowed = tid != null ? allowedTopicIds(_grade(c)) : content.gradeTopics(_grade(c)).map((t) => _i(t['id'])).toSet().difference(hiddenTopicIds(c));
-        var rows = content.practiceQuestions(tid == null ? allowed : (allowed.contains(tid) ? {tid} : <int>{}));
+        final scope = tid == null ? allowed : (allowed.contains(tid) ? {tid} : <int>{});
         final limit = int.tryParse(q['limit'] ?? '');
-        if (limit != null && limit > 0 && rows.length > limit) {
-          rows = (rows..shuffle(rnd)).take(limit).toList();
-        }
+        final ids = content.practiceIds(scope);
+        final rows = limit != null && limit > 0 && ids.length > limit
+            ? (ids..shuffle(rnd)).take(limit).map((id) => content.questionById[id]).whereType<Json>().toList()
+            : content.practiceQuestions(scope);
         return {'questions': [for (final x in rows) questionPayload(x, child: c)]};
       case 'GET practice/similar':
         return _similar(c, int.tryParse(q['question_id'] ?? '') ?? -1);

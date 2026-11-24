@@ -68,6 +68,7 @@ class Content {
       _withContent.add(tid);
       if (isPractice(q)) {
         _practiceCount[tid] = (_practiceCount[tid] ?? 0) + 1;
+        _practiceIds.putIfAbsent(tid, () => []).add(_int(q['id']));
       }
     }
     for (final g in grouped.entries) {
@@ -104,6 +105,7 @@ class Content {
   final Map<int, List<Map<String, dynamic>>> _questionCache = {};
   static const _questionCacheSize = 48;
   final Map<int, int> _practiceCount = {};
+  final Map<int, List<int>> _practiceIds = {};
   final Set<int> _withContent = {};
   final Map<int, List<Map<String, dynamic>>> _gradeTopics = {};
   final Map<int, List<Map<String, dynamic>>> _topicsWithContent = {};
@@ -221,6 +223,8 @@ class Content {
   }
 
   int practiceCount(int topicId) => _practiceCount[topicId] ?? 0;
+
+  List<int> practiceIds(Set<int> topicIds) => [for (final tid in topicIds) ...?_practiceIds[tid]];
 
   String? visualForTopic(int? topicId, String? topicTitle) {
     if (topicId != null) {
