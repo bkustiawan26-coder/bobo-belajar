@@ -332,9 +332,9 @@ class _LessonReaderState extends State<LessonReader> {
     final lineHeight = persona.young ? 1.8 : 1.65;
     final english = widget.english;
     final sundanese = widget.sundanese;
-    void say(String text) {
+    void say(String text, {String? gender}) {
       if (text.trim().isNotEmpty) {
-        Speech.instance.speak(text, englishBias: english, sundaneseBias: sundanese);
+        Speech.instance.speak(text, englishBias: english, sundaneseBias: sundanese, gender: gender);
       }
     }
 

@@ -1,15 +1,16 @@
 TOPICS = """
 ## PAI
 # 1|Al-Qur'an dan Rukun Iman
-@ Mengenal huruf hijaiah
+@ Mengenal huruf hijaiyah
 min: 8
-act: Ajak anak menunjuk dan menyebut lima huruf hijaiah pertama dari buku iqra bersama orang tua atau guru ngaji.
+act: Ajak anak menunjuk dan menyebut lima huruf hijaiyah pertama dari buku iqra bersama orang tua atau guru ngaji.
 mis: tertukar menyebut huruf yang bentuknya mirip, misalnya ba, ta, dan tsa
-exp: Al-Qur'an ditulis dengan huruf hijaiah. Huruf hijaiah ada 29 huruf, dimulai dari alif. Huruf hijaiah dibaca dari kanan ke kiri. Beberapa huruf bentuknya mirip, bedanya ada pada jumlah dan letak titiknya.
-ex: Huruf ba punya satu titik di bawah. // Huruf ta punya dua titik di atas. // Huruf tsa punya tiga titik di atas. // Bentuknya mirip, titiknya yang berbeda.
-pt: Huruf hijaiah berjumlah 29 ; Al-Qur'an dibaca dari kanan ke kiri ; Perhatikan titik untuk membedakan huruf yang mirip
-sum: Huruf hijaiah adalah huruf Al-Qur'an. Belajarlah membacanya bersama guru ngaji dengan sabar.
-fig: table Huruf | Ciri ;; Ba | satu titik di bawah ;; Ta | dua titik di atas ;; Tsa | tiga titik di atas ;; Nun | satu titik di atas ~ Huruf yang mirip dibedakan dari titiknya.
+exp: Al-Qur'an ditulis dengan huruf hijaiyah. Huruf hijaiyah ada 29 huruf, dimulai dari alif dan diakhiri ya. Huruf hijaiyah dibaca dari kanan ke kiri. Beberapa huruf bentuknya mirip, bedanya ada pada jumlah dan letak titiknya.
+ex: Seperti di buku Iqro jilid 1, huruf dibaca dengan harakat fathah: a, ba, ta, tsa, sampai ya. // Ketuk setiap huruf di kartu bacaan di bawah. // Huruf ba punya satu titik di bawah, ta dua titik di atas, tsa tiga titik di atas. // Bentuknya mirip, titiknya yang berbeda.
+pt: Huruf hijaiyah berjumlah 29 ; Al-Qur'an dibaca dari kanan ke kiri ; Perhatikan titik untuk membedakan huruf yang mirip
+sum: Huruf hijaiyah adalah huruf Al-Qur'an. Belajarlah membacanya bersama guru ngaji dengan sabar.
+fig: hijaiyah huruf ; ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن و ه ء ي ~ Inilah 29 huruf hijaiyah dari alif sampai ya, dibaca dari kanan.
+read: hijaiyah fathah ; ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن و ه ء ي ~ Seperti di buku Iqro jilid 1, semua huruf berharakat fathah: a, ba, ta, tsa, sampai ya.
 @ Surah Al-Fatihah
 min: 8
 act: Dengarkan bacaan Al-Fatihah dari qari di aplikasi, lalu tirukan ayat demi ayat bersama orang tua.
@@ -156,20 +157,20 @@ fig: mind 🎵 Kakawihan = 🎶 Tokecang ; 👏 Cing Cangkeling ; 🙋 Ambil-amb
 """
 
 BANK = """
-## PAI|Mengenal huruf hijaiah
-Al-Qur'an ditulis dengan huruf …|hijaiah|latin|jawa|aksara Sunda|Al-Qur'an memakai huruf hijaiah.
-Jumlah huruf hijaiah adalah …|29|26|10|5|Huruf hijaiah berjumlah 29.
-Huruf hijaiah dibaca dari arah …|kanan ke kiri|kiri ke kanan|atas ke bawah|bawah ke atas|Al-Qur'an dibaca dari kanan.
-Huruf hijaiah yang pertama adalah …|alif|ba|ta|ya|Huruf pertama adalah alif.
+## PAI|Mengenal huruf hijaiyah
+Al-Qur'an ditulis dengan huruf …|hijaiyah|latin|jawa|aksara Sunda|Al-Qur'an memakai huruf hijaiyah.
+Jumlah huruf hijaiyah adalah …|29|26|10|5|Huruf hijaiyah berjumlah 29.
+Huruf hijaiyah dibaca dari arah …|kanan ke kiri|kiri ke kanan|atas ke bawah|bawah ke atas|Al-Qur'an dibaca dari kanan.
+Huruf hijaiyah yang pertama adalah …|alif|ba|ta|ya|Huruf pertama adalah alif.
 Huruf ba memiliki … titik di bawah.|satu|dua|tiga|empat|Ba bertitik satu di bawah.
 Huruf tsa memiliki … titik di atas.|tiga|satu|dua|empat|Tsa bertitik tiga di atas.
 Huruf yang memiliki dua titik di atas adalah …|ta|ba|tsa|alif|Ta bertitik dua di atas.
 B|Huruf ba dan ta bentuknya mirip.|Bedanya pada titik.
 S|Al-Qur'an dibaca dari kiri ke kanan.|Al-Qur'an dibaca dari kanan ke kiri.
-=|Huruf hijaiah berjumlah … huruf.|29;dua puluh sembilan|Ada 29 huruf hijaiah.
+=|Huruf hijaiyah berjumlah … huruf.|29;dua puluh sembilan|Ada 29 huruf hijaiyah.
 Sebelum membaca Al-Qur'an, kita sebaiknya …|berwudu|berlari|makan|tidur|Kita suci saat membaca Al-Qur'an.
 Tempat belajar membaca Al-Qur'an bersama guru ngaji disebut …|TPA atau madrasah|pasar|kantor|bioskop|TPA tempat mengaji.
-Huruf hijaiah yang terakhir adalah …|ya|alif|ba|mim|Huruf terakhir adalah ya.
+Huruf hijaiyah yang terakhir adalah …|ya|alif|ba|mim|Huruf terakhir adalah ya.
 
 ## PAI|Surah Al-Fatihah
 Al-Fatihah artinya …|pembukaan|penutup|cahaya|malam|Al-Fatihah berarti pembukaan.
@@ -385,7 +386,7 @@ Kakawihan termasuk kekayaan budaya daerah …|Jawa Barat|Bali|Papua|Aceh|Sunda d
 SAS = """
 ## PAI 1
 0|Kitab suci umat Islam adalah ....|Al-Qur'an|Injil|Taurat|Zabur|Al-Qur'an kitab suci umat Islam.
-0|Huruf hijaiah yang bertitik satu di bawah adalah ....|ba|ta|tsa|nun|Ba bertitik satu di bawah.
+0|Huruf hijaiyah yang bertitik satu di bawah adalah ....|ba|ta|tsa|nun|Ba bertitik satu di bawah.
 0|Huruf yang bertitik tiga di atas adalah ....|tsa|ta|ba|alif|Tsa bertitik tiga.
 0|Membaca Al-Qur'an dimulai dari sebelah ....|kanan|kiri|atas|bawah|Al-Qur'an dibaca dari kanan.
 0|Belajar membaca Al-Qur'an sebaiknya dengan bimbingan ....|guru ngaji|teman sebangku|penjual|tetangga yang tidak bisa mengaji|Guru ngaji membimbing.
@@ -404,8 +405,8 @@ SAS = """
 3|Ibadah ke Baitullah di Makkah bagi yang mampu disebut ....|haji|zakat|puasa|salat|Haji ke Makkah.
 3|Puasa wajib dilakukan pada bulan ....|Ramadan|Syawal|Muharam|Rajab|Puasa Ramadan.
 3|Syahadat termasuk rukun Islam yang ke ....|satu|dua|tiga|lima|Syahadat pertama.
-=0|Huruf hijaiah berjumlah ... huruf.|29;dua puluh sembilan|Ada 29 huruf hijaiah.
-=0|Huruf hijaiah pertama adalah huruf ....|alif|Alif huruf pertama.
+=0|Huruf hijaiyah berjumlah ... huruf.|29;dua puluh sembilan|Ada 29 huruf hijaiyah.
+=0|Huruf hijaiyah pertama adalah huruf ....|alif|Alif huruf pertama.
 =1|Surah Al-Fatihah terdiri atas ... ayat.|7;tujuh|Tujuh ayat.
 =1|Setelah membaca Al-Fatihah, kita mengucapkan ....|amin;aamiin|Ucapan amin.
 =2|Rukun iman pertama adalah iman kepada ....|Allah|Iman kepada Allah.

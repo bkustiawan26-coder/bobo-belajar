@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.10.1 — 2026-11-24
+Perbaikan dari uji di HP:
+- Materi "Mengenal huruf hijaiyah" (PAI Kelas 1) kini menampilkan papan 29 huruf hijaiyah dari alif sampai ya, plus kartu bacaan berharakat fathah seperti buku Iqro jilid 1 (a, ba, ta, tsa, sampai ya). Aktivitas "Ayo coba" memakai 8 huruf agar tidak terlalu panjang untuk Kelas 1.
+- Percakapan bergambar: tokoh laki-laki kini dibacakan dengan suara laki-laki (memakai suara pria bila tersedia di HP, jika tidak nada suara diturunkan), tokoh perempuan tetap suara perempuan.
+- Tutor BOBO: pertanyaan seperti "huruf tsa" dijawab langsung (bentuk huruf, ciri titik, bacaan fathah/kasrah/dammah). Jawaban Tutor tidak lagi memuat judul dan label "Penjelasan:", dan memilih kalimat yang paling sesuai dengan pertanyaan. Saran pertanyaan diambil dari mapel yang berbeda-beda.
+- Soal latihan otomatis yang jawabannya sudah tertulis di soal diganti soal benar/salah; perbaikan kalimat soal "untuk untuk".
+- Ejaan diseragamkan menjadi "hijaiyah".
+
 ## 1.10.0 — 2026-11-24
 Semua kelas kini lengkap 10 topik per semester:
 - Kelas 2, 3, 5, 6, 7, 8, dan 9: semua mapel kini 10 topik per semester (943 topik baru), lengkap dengan materi bergambar, aktivitas Ayo coba, 20 latihan per topik, dan SAS yang mencakup semua topik. Total 1.760 materi dan 35.200 soal latihan untuk Kelas 1–9.

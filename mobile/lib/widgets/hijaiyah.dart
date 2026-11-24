@@ -261,6 +261,10 @@ class _HijaiyahBoardState extends State<HijaiyahBoard> {
               ),
           ],
         ),
+        if ((widget.spec['caption'] ?? '').toString().isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(widget.spec['caption'].toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 13.5, color: Color(0xFF166534), fontWeight: FontWeight.w700, height: 1.35)),
+        ],
         if (sambung) ...[
           const SizedBox(height: 6),
           const Text('Urutan bentuk dari kanan: berdiri sendiri, di awal, di tengah, di akhir.', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Color(0xFF166534), fontWeight: FontWeight.w600)),

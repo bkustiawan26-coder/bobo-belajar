@@ -11,7 +11,7 @@ final fixtures = jsonDecode(File('test/fixtures/figures.json').readAsStringSync(
 List<Map<String, dynamic>> listOf(String key) => [for (final x in fixtures[key] as List) Map<String, dynamic>.from(x as Map)];
 
 final spoken = <String>[];
-void quiet(String text) => spoken.add(text);
+void quiet(String text, {String? gender}) => spoken.add(text);
 
 Widget host(Widget child) => MaterialApp(home: Scaffold(body: SingleChildScrollView(padding: const EdgeInsets.all(16), child: child)));
 

@@ -12,7 +12,7 @@
 9. Alat peraga baru 3 jenis (pecahan, nilai tempat, Pythagoras).
 10. Google Play mewajibkan URL kebijakan privasi publik; teks di dalam aplikasi perlu dipasang juga di halaman web (lihat `PLAY_STORE.md`).
 11. Kunci signing tidak disimpan di GitHub (proxy sesi ini tidak bisa mengatur GitHub Secrets). CI menghasilkan App Bundle tanpa tanda tangan rilis; penandatanganan dilakukan manual.
-12. Tag dan GitHub Release `v1.0.0`–`v1.10.0` belum dibuat karena sesi pengembangan tidak diizinkan membuat tag/release.
+12. Tag dan GitHub Release `v1.0.0`–`v1.10.1` belum dibuat karena sesi pengembangan tidak diizinkan membuat tag/release.
 13. Kepatuhan UU PDP dan Google Play Families belum diverifikasi ahli hukum.
 14. Flutter 3.50 menandai `package:flutter/material.dart` deprecated (pindah ke `material_ui`); masih berfungsi.
 15. Suara bergantung mesin TTS di HP (kualitas berbeda antar merek); jika suara Bahasa Indonesia offline belum terpasang, orang tua perlu memasangnya di pengaturan Android. Gaya bahasa per jenjang disusun dari prinsip psikologi perkembangan, belum divalidasi psikolog anak atau uji dengan anak.

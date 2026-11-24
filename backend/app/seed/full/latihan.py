@@ -1,5 +1,6 @@
 import hashlib
 import random
+import re
 
 from app.seed.full.dsl import Q, fill, mc, tf
 from app.seed.full.sas import _variants
@@ -55,12 +56,24 @@ def _choices(right: str, pool: list[str], rnd: random.Random, k: int = 3) -> lis
     return [right] + others[:k]
 
 
+def _gives_away(body: str, right: str) -> bool:
+    r = right.strip().lower()
+    if len(r) < 3:
+        return False
+    return re.search(r"(?<![\w])" + re.escape(r) + r"(?![\w])", body.lower()) is not None
+
+
 def from_figure(fig: dict, topic: str) -> list[Q]:
     k = fig.get("type")
     rnd = _seed(topic)
     out: list[Q] = []
 
     def add_mc(body, right, pool, expl):
+        if _gives_away(body, right):
+            wrong = [p for p in dict.fromkeys(pool) if p and p != right and not _gives_away(body, p)]
+            if wrong and body.endswith("…"):
+                out.append(tf(f"{body[:-1].rstrip()} {rnd.choice(wrong)}.", False, expl))
+            return
         opts = _choices(right, pool, rnd)
         if opts:
             out.append(mc(body, opts, 0, expl))
@@ -101,8 +114,9 @@ def from_figure(fig: dict, topic: str) -> list[Q]:
         head, rows = fig["head"], fig["rows"]
         left, right = [r[0] for r in rows], [r[1] for r in rows]
         if len(rows) >= 3 and len(set(left)) == len(left) and len(set(right)) == len(right):
+            joiner = "" if head[1].lower().rstrip().endswith((" untuk", " bagi", " dari")) else " untuk"
             for a, b in zip(left, right):
-                add_mc(f"{head[1]} untuk \"{a}\" adalah …", b, right, f"{a}: {b}.")
+                add_mc(f"{head[1]}{joiner} \"{a}\" adalah …", b, right, f"{a}: {b}.")
             for a, b in zip(left, right):
                 add_mc(f"{head[0]} yang sesuai dengan \"{b}\" adalah …", a, left, f"{a}: {b}.")
     elif k in ("compare", "venn"):

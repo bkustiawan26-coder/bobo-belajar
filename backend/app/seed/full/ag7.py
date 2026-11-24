@@ -378,7 +378,7 @@ Unsur intrinsik dongéng antara lain …|tokoh, latar, alur, dan amanat|harga, u
 Pesan moral dalam dongéng disebut …|amanat|latar|alur|tokoh|Amanat.
 
 ## SUN|Nulis kalimah ku aksara Sunda
-Aksara Sunda Baku terdiri atas aksara swara, aksara ngalagena, rarangkén, dan …|angka|huruf Latin|huruf hijaiah|simbol matematika|Empat komponen.
+Aksara Sunda Baku terdiri atas aksara swara, aksara ngalagena, rarangkén, dan …|angka|huruf Latin|huruf hijaiyah|simbol matematika|Empat komponen.
 Konsonan mati di akhir kata ditulis memakai …|pamaéh|panghulu|panyuku|panéléng|Pamaéh.
 Angka Sunda ditulis diapit …|garis tegak|tanda kurung|tanda petik|titik dua|Garis tegak.
 Kata "buku" ditulis dengan aksara ba dan ka yang diberi …|panyuku|panghulu|pamaéh|panéléng|Panyuku.

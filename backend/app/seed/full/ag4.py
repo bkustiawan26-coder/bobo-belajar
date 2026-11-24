@@ -100,7 +100,7 @@ fig: flow 👦 Sangkuriang hayang ngawin Dayang Sumbi > 👩 Dayang Sumbi ménta
 @ Aksara swara
 min: 7
 act: Tulis lima aksara swara di kertas, lalu tempel di kamar untuk dihafalkan.
-mis: menganggap aksara Sunda dibaca seperti huruf hijaiah dari kanan
+mis: menganggap aksara Sunda dibaca seperti huruf hijaiyah dari kanan
 exp: Aksara Sunda adalah huruf asli Sunda. Aksara swara adalah aksara vokal yang berdiri sendiri. Jumlahnya tujuh, yaitu a, é, i, o, u, e, dan eu. Aksara Sunda ditulis dari kiri ke kanan. Aksara swara dipakai untuk menulis suku kata yang hanya berupa vokal, misalnya awal kata ibu.
 ex: Kata ibu diawali aksara swara i. // Kata emé diawali aksara swara e. // Aksara Sunda ditulis dari kiri ke kanan.
 pt: Aksara swara adalah aksara vokal ; Aksara swara ada tujuh ; Aksara Sunda ditulis dari kiri ke kanan

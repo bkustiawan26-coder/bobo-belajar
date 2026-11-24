@@ -704,6 +704,339 @@
      "label": "Neptunus"
     }
    ]
+  },
+  {
+   "type": "hijaiyah",
+   "mode": "huruf",
+   "items": [
+    {
+     "glyph": "ا",
+     "name": "Alif",
+     "key": "alif"
+    },
+    {
+     "glyph": "ب",
+     "name": "Ba",
+     "key": "ba"
+    },
+    {
+     "glyph": "ت",
+     "name": "Ta",
+     "key": "ta"
+    },
+    {
+     "glyph": "ث",
+     "name": "Tsa",
+     "key": "tsa"
+    },
+    {
+     "glyph": "ج",
+     "name": "Jim",
+     "key": "jim"
+    },
+    {
+     "glyph": "ح",
+     "name": "Ḥa",
+     "key": "hha"
+    },
+    {
+     "glyph": "خ",
+     "name": "Kha",
+     "key": "kha"
+    },
+    {
+     "glyph": "د",
+     "name": "Dal",
+     "key": "dal"
+    },
+    {
+     "glyph": "ذ",
+     "name": "Dzal",
+     "key": "dzal"
+    },
+    {
+     "glyph": "ر",
+     "name": "Ra",
+     "key": "ra"
+    },
+    {
+     "glyph": "ز",
+     "name": "Zai",
+     "key": "zai"
+    },
+    {
+     "glyph": "س",
+     "name": "Sin",
+     "key": "sin"
+    },
+    {
+     "glyph": "ش",
+     "name": "Syin",
+     "key": "syin"
+    },
+    {
+     "glyph": "ص",
+     "name": "Shad",
+     "key": "shad"
+    },
+    {
+     "glyph": "ض",
+     "name": "Dhad",
+     "key": "dhad"
+    },
+    {
+     "glyph": "ط",
+     "name": "Tha",
+     "key": "tha"
+    },
+    {
+     "glyph": "ظ",
+     "name": "Zha",
+     "key": "zha"
+    },
+    {
+     "glyph": "ع",
+     "name": "'Ain",
+     "key": "ain"
+    },
+    {
+     "glyph": "غ",
+     "name": "Ghain",
+     "key": "ghain"
+    },
+    {
+     "glyph": "ف",
+     "name": "Fa",
+     "key": "fa"
+    },
+    {
+     "glyph": "ق",
+     "name": "Qaf",
+     "key": "qaf"
+    },
+    {
+     "glyph": "ك",
+     "name": "Kaf",
+     "key": "kaf"
+    },
+    {
+     "glyph": "ل",
+     "name": "Lam",
+     "key": "lam"
+    },
+    {
+     "glyph": "م",
+     "name": "Mim",
+     "key": "mim"
+    },
+    {
+     "glyph": "ن",
+     "name": "Nun",
+     "key": "nun"
+    },
+    {
+     "glyph": "و",
+     "name": "Wau",
+     "key": "wau"
+    },
+    {
+     "glyph": "ه",
+     "name": "Ha",
+     "key": "ha"
+    },
+    {
+     "glyph": "ء",
+     "name": "Hamzah",
+     "key": "hamzah"
+    },
+    {
+     "glyph": "ي",
+     "name": "Ya",
+     "key": "ya"
+    }
+   ],
+   "caption": "Inilah 29 huruf hijaiyah dari alif sampai ya, dibaca dari kanan."
+  },
+  {
+   "type": "hijaiyah",
+   "mode": "fathah",
+   "items": [
+    {
+     "glyph": "اَ",
+     "name": "Alif",
+     "key": "alif-a",
+     "read": "a"
+    },
+    {
+     "glyph": "بَ",
+     "name": "Ba",
+     "key": "ba-a",
+     "read": "ba"
+    },
+    {
+     "glyph": "تَ",
+     "name": "Ta",
+     "key": "ta-a",
+     "read": "ta"
+    },
+    {
+     "glyph": "ثَ",
+     "name": "Tsa",
+     "key": "tsa-a",
+     "read": "tsa"
+    },
+    {
+     "glyph": "جَ",
+     "name": "Jim",
+     "key": "jim-a",
+     "read": "ja"
+    },
+    {
+     "glyph": "حَ",
+     "name": "Ḥa",
+     "key": "hha-a",
+     "read": "ḥa"
+    },
+    {
+     "glyph": "خَ",
+     "name": "Kha",
+     "key": "kha-a",
+     "read": "kha"
+    },
+    {
+     "glyph": "دَ",
+     "name": "Dal",
+     "key": "dal-a",
+     "read": "da"
+    },
+    {
+     "glyph": "ذَ",
+     "name": "Dzal",
+     "key": "dzal-a",
+     "read": "dza"
+    },
+    {
+     "glyph": "رَ",
+     "name": "Ra",
+     "key": "ra-a",
+     "read": "ra"
+    },
+    {
+     "glyph": "زَ",
+     "name": "Zai",
+     "key": "zai-a",
+     "read": "za"
+    },
+    {
+     "glyph": "سَ",
+     "name": "Sin",
+     "key": "sin-a",
+     "read": "sa"
+    },
+    {
+     "glyph": "شَ",
+     "name": "Syin",
+     "key": "syin-a",
+     "read": "sya"
+    },
+    {
+     "glyph": "صَ",
+     "name": "Shad",
+     "key": "shad-a",
+     "read": "sha"
+    },
+    {
+     "glyph": "ضَ",
+     "name": "Dhad",
+     "key": "dhad-a",
+     "read": "dha"
+    },
+    {
+     "glyph": "طَ",
+     "name": "Tha",
+     "key": "tha-a",
+     "read": "tha"
+    },
+    {
+     "glyph": "ظَ",
+     "name": "Zha",
+     "key": "zha-a",
+     "read": "zha"
+    },
+    {
+     "glyph": "عَ",
+     "name": "'Ain",
+     "key": "ain-a",
+     "read": "'a"
+    },
+    {
+     "glyph": "غَ",
+     "name": "Ghain",
+     "key": "ghain-a",
+     "read": "gha"
+    },
+    {
+     "glyph": "فَ",
+     "name": "Fa",
+     "key": "fa-a",
+     "read": "fa"
+    },
+    {
+     "glyph": "قَ",
+     "name": "Qaf",
+     "key": "qaf-a",
+     "read": "qa"
+    },
+    {
+     "glyph": "كَ",
+     "name": "Kaf",
+     "key": "kaf-a",
+     "read": "ka"
+    },
+    {
+     "glyph": "لَ",
+     "name": "Lam",
+     "key": "lam-a",
+     "read": "la"
+    },
+    {
+     "glyph": "مَ",
+     "name": "Mim",
+     "key": "mim-a",
+     "read": "ma"
+    },
+    {
+     "glyph": "نَ",
+     "name": "Nun",
+     "key": "nun-a",
+     "read": "na"
+    },
+    {
+     "glyph": "وَ",
+     "name": "Wau",
+     "key": "wau-a",
+     "read": "wa"
+    },
+    {
+     "glyph": "هَ",
+     "name": "Ha",
+     "key": "ha-a",
+     "read": "ha"
+    },
+    {
+     "glyph": "ءَ",
+     "name": "Hamzah",
+     "key": "hamzah-a",
+     "read": "a"
+    },
+    {
+     "glyph": "يَ",
+     "name": "Ya",
+     "key": "ya-a",
+     "read": "ya"
+    }
+   ],
+   "caption": "Seperti di buku Iqro jilid 1, semua huruf berharakat fathah: a, ba, ta, tsa, sampai ya."
   }
  ],
  "activities": [
@@ -938,6 +1271,53 @@
      }
     ]
    }
+  },
+  {
+   "type": "activity",
+   "mode": "letter",
+   "ask": "Lihat namanya, lalu ketuk huruf yang benar.",
+   "items": [
+    {
+     "glyph": "ا",
+     "name": "Alif",
+     "key": "alif"
+    },
+    {
+     "glyph": "ج",
+     "name": "Jim",
+     "key": "jim"
+    },
+    {
+     "glyph": "ذ",
+     "name": "Dzal",
+     "key": "dzal"
+    },
+    {
+     "glyph": "ش",
+     "name": "Syin",
+     "key": "syin"
+    },
+    {
+     "glyph": "ظ",
+     "name": "Zha",
+     "key": "zha"
+    },
+    {
+     "glyph": "ق",
+     "name": "Qaf",
+     "key": "qaf"
+    },
+    {
+     "glyph": "ن",
+     "name": "Nun",
+     "key": "nun"
+    },
+    {
+     "glyph": "ي",
+     "name": "Ya",
+     "key": "ya"
+    }
+   ]
   }
  ]
 }

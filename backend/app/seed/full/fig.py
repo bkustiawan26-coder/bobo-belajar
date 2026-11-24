@@ -238,9 +238,43 @@ def parse(spec: str) -> dict:
             if not said:
                 raise FigError(f"percakapan butuh 'nama: ucapan': {p}")
             out["items"].append({**item(who), "say": said.strip()})
+        _voices(out["items"])
     if caption:
         out["caption"] = caption
     return out
+
+
+MALE_ICONS = ("👦", "👨", "👴", "🧔", "🤴", "👮\u200d♂️")
+FEMALE_ICONS = ("👧", "👩", "👵", "🧕", "👸")
+MALE_NAMES = {"andi", "budi", "dani", "dodi", "raka", "rio", "rudi", "tono", "ujang", "asep", "dedi", "pak", "bapak", "ayah", "kakek", "abah", "mang", "aki"}
+FEMALE_NAMES = {"ani", "dina", "maya", "nia", "sari", "sinta", "siti", "ibu", "bu", "bunda", "nenek", "ema", "ceu", "nini", "teh"}
+
+
+def _voices(items: list[dict]) -> None:
+    def guess(it: dict) -> str | None:
+        icon = it.get("icon", "")
+        if icon.startswith(MALE_ICONS):
+            return "m"
+        if icon.startswith(FEMALE_ICONS):
+            return "f"
+        name = it.get("label", "").lower().split()
+        if name and name[0] in MALE_NAMES:
+            return "m"
+        if name and name[0] in FEMALE_NAMES:
+            return "f"
+        return None
+
+    known: dict[str, str] = {}
+    for it in items:
+        g = guess(it)
+        if g:
+            known.setdefault(it.get("label", ""), g)
+    for it in items:
+        label = it.get("label", "")
+        if label not in known:
+            others = {v for k, v in known.items() if k != label}
+            known[label] = "m" if others == {"f"} else "f" if others == {"m"} else ("m" if len(known) % 2 == 0 else "f")
+        it["voice"] = known[label]
 
 
 HIJAIYAH = [
@@ -297,6 +331,8 @@ def activity(fig: dict) -> dict:
     k = fig["type"]
     if k == "hijaiyah":
         items = [{x2: v for x2, v in x.items() if x2 in ("glyph", "name", "key", "read")} for x in fig["items"]]
+        if len(items) > 8:
+            items = [items[round(i * (len(items) - 1) / 7)] for i in range(8)]
         what = "huruf" if fig["mode"] in ("huruf", "sambung") else "bacaan"
         return {"type": "activity", "mode": "letter", "ask": f"Lihat namanya, lalu ketuk {what} yang benar.", "items": items}
     if k in SEQ or k == "time" or k == "chat":

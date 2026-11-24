@@ -7,11 +7,11 @@ import '../core/theme.dart';
 import 'hijaiyah.dart';
 import 'recitation.dart';
 
-typedef Say = void Function(String text);
+typedef Say = void Function(String text, {String? gender});
 
-void defaultSay(String text) {
+void defaultSay(String text, {String? gender}) {
   if (text.trim().isNotEmpty) {
-    Speech.instance.speak(text);
+    Speech.instance.speak(text, gender: gender);
   }
 }
 
@@ -136,9 +136,9 @@ class _LessonFigureState extends State<LessonFigure> {
     }
   }
 
-  void _tap(int i, String text) {
+  void _tap(int i, String text, {String? gender}) {
     setState(() => _active = i);
-    widget.say(text);
+    widget.say(text, gender: gender);
   }
 
   Widget _chip(Map<String, dynamic> it, int i, {double? width, bool big = false}) =>
@@ -465,7 +465,7 @@ class _LessonFigureState extends State<LessonFigure> {
     ]);
     final bubble = Flexible(
       child: GestureDetector(
-        onTap: () => _tap(i, (it['say'] ?? '').toString()),
+        onTap: () => _tap(i, (it['say'] ?? '').toString(), gender: it['voice']?.toString()),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),

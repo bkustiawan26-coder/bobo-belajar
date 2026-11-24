@@ -915,7 +915,8 @@ class LocalEngine {
     } else {
       final scope = content.topicsWithContent(g).take(3).map((t) => t['title']).join(', ');
       final passages = index.search(text, g, topicId: topicId);
-      reply = cleanOutput(groundedTutor(text, passages, g, scope.isEmpty ? 'materi kelasmu' : scope, style), band(g) <= 2 ? 900 : 1400);
+      final hij = style == null ? hijaiyahAnswer(text) : null;
+      reply = cleanOutput(hij ?? groundedTutor(text, passages, g, scope.isEmpty ? 'materi kelasmu' : scope, style), band(g) <= 2 ? 900 : 1400);
       sources = <String>{for (final p in passages.take(2)) '${p.sourceType == 'lesson' ? 'Materi' : 'Bank soal'}: ${p.topic ?? p.title}'}.toList();
       final topicName = passages.isNotEmpty ? passages.first.topic : null;
       if (passages.isNotEmpty) {

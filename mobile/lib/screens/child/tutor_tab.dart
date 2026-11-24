@@ -60,13 +60,22 @@ class _TutorTabState extends State<TutorTab> {
     try {
       final cat = await CatalogCache.load(app);
       final topics = <String>[];
+      final firsts = <String>[];
       for (final s in asList(cat['subjects'])) {
+        var first = true;
         for (final ch in asList(s['chapters'])) {
           for (final tp in asList(ch['topics'])) {
             topics.add(tp['title'] as String);
+            if (first) {
+              firsts.add(tp['title'] as String);
+              first = false;
+            }
           }
         }
       }
+      String lc(String t) => t.length > 1 && t[1] == t[1].toLowerCase() ? t[0].toLowerCase() + t.substring(1) : t;
+      final start = firsts.isEmpty ? 0 : DateTime.now().day % firsts.length;
+      final pick = [for (var i = 0; i < firsts.length && i < 4; i++) lc(firsts[(start + i) % firsts.length])];
       final q = asMap(await app.student('GET', '/student/tutor/quota'));
       if (!mounted) {
         return;
@@ -75,13 +84,13 @@ class _TutorTabState extends State<TutorTab> {
         _hasContent = topics.isNotEmpty;
         _left = (q['left'] as num).toInt();
         _limit = (q['limit'] as num).toInt();
-        _starters = topics.isEmpty
+        _starters = pick.isEmpty
             ? []
             : [
-                'Apa itu ${topics.first.toLowerCase()}?',
-                if (topics.length > 1) 'Beri aku petunjuk tentang ${topics[1].toLowerCase()}',
-                'Buatkan 1 contoh soal ${topics.first.toLowerCase()}',
-                if (topics.length > 2) 'Jelaskan ${topics[2].toLowerCase()}',
+                'Apa itu ${pick[0]}?',
+                if (pick.length > 1) 'Beri aku petunjuk tentang ${pick[1]}',
+                if (pick.length > 2) 'Buatkan 1 contoh soal ${pick[2]}',
+                if (pick.length > 3) 'Jelaskan ${pick[3]}',
               ];
       });
     } catch (_) {}

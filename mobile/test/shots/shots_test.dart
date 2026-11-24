@@ -57,8 +57,8 @@ void main() {
     tester.view.physicalSize = const Size(780, 2400);
     addTearDown(tester.view.reset);
     final items = <(String, Widget)>[
-      for (final (i, f) in (fixtures['figures'] as List).indexed) ('fig_${i.toString().padLeft(2, '0')}_${(f as Map)['type']}', LessonFigure(spec: Map<String, dynamic>.from(f), theme: theme, say: (_) {})),
-      for (final (i, a) in (fixtures['activities'] as List).indexed) ('act_${i.toString().padLeft(2, '0')}_${(a as Map)['mode']}', FigureActivity(key: UniqueKey(), spec: Map<String, dynamic>.from(a), theme: theme, say: (_) {})),
+      for (final (i, f) in (fixtures['figures'] as List).indexed) ('fig_${i.toString().padLeft(2, '0')}_${(f as Map)['type']}', LessonFigure(spec: Map<String, dynamic>.from(f), theme: theme, say: (_, {gender}) {})),
+      for (final (i, a) in (fixtures['activities'] as List).indexed) ('act_${i.toString().padLeft(2, '0')}_${(a as Map)['mode']}', FigureActivity(key: UniqueKey(), spec: Map<String, dynamic>.from(a), theme: theme, say: (_, {gender}) {})),
     ];
     for (final (name, w) in items) {
       final key = GlobalKey();

@@ -180,9 +180,99 @@ class KnowledgeIndex {
 
 final RegExp _hintWords = RegExp(r'(petunjuk|bantu|langkah|gimana|bagaimana cara|caranya|hint|cek jawaban|benar nggak|benar tidak)');
 
-List<String> sentencesOf(String text) {
-  final t = text.trim().replaceFirst(RegExp(r'^[A-Za-z ]+: '), '');
-  return t.split(RegExp(r'(?<=[.!?])\s+|\n+')).map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
+final RegExp _kindLabel = RegExp(r'^(Penjelasan|Contoh|Ayo coba|Poin penting|Ringkasan|Contoh soal [^:]+|Pembahasan): ');
+
+List<String> sentencesOf(String text, {String? title}) {
+  final out = <String>[];
+  for (final line in text.trim().split(RegExp(r'\n+'))) {
+    final l = line.trim().replaceFirst(_kindLabel, '');
+    if (l.isEmpty || (title != null && l == title.trim())) {
+      continue;
+    }
+    out.addAll(l.split(RegExp(r'(?<=[.!?])\s+')).map((p) => p.trim()).where((p) => p.isNotEmpty));
+  }
+  return out;
+}
+
+Set<String> _queryWords(String q) => q.toLowerCase().split(RegExp(r'\s+')).map((w) => w.replaceAll(RegExp(r'[^0-9a-z]'), '')).where((w) => w.length >= 2).toSet();
+
+List<String> relevantSentences(List<String> sentences, String question, int n) {
+  final words = _queryWords(question).where((w) => !_stop.contains(w)).toSet();
+  if (words.isEmpty) {
+    return sentences.take(n).toList();
+  }
+  bool hit(String s, String w) => RegExp('(^|[^a-z])${RegExp.escape(w)}([^a-z]|\$)').hasMatch(s.toLowerCase());
+  final scored = [for (final (i, s) in sentences.indexed) (i, words.where((w) => hit(s, w)).length)];
+  final best = scored.where((x) => x.$2 > 0).toList()..sort((a, b) => b.$2 != a.$2 ? b.$2.compareTo(a.$2) : a.$1.compareTo(b.$1));
+  if (best.isEmpty) {
+    return sentences.take(n).toList();
+  }
+  final pick = best.take(n).map((x) => x.$1).toList()..sort();
+  return [for (final i in pick) sentences[i]];
+}
+
+const _stop = {'apa', 'itu', 'yang', 'dan', 'di', 'ke', 'dari', 'aku', 'saya', 'tolong', 'jelaskan', 'tentang', 'bagaimana', 'kenapa', 'mengapa', 'adalah', 'beri', 'buatkan', 'contoh', 'soal', 'ini', 'dong', 'ya', 'huruf'};
+
+const Map<String, (String, String, String, String)> _hijaiyah = {
+  'alif': ('ا', 'Alif', 'tidak bertitik, berdiri tegak', ''),
+  'ba': ('ب', 'Ba', 'satu titik di bawah', 'b'),
+  'ta': ('ت', 'Ta', 'dua titik di atas', 't'),
+  'tsa': ('ث', 'Tsa', 'tiga titik di atas', 'ts'),
+  'jim': ('ج', 'Jim', 'satu titik di bagian dalam bawah', 'j'),
+  'kha': ('خ', 'Kha', 'satu titik di atas', 'kh'),
+  'dal': ('د', 'Dal', 'tidak bertitik', 'd'),
+  'dzal': ('ذ', 'Dzal', 'satu titik di atas', 'dz'),
+  'ra': ('ر', 'Ra', 'tidak bertitik', 'r'),
+  'zai': ('ز', 'Zai', 'satu titik di atas', 'z'),
+  'sin': ('س', 'Sin', 'tidak bertitik, bergerigi tiga', 's'),
+  'syin': ('ش', 'Syin', 'tiga titik di atas', 'sy'),
+  'shad': ('ص', 'Shad', 'tidak bertitik', 'sh'),
+  'dhad': ('ض', 'Dhad', 'satu titik di atas', 'dh'),
+  'tha': ('ط', 'Tha', 'tidak bertitik', 'th'),
+  'zha': ('ظ', 'Zha', 'satu titik di atas', 'zh'),
+  'ain': ('ع', "'Ain", 'tidak bertitik', "'"),
+  'ghain': ('غ', 'Ghain', 'satu titik di atas', 'gh'),
+  'fa': ('ف', 'Fa', 'satu titik di atas', 'f'),
+  'qaf': ('ق', 'Qaf', 'dua titik di atas', 'q'),
+  'kaf': ('ك', 'Kaf', 'tidak bertitik', 'k'),
+  'lam': ('ل', 'Lam', 'tidak bertitik', 'l'),
+  'mim': ('م', 'Mim', 'tidak bertitik', 'm'),
+  'nun': ('ن', 'Nun', 'satu titik di atas', 'n'),
+  'wau': ('و', 'Wau', 'tidak bertitik', 'w'),
+  'hamzah': ('ء', 'Hamzah', 'tidak bertitik, kecil seperti kepala ain', ''),
+  'ya': ('ي', 'Ya', 'dua titik di bawah', 'y'),
+};
+
+String? hijaiyahAnswer(String question) {
+  final t = question.toLowerCase();
+  if (!RegExp(r'\b(huruf|hijai|hijaiyah|hijaiyah)').hasMatch(t)) {
+    return null;
+  }
+  final words = t.split(RegExp(r"[^a-z']+")).map((w) => w.replaceAll("'", '')).where((w) => w.isNotEmpty).toList();
+  final at = words.indexOf('huruf');
+  final near = at < 0 ? const <String>[] : words.sublist(at + 1, at + 4 > words.length ? words.length : at + 4);
+  final found = <String>[];
+  for (final (i, w) in near.indexed) {
+    if (_hijaiyah.containsKey(w) && !found.contains(w) && (w != 'ya' || i == 0)) {
+      found.add(w);
+    }
+  }
+  final ha = near.contains('ha');
+  if (found.isEmpty && !ha) {
+    if (RegExp(r'(semua|29|daftar|urutan|apa saja)').hasMatch(t)) {
+      return 'Huruf hijaiyah ada 29, dibaca dari kanan ke kiri: alif, ba, ta, tsa, jim, ḥa, kha, dal, dzal, ra, zai, sin, syin, shad, dhad, tha, zha, \'ain, ghain, fa, qaf, kaf, lam, mim, nun, wau, ha, hamzah, ya.\n\nLihat papan 29 huruf di materi "Mengenal huruf hijaiyah" (PAI), lalu baca bersama ayah, bunda, atau ustaz.';
+    }
+    return null;
+  }
+  final lines = <String>[];
+  for (final k in found.take(3)) {
+    final (glyph, name, mark, c) = _hijaiyah[k]!;
+    lines.add('Huruf $name ditulis $glyph. Cirinya: $mark. Dengan fathah, kasrah, dan dammah dibaca ${c}a, ${c}i, ${c}u.');
+  }
+  if (ha) {
+    lines.add('Ada dua huruf ha: ḥa (ح) tanpa titik di tengah urutan, dan ha (ه) di dekat akhir. Keduanya tidak bertitik.');
+  }
+  return '${lines.join('\n\n')}\n\nLihat papan huruf di materi "Mengenal huruf hijaiyah" (PAI), lalu minta ayah, bunda, atau ustaz mencontohkan bacaannya.';
 }
 
 String groundedTutor(String question, List<Passage> passages, int grade, String scope, String? style) {
@@ -190,7 +280,7 @@ String groundedTutor(String question, List<Passage> passages, int grade, String 
     return 'Aku hanya menjawab dari materi BOBO yang sudah tersedia di aplikasi, yaitu $scope. Coba tanyakan dengan kata kunci dari materi itu, atau minta bantuan orang tua dan gurumu.';
   }
   final top = passages.first;
-  final sentences = sentencesOf(top.content);
+  final sentences = sentencesOf(top.content, title: top.title);
   if (sentences.isEmpty) {
     return 'Coba buka materinya di menu Belajar, ya.';
   }
@@ -221,7 +311,7 @@ String groundedTutor(String question, List<Passage> passages, int grade, String 
     return 'Petunjuk dulu, ya: $key\n\nCoba kerjakan langkah itu sendiri. Kalau sudah, ketik jawabanmu dan aku bantu cek caranya.';
   }
   final n = grade <= 2 ? 2 : 4;
-  final body = sentences.take(n).join(' ');
+  final body = relevantSentences(sentences, question, n).join(' ');
   final topic = top.topic ?? top.title;
   return topic.isEmpty ? body : '$body\n\nMau coba latihan soal tentang $topic? Buka menu Latihan.';
 }

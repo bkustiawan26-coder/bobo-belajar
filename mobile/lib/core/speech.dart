@@ -17,6 +17,9 @@ class Speech {
   Map<String, String>? _voice;
   String _lang = 'id';
   final Map<String, bool> _available = {};
+  final Map<String, Map<String, String>?> _male = {};
+  String? _gender;
+  String? _appliedGender;
   final ValueNotifier<String?> speaking = ValueNotifier<String?>(null);
   final ValueNotifier<int> sentence = ValueNotifier<int>(-1);
 
@@ -58,6 +61,7 @@ class Speech {
         } catch (_) {}
       }
       _lang = 'id';
+      _appliedGender = null;
       await _apply();
     }
   }
@@ -90,26 +94,62 @@ class Speech {
 
   static const _locales = {'id': 'id-ID', 'en': 'en-US', 'su': 'su-ID'};
 
+  static const _maleNames = ['id-id-x-idd', 'id-id-x-ide', 'en-us-x-iol', 'en-us-x-iom', 'en-us-x-tpd'];
+
+  Future<Map<String, String>?> _maleVoice(String lang) async {
+    if (_male.containsKey(lang)) {
+      return _male[lang];
+    }
+    Map<String, String>? found;
+    try {
+      final want = _locales[lang]!.toLowerCase();
+      final alt = lang == 'id' ? 'in-id' : want;
+      final raw = await _tts.getVoices;
+      for (final v in (raw as List? ?? const [])) {
+        final m = Map<String, dynamic>.from(v as Map);
+        final locale = (m['locale'] ?? '').toString().toLowerCase().replaceAll('_', '-');
+        if (locale != want && locale != alt) {
+          continue;
+        }
+        final name = (m['name'] ?? '').toString();
+        final lower = name.toLowerCase();
+        if ((m['network_required'] ?? '').toString() == '1' || lower.contains('network')) {
+          continue;
+        }
+        final gender = (m['gender'] ?? '').toString().toLowerCase();
+        final male = gender == 'male' || (lower.contains('male') && !lower.contains('female')) || _maleNames.any(lower.startsWith);
+        if (male) {
+          found = {'name': name, 'locale': m['locale'].toString()};
+          break;
+        }
+      }
+    } catch (_) {}
+    return _male[lang] = found;
+  }
+
   Future<bool> _use(String lang) async {
-    if (lang == _lang) {
+    final gender = _gender;
+    if (lang == _lang && gender == _appliedGender) {
       return true;
     }
     try {
-      if (lang == 'id') {
-        await _tts.setLanguage('id-ID');
-        if (_voice != null) {
-          await _tts.setVoice(_voice!);
-        }
-      } else {
+      if (lang != 'id') {
         final ok = _available[lang] ??= (await _tts.isLanguageAvailable(_locales[lang]!)) == true;
         if (!ok) {
           return false;
         }
-        await _tts.setLanguage(_locales[lang]!);
+      }
+      await _tts.setLanguage(_locales[lang]!);
+      final male = gender == 'm' ? await _maleVoice(lang) : null;
+      if (male != null) {
+        await _tts.setVoice(male);
+      } else if (lang == 'id' && _voice != null) {
+        await _tts.setVoice(_voice!);
       }
       await _tts.setSpeechRate(_profile.rate);
-      await _tts.setPitch(_profile.pitch);
+      await _tts.setPitch(gender == 'm' ? (male != null ? 1.0 : 0.72) : _profile.pitch);
       _lang = lang;
+      _appliedGender = gender;
       return true;
     } catch (_) {
       _available[lang] = false;
@@ -140,7 +180,7 @@ class Speech {
     return out.any((r) => r.$2 != 'id') ? out : [(raw, 'id')];
   }
 
-  Future<void> speak(String text, {String? intro, bool englishBias = false, bool sundaneseBias = false}) async {
+  Future<void> speak(String text, {String? intro, bool englishBias = false, bool sundaneseBias = false, String? gender}) async {
     await _init();
     if (speaking.value == text) {
       await stop();
@@ -151,6 +191,7 @@ class Speech {
       await _tts.stop();
     } catch (_) {}
     speaking.value = text;
+    _gender = gender == 'm' || gender == 'f' ? gender : null;
     final lead = intro == null ? const <String>[] : segmentsOf(intro.trim());
     final body = segmentsOf(text.trim());
     final total = lead.length + body.length;
@@ -162,6 +203,7 @@ class Speech {
       final raw = isLead ? lead[i] : body[i - lead.length];
       sentence.value = isLead ? -1 : i - lead.length;
       final parts = isLead ? [(raw, 'id')] : plan(raw, englishBias: englishBias, sundaneseBias: sundaneseBias);
+      _gender = isLead ? null : (gender == 'm' || gender == 'f' ? gender : null);
       var failed = false;
       for (final (part, lang) in parts) {
         if (my != _gen) {
@@ -193,12 +235,14 @@ class Speech {
     if (my == _gen) {
       speaking.value = null;
       sentence.value = -1;
+      _gender = null;
       await _use('id');
     }
   }
 
   Future<void> stop() async {
     _gen++;
+    _gender = null;
     speaking.value = null;
     sentence.value = -1;
     try {
