@@ -14,5 +14,14 @@ jobs:
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          mkdir -p font && cd font
+          gh release download -R aliftype/amiri -p 'Amiri-*.zip'
+          unzip -q -o Amiri-*.zip
+          find . -name 'AmiriQuran*.ttf' -exec cp {} ../ \;
+          find . -name 'OFL.txt' -exec cp {} ../AMIRI-OFL.txt \; -quit
+          cd .. && zip -q quran-assets.zip AmiriQuran*.ttf AMIRI-OFL.txt
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           gh release view quran-assets >/dev/null 2>&1 || gh release create quran-assets --title "Aset bacaan Al-Qur'an" --notes "Teks Uthmani dan rekaman per ayat untuk dibundel ke aplikasi." --prerelease
           gh release upload quran-assets quran-assets.zip --clobber
