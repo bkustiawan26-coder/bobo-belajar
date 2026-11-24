@@ -1,4 +1,5 @@
 import 'package:bobo_belajar/core/persona.dart';
+import 'package:bobo_belajar/core/speech.dart';
 import 'package:bobo_belajar/local/content.dart';
 import 'package:bobo_belajar/local/engine.dart';
 import 'package:bobo_belajar/local/store.dart';
@@ -134,5 +135,17 @@ void main() {
     expect(looksEnglish('apple', bias: true), isTrue);
     expect(looksEnglish('Betul!', bias: true), isFalse);
     expect(looksEnglish('Itu apple. Cari banana, ya!', bias: true), isFalse);
+  });
+
+  test('kalimat Sunda dibaca dengan suara Sunda, kutipan dipisah per bahasa', () {
+    expect(looksSundanese('Pupuh Maskumambang dipaké pikeun carita nu sedih.'), isTrue);
+    expect(looksSundanese('Hatur nuhun, Bu guru.'), isTrue);
+    expect(looksSundanese('Wawacan ditulis ku pupuh.', bias: true), isTrue);
+    expect(looksSundanese('Wawacan adalah cerita panjang yang memakai pupuh.', bias: true), isFalse);
+    expect(looksSundanese('Ibu pergi ke pasar membeli sayur.'), isFalse);
+    expect(Speech.plan('Kata "hatur nuhun" artinya terima kasih.'), [('Kata ', 'id'), ('hatur nuhun', 'su'), (' artinya terima kasih.', 'id')]);
+    expect(Speech.plan('Sapaan pagi dalam bahasa Inggris adalah "Good morning".').map((r) => r.$2), contains('en'));
+    expect(Speech.plan('Ayo belajar bersama.'), [('Ayo belajar bersama.', 'id')]);
+    expect(Speech.plan('Wilujeng enjing!'), [('Wilujeng enjing!', 'su')]);
   });
 }

@@ -77,6 +77,7 @@ class _BelajarTabState extends State<BelajarTab> {
         lessonId: _lessonId!,
         theme: t,
         english: _english,
+        sundanese: _sundanese,
         onClose: () {
           setState(() => _lessonId = null);
           _load();
@@ -135,17 +136,21 @@ class _BelajarTabState extends State<BelajarTab> {
     ]);
   }
 
-  bool get _english {
+  String? get _subjectLabel {
     if (_catalog == null || _subjectId == null) {
-      return false;
+      return null;
     }
     for (final s in asList(_catalog!['subjects'])) {
       if (s['id'] == _subjectId) {
-        return s['short_label'] == 'En';
+        return s['short_label']?.toString();
       }
     }
-    return false;
+    return null;
   }
+
+  bool get _english => _subjectLabel == 'En';
+
+  bool get _sundanese => _subjectLabel == 'Su';
 
   int? _subjectOfLesson(int lessonId) {
     if (_catalog == null) {
@@ -225,10 +230,11 @@ class _BelajarTabState extends State<BelajarTab> {
 }
 
 class LessonReader extends StatefulWidget {
-  const LessonReader({super.key, required this.lessonId, required this.theme, required this.onClose, this.english = false});
+  const LessonReader({super.key, required this.lessonId, required this.theme, required this.onClose, this.english = false, this.sundanese = false});
 
   final int lessonId;
   final bool english;
+  final bool sundanese;
   final BandTheme theme;
   final VoidCallback onClose;
 
@@ -325,15 +331,16 @@ class _LessonReaderState extends State<LessonReader> {
     }
     final lineHeight = persona.young ? 1.8 : 1.65;
     final english = widget.english;
+    final sundanese = widget.sundanese;
     void say(String text) {
       if (text.trim().isNotEmpty) {
-        Speech.instance.speak(text, englishBias: english);
+        Speech.instance.speak(text, englishBias: english, sundaneseBias: sundanese);
       }
     }
 
     if (_spoken != _step && app.setting('read_aloud')) {
       _spoken = _step;
-      WidgetsBinding.instance.addPostFrameCallback((_) => Speech.instance.speak(speakText, intro: intro, englishBias: english));
+      WidgetsBinding.instance.addPostFrameCallback((_) => Speech.instance.speak(speakText, intro: intro, englishBias: english, sundaneseBias: sundanese));
     }
     return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 24), children: [
       Row(children: List.generate(blocks.length, (i) => Expanded(
@@ -355,7 +362,7 @@ class _LessonReaderState extends State<LessonReader> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             const Spacer(),
-            SpeakButton(text: speakText, intro: intro, color: t.ink, label: persona.young ? 'Dengarkan BOBO' : 'Dengarkan', englishBias: english),
+            SpeakButton(text: speakText, intro: intro, color: t.ink, label: persona.young ? 'Dengarkan BOBO' : 'Dengarkan', englishBias: english, sundaneseBias: sundanese),
           ]),
           if (b['figure'] is Map && kind != 'Ayo coba') ...[
             LessonFigure(spec: Map<String, dynamic>.from(b['figure'] as Map), theme: t, say: say),

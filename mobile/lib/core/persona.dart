@@ -104,6 +104,62 @@ bool looksEnglish(String text, {bool bias = false}) {
   return en >= 2 && en * 10 >= words.length * 3;
 }
 
+const _idOnly = {
+  'yang', 'dan', 'ada', 'adalah', 'untuk', 'dengan', 'tidak', 'ini', 'itu', 'akan', 'juga', 'atau', 'karena', 'artinya', 'arti', 'sudah', 'belum',
+  'kemudian', 'setelah', 'sebelum', 'sangat', 'semua', 'setiap', 'berarti', 'menjadi', 'disebut', 'merupakan', 'contoh', 'kata', 'kalimat',
+  'bahasa', 'perhatikan', 'ayo', 'coba', 'pilih', 'benar', 'salah', 'bagaimana', 'mengapa', 'apa', 'siapa', 'kapan', 'berapa', 'tersebut',
+  'biasanya', 'misalnya', 'yaitu', 'ialah', 'oleh', 'pada', 'dalam', 'dari', 'kepada', 'bahwa', 'sedang', 'harus', 'boleh', 'ingin', 'mau',
+};
+
+const _suWords = {
+  'jeung', 'nyaeta', 'nyaéta', 'teh', 'téh', 'mangrupa', 'mangrupakeun', 'sareng', 'henteu', 'teu', 'kumaha', 'naon', 'saha', 'iraha', 'naha',
+  'ieu', 'eta', 'éta', 'kana', 'tina', 'keur', 'geus', 'sok', 'oge', 'ogé', 'wae', 'waé', 'pisan', 'maneh', 'manéh', 'anjeun', 'abdi', 'hatur',
+  'nuhun', 'wilujeng', 'enjing', 'sumping', 'mangga', 'punten', 'dupi', 'kitu', 'kieu', 'nya', 'mah', 'atuh', 'kudu', 'dieu', 'ditu', 'didieu',
+  'barudak', 'sakola', 'imah', 'dahar', 'nginum', 'saré', 'sare', 'indit', 'leumpang', 'ningali', 'nyarios', 'ngadangu', 'maca',
+  'pikeun', 'nu', 'ku', 'ka', 'kabéh', 'kabeh', 'loba', 'saeutik', 'alus', 'hadé', 'hade', 'kacida', 'sabab', 'lamun', 'samemeh',
+  'saméméh', 'sanggeus', 'bari', 'tuluy', 'ayeuna', 'isukan', 'kamari', 'aranjeunna', 'manehna', 'manéhna', 'ema',
+  'indung', 'lanceuk', 'babaturan', 'ngajar', 'diajar', 'sapopoé', 'kecap', 'kalimah', 'conto', 'carita',
+};
+
+const _notSundaneseEu = {'museum', 'neuron', 'eucalyptus', 'eukaliptus', 'leukosit', 'leukemia', 'euro', 'eropa'};
+
+bool looksSundanese(String text, {bool bias = false}) {
+  final words = RegExp(r"[a-zA-Zéè']+").allMatches(text.toLowerCase()).map((m) => m[0]!).toList();
+  if (words.isEmpty) {
+    return false;
+  }
+  var su = 0;
+  for (final w in words) {
+    if (_idOnly.contains(w) || _idShaped(w)) {
+      return false;
+    }
+    if (_suWords.contains(w) || w.contains('é') || (w.contains('eu') && !_notSundaneseEu.contains(w))) {
+      su++;
+    }
+  }
+  if (bias) {
+    return su >= 1;
+  }
+  return su >= 2 && su * 10 >= words.length * 3;
+}
+
+List<(String, bool)> quotedRuns(String text) {
+  final out = <(String, bool)>[];
+  final re = RegExp(r'["“]([^"”]{2,80})["”]');
+  var last = 0;
+  for (final m in re.allMatches(text)) {
+    if (m.start > last) {
+      out.add((text.substring(last, m.start), false));
+    }
+    out.add((m[1]!, true));
+    last = m.end;
+  }
+  if (last < text.length) {
+    out.add((text.substring(last), false));
+  }
+  return out.where((r) => r.$1.trim().isNotEmpty).toList();
+}
+
 String _time(Match m, bool english) {
   final h = int.parse(m[2]!);
   final mm = int.parse(m[3]!);

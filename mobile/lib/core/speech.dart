@@ -15,8 +15,8 @@ class Speech {
   int _gen = 0;
   VoiceProfile _profile = VoiceProfile.forGrade(5);
   Map<String, String>? _voice;
-  bool? _enOk;
-  bool _inEnglish = false;
+  String _lang = 'id';
+  final Map<String, bool> _available = {};
   final ValueNotifier<String?> speaking = ValueNotifier<String?>(null);
   final ValueNotifier<int> sentence = ValueNotifier<int>(-1);
 
@@ -57,6 +57,7 @@ class Speech {
           await _tts.setLanguage('id-ID');
         } catch (_) {}
       }
+      _lang = 'id';
       await _apply();
     }
   }
@@ -87,34 +88,59 @@ class Speech {
     }
   }
 
-  Future<bool> _english(bool on) async {
-    if (on == _inEnglish) {
+  static const _locales = {'id': 'id-ID', 'en': 'en-US', 'su': 'su-ID'};
+
+  Future<bool> _use(String lang) async {
+    if (lang == _lang) {
       return true;
     }
     try {
-      if (on) {
-        _enOk ??= (await _tts.isLanguageAvailable('en-US')) == true;
-        if (_enOk != true) {
-          return false;
-        }
-        await _tts.setLanguage('en-US');
-      } else {
+      if (lang == 'id') {
         await _tts.setLanguage('id-ID');
         if (_voice != null) {
           await _tts.setVoice(_voice!);
         }
+      } else {
+        final ok = _available[lang] ??= (await _tts.isLanguageAvailable(_locales[lang]!)) == true;
+        if (!ok) {
+          return false;
+        }
+        await _tts.setLanguage(_locales[lang]!);
       }
       await _tts.setSpeechRate(_profile.rate);
       await _tts.setPitch(_profile.pitch);
-      _inEnglish = on;
+      _lang = lang;
       return true;
     } catch (_) {
-      _enOk = false;
+      _available[lang] = false;
       return false;
     }
   }
 
-  Future<void> speak(String text, {String? intro, bool englishBias = false}) async {
+  static String languageOf(String text, {bool englishBias = false, bool sundaneseBias = false}) {
+    if (looksEnglish(text, bias: englishBias)) {
+      return 'en';
+    }
+    if (looksSundanese(text, bias: sundaneseBias)) {
+      return 'su';
+    }
+    return 'id';
+  }
+
+  static List<(String, String)> plan(String raw, {bool englishBias = false, bool sundaneseBias = false}) {
+    final whole = languageOf(raw, englishBias: englishBias, sundaneseBias: sundaneseBias);
+    if (whole != 'id') {
+      return [(raw, whole)];
+    }
+    final runs = quotedRuns(raw);
+    final out = <(String, String)>[];
+    for (final (text, quoted) in runs) {
+      out.add((text, quoted ? languageOf(text, englishBias: englishBias, sundaneseBias: sundaneseBias) : 'id'));
+    }
+    return out.any((r) => r.$2 != 'id') ? out : [(raw, 'id')];
+  }
+
+  Future<void> speak(String text, {String? intro, bool englishBias = false, bool sundaneseBias = false}) async {
     await _init();
     if (speaking.value == text) {
       await stop();
@@ -134,18 +160,29 @@ class Speech {
       }
       final isLead = i < lead.length;
       final raw = isLead ? lead[i] : body[i - lead.length];
-      final en = !isLead && looksEnglish(raw, bias: englishBias) && await _english(true);
-      if (!en) {
-        await _english(false);
-      }
-      final spoken = toSpoken(raw, english: en);
       sentence.value = isLead ? -1 : i - lead.length;
-      if (spoken.isEmpty) {
-        continue;
+      final parts = isLead ? [(raw, 'id')] : plan(raw, englishBias: englishBias, sundaneseBias: sundaneseBias);
+      var failed = false;
+      for (final (part, lang) in parts) {
+        if (my != _gen) {
+          return;
+        }
+        final used = await _use(lang) ? lang : 'id';
+        if (used == 'id') {
+          await _use('id');
+        }
+        final spoken = toSpoken(part, english: used == 'en');
+        if (spoken.isEmpty) {
+          continue;
+        }
+        try {
+          await _tts.speak(spoken).timeout(Duration(seconds: 8 + spoken.length ~/ 6));
+        } catch (_) {
+          failed = true;
+          break;
+        }
       }
-      try {
-        await _tts.speak(spoken).timeout(Duration(seconds: 8 + spoken.length ~/ 6));
-      } catch (_) {
+      if (failed) {
         break;
       }
       if (my != _gen) {
@@ -156,7 +193,7 @@ class Speech {
     if (my == _gen) {
       speaking.value = null;
       sentence.value = -1;
-      await _english(false);
+      await _use('id');
     }
   }
 
@@ -171,10 +208,11 @@ class Speech {
 }
 
 class SpeakButton extends StatelessWidget {
-  const SpeakButton({super.key, required this.text, this.intro, this.color = Palette.inkSoft, this.label, this.englishBias = false});
+  const SpeakButton({super.key, required this.text, this.intro, this.color = Palette.inkSoft, this.label, this.englishBias = false, this.sundaneseBias = false});
 
   final String text;
   final bool englishBias;
+  final bool sundaneseBias;
   final String? intro;
   final Color color;
   final String? label;
@@ -187,10 +225,10 @@ class SpeakButton extends StatelessWidget {
         final on = current == text;
         final icon = Icon(on ? Icons.stop_circle_outlined : Icons.volume_up_rounded, color: color, size: 20);
         if (label == null) {
-          return IconButton(onPressed: () => Speech.instance.speak(text, intro: intro, englishBias: englishBias), icon: icon, tooltip: on ? 'Berhenti membacakan' : 'Bacakan', constraints: const BoxConstraints(minWidth: 44, minHeight: 44));
+          return IconButton(onPressed: () => Speech.instance.speak(text, intro: intro, englishBias: englishBias, sundaneseBias: sundaneseBias), icon: icon, tooltip: on ? 'Berhenti membacakan' : 'Bacakan', constraints: const BoxConstraints(minWidth: 44, minHeight: 44));
         }
         return TextButton.icon(
-          onPressed: () => Speech.instance.speak(text, intro: intro, englishBias: englishBias),
+          onPressed: () => Speech.instance.speak(text, intro: intro, englishBias: englishBias, sundaneseBias: sundaneseBias),
           icon: icon,
           label: Text(on ? 'Berhenti' : label!, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
           style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
