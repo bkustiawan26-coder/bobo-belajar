@@ -33,10 +33,10 @@ def test_seed_full_builds_every_grade(db):
         tables = [r[0] for r in c.execute(text("select tablename from pg_tables where schemaname='public' and tablename <> 'alembic_version'"))]
         c.execute(text("TRUNCATE " + ", ".join(f'"{t}"' for t in tables) + " RESTART IDENTITY CASCADE"))
     out = run(db, sample=False, publish_sample=False, full=True)
-    assert out["topics"] == 701 and out["lessons"] == 701 and out["assessments"] == 176
+    assert out["topics"] == 817 and out["lessons"] == 817 and out["assessments"] == 176
     assert out["questions"] >= 18000
     b = build_bundle(db, include_sample=True)
-    assert len(b["lessons"]) == 701 and len(b["assessments"]) == 176
+    assert len(b["lessons"]) == 817 and len(b["assessments"]) == 176
     qtype = {q["id"]: q["type"] for q in b["questions"]}
     for a in b["assessments"]:
         types = [qtype[x["id"]] for x in a["questions"]]
@@ -59,7 +59,7 @@ def test_seed_full_builds_every_grade(db):
     for q in b["questions"]:
         if q["usage"] == "practice":
             practice[q["topic_id"]] = practice.get(q["topic_id"], 0) + 1
-    assert set(practice.values()) == {20} and len(practice) == 701
+    assert set(practice.values()) == {20} and len(practice) == 817
     reads = [x["figure"]["type"] for lesson in b["lessons"] for x in lesson["blocks"] if x["kind"] == "Contoh" and x.get("figure")]
     assert reads.count("quran") >= 18 and reads.count("doa") >= 2
     again = run(db, sample=False, publish_sample=False, full=True)

@@ -747,3 +747,110 @@ GENS.update({
     (1, "Puluhan dan satuan"): _place(10, 99), (1, "Bilangan sampai 100"): _bil100, (1, "Mengukur panjang dengan jengkal"): _jengkal,
     (1, "Berat dan ringan benda"): _berat, (1, "Membaca jam tepat"): _jam, (1, "Nama hari dalam seminggu"): _hari,
 })
+
+
+def _susun(g):
+    for _ in range(10):
+        a, b = g.r.randint(1000, 5999), g.r.randint(100, 3999)
+        g.pick(f"{fmt(a)} + {fmt(b)} = …", a + b, [a + b + 10, a + b - 100, a + b + 1000], f"Jumlahkan mulai dari satuan: {fmt(a)} + {fmt(b)} = {fmt(a + b)}.")
+        c, d = g.r.randint(3000, 9999), g.r.randint(100, 2999)
+        g.pick(f"{fmt(c)} − {fmt(d)} = …", c - d, [c - d + 10, c - d - 100, c + d], f"Kurangkan mulai dari satuan, pinjam bila perlu: {fmt(c - d)}.")
+        g.isi(f"Toko punya {fmt(c)} buku, terjual {fmt(d)}. Sisa buku …", c - d, f"{fmt(c)} − {fmt(d)} = {fmt(c - d)}.")
+
+
+def _kali2(g):
+    for _ in range(12):
+        a, b = g.r.randint(12, 99), g.r.randint(2, 9)
+        g.pick(f"{a} × {b} = …", a * b, [a * b + b, a * b - a, a + b], f"{a} × {b} = {a * b}.")
+        c, d = g.r.randint(11, 30), g.r.randint(11, 25)
+        g.isi(f"Sebuah kotak berisi {c} kelereng. Ada {d} kotak. Jumlah kelereng …", c * d, f"{c} × {d} = {fmt(c * d)}.")
+
+
+def _bagi_susun(g):
+    for _ in range(12):
+        b, c = g.r.randint(2, 9), g.r.randint(12, 99)
+        a = b * c
+        g.pick(f"{fmt(a)} : {b} = …", c, [c + 1, c - 10, c + 10], f"{fmt(a)} : {b} = {c}, karena {b} × {c} = {fmt(a)}.")
+        g.isi(f"{fmt(a)} buku dibagikan sama banyak ke {b} kelas. Setiap kelas mendapat …", c, f"{fmt(a)} : {b} = {c}.")
+
+
+def _banding_pecahan(g):
+    for _ in range(10):
+        d = g.r.choice([4, 5, 6, 8, 10, 12])
+        a, b = g.r.sample(range(1, d), 2)
+        big = max(a, b)
+        g.pick(f"Mana yang lebih besar, {a}/{d} atau {b}/{d}?", f"{big}/{d}", [f"{min(a, b)}/{d}", "sama besar"], f"Penyebut sama, bandingkan pembilang: {big} lebih besar.", n=3)
+        n = g.r.randint(1, 3)
+        x, y = g.r.sample([2, 3, 4, 5, 6, 8], 2)
+        small = max(x, y)
+        g.pick(f"Mana yang lebih kecil, {n}/{x} atau {n}/{y}?", f"{n}/{small}", [f"{n}/{min(x, y)}", "sama besar"], f"Pembilang sama, penyebut lebih besar berarti bagian lebih kecil.", n=3)
+    g.bs("1/2 sama dengan 2/4.", True, "Keduanya senilai.")
+    g.bs("1/3 lebih besar dari 1/2.", False, "1/2 lebih besar.")
+
+
+def _panjang(g):
+    for _ in range(8):
+        km, m, cm = g.r.randint(1, 9), g.r.randint(2, 9), g.r.randint(2, 9)
+        g.pick(f"{km} km = … m", km * 1000, [km * 100, km * 10, km * 10000], f"1 km = 1.000 m, jadi {km} km = {fmt(km * 1000)} m.")
+        g.pick(f"{m} m = … cm", m * 100, [m * 10, m * 1000, m], f"1 m = 100 cm.")
+        g.isi(f"{cm} cm = … mm", cm * 10, "1 cm = 10 mm.")
+        g.pick(f"{m} m {cm * 10} cm = … cm", m * 100 + cm * 10, [m + cm * 10, m * 10 + cm, m * 100 + cm], f"{m * 100} + {cm * 10} = {m * 100 + cm * 10} cm.")
+
+
+def _berat_konversi(g):
+    for _ in range(8):
+        kg, ons = g.r.randint(1, 9), g.r.randint(1, 9)
+        g.pick(f"{kg} kg = … g", kg * 1000, [kg * 100, kg * 10, kg], f"1 kg = 1.000 g.")
+        g.pick(f"{ons} ons = … g", ons * 100, [ons * 10, ons * 1000, ons], f"1 ons = 100 g.")
+        g.isi(f"{kg} kg = … ons", kg * 10, "1 kg = 10 ons.")
+        g.pick(f"{kg} kg {ons} ons = … g", kg * 1000 + ons * 100, [kg * 100 + ons, kg * 1000 + ons, kg + ons], f"{fmt(kg * 1000)} + {ons * 100} = {fmt(kg * 1000 + ons * 100)} g.")
+
+
+def _durasi(g):
+    for _ in range(10):
+        h, d = g.r.randint(6, 15), g.r.randint(1, 4)
+        m = g.r.choice([0, 15, 30, 45])
+        g.pick(f"Kegiatan dimulai pukul {h:02d}.{m:02d} dan berlangsung {d} jam. Selesai pukul …", f"{h + d:02d}.{m:02d}", [f"{h + d + 1:02d}.{m:02d}", f"{h:02d}.{(m + d * 10) % 60:02d}", f"{h + d - 1:02d}.{m:02d}"], f"{h:02d}.{m:02d} + {d} jam = {h + d:02d}.{m:02d}.")
+        j = g.r.randint(1, 5)
+        g.pick(f"{j} jam = … menit", j * 60, [j * 100, j * 30, j * 10], "1 jam = 60 menit.")
+        g.isi(f"{j} menit = … detik", j * 60, "1 menit = 60 detik.")
+    g.pick("Satu hari ada … jam.", 24, [12, 60, 7], "Satu hari 24 jam.")
+
+
+def _simetri(g):
+    shapes = [("persegi", 4), ("persegi panjang", 2), ("segitiga sama sisi", 3), ("lingkaran", "tak terhingga"), ("belah ketupat", 2), ("layang-layang", 1), ("jajar genjang", 0), ("trapesium sama kaki", 1)]
+    for name, n in shapes:
+        ans = str(n)
+        g.pick(f"Banyak sumbu simetri {name} adalah …", ans, [x for x in ["0", "1", "2", "3", "4"] if x != ans], f"{name.capitalize()} punya {ans} sumbu simetri.")
+    g.bs("Bangun yang bisa dilipat menjadi dua bagian sama persis disebut simetris.", True, "Itu pengertian simetri lipat.")
+    g.bs("Jajar genjang memiliki sumbu simetri lipat.", False, "Jajar genjang tidak punya simetri lipat.")
+    g.pick("Huruf berikut yang simetris adalah …", "A", ["F", "G", "J"], "Huruf A punya sumbu simetri tegak.")
+
+
+def _turus(g):
+    names = ["apel", "jeruk", "mangga", "pisang"]
+    for _ in range(8):
+        vals = g.r.sample(range(3, 14), 4)
+        data = ", ".join(f"{n} {v}" for n, v in zip(names, vals))
+        top = names[vals.index(max(vals))]
+        g.pick(f"Hasil turus buah kesukaan: {data}. Buah paling disukai adalah …", top, [n for n in names if n != top], f"Nilai terbesar {max(vals)}.")
+        g.isi(f"Hasil turus buah kesukaan: {data}. Jumlah anak yang ditanya …", sum(vals), f"{' + '.join(map(str, vals))} = {sum(vals)}.")
+    g.pick("Satu ikat turus biasanya berarti …", "5", ["4", "10", "1"], "Empat garis tegak dan satu garis miring menunjukkan 5.")
+
+
+def _uang(g):
+    items = [("buku tulis", 4500), ("pensil", 2500), ("penghapus", 1500), ("penggaris", 3000), ("roti", 5000), ("susu", 6500)]
+    for _ in range(8):
+        (a, x), (b, y) = g.r.sample(items, 2)
+        g.pick(f"Harga {a} Rp{fmt(x)} dan {b} Rp{fmt(y)}. Jumlah harganya …", f"Rp{fmt(x + y)}", [f"Rp{fmt(x + y + 1000)}", f"Rp{fmt(abs(x - y))}", f"Rp{fmt(x + y - 500)}"], f"{fmt(x)} + {fmt(y)} = {fmt(x + y)}.")
+        pay = 10000 if x + y <= 10000 else 20000
+        g.isi(f"Membeli {a} dan {b} seharga Rp{fmt(x + y)}, dibayar Rp{fmt(pay)}. Kembaliannya Rp…", fmt(pay - x - y), f"{fmt(pay)} − {fmt(x + y)} = {fmt(pay - x - y)}.", extra=(str(pay - x - y),))
+    g.pick("Uang Rp10.000 sama dengan … lembar Rp2.000.", "5", ["2", "4", "10"], "10.000 : 2.000 = 5.")
+
+
+GENS.update({
+    (4, "Penjumlahan dan pengurangan bersusun"): _susun, (4, "Perkalian bilangan dua angka"): _kali2, (4, "Pembagian bersusun"): _bagi_susun,
+    (4, "Membandingkan pecahan"): _banding_pecahan, (4, "Satuan panjang"): _panjang, (4, "Satuan berat"): _berat_konversi,
+    (4, "Waktu dan lama kegiatan"): _durasi, (4, "Jenis-jenis sudut"): _sudut, (4, "Kubus dan balok"): _ruang, (4, "Simetri lipat"): _simetri,
+    (4, "Tabel turus"): _turus, (4, "Uang dan jual beli"): _uang,
+})
