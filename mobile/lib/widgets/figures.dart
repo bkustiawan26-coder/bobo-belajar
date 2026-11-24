@@ -157,7 +157,7 @@ class _LessonFigureState extends State<LessonFigure> {
       return QuranCard(surah: (s['surah'] as num).toInt(), from: (s['from'] as num).toInt(), to: (s['to'] as num).toInt(), theme: widget.theme);
     }
     if (type == 'hijaiyah') {
-      return HijaiyahBoard(spec: s, theme: widget.theme);
+      return HijaiyahBoard(key: ValueKey('hijaiyah-${s['mode']}-${(s['items'] as List?)?.length}'), spec: s, theme: widget.theme);
     }
     if (type == 'doa') {
       return DoaCard(id: s['id'].toString(), title: s['title'].toString(), latin: s['latin'].toString(), meaning: s['meaning'].toString(), theme: widget.theme);

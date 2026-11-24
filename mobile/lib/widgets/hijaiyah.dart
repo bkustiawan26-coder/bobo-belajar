@@ -246,9 +246,12 @@ class _HijaiyahBoardState extends State<HijaiyahBoard> {
                   ),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     if (sambung)
-                      Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, textDirection: TextDirection.rtl, children: [
-                        for (final f in (it['forms'] as List? ?? const [])) HijaiyahGlyph(f.toString(), size: 24),
-                      ])
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(mainAxisSize: MainAxisSize.min, textDirection: TextDirection.rtl, children: [
+                          for (final f in (it['forms'] as List? ?? const [])) Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: HijaiyahGlyph(f.toString(), size: 24)),
+                        ]),
+                      )
                     else
                       HijaiyahGlyph(it['glyph'].toString(), size: 38),
                     Text(hijaiyahLabel(it), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF166534))),
