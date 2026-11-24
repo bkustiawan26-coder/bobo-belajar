@@ -3,7 +3,8 @@ from fractions import Fraction
 
 SEQ = {"flow", "cycle", "steps", "layers", "pyramid"}
 SHAPES = {"square", "rect", "tri", "right", "circle", "trap", "para", "rhombus", "cube", "box", "cylinder", "cone", "sphere", "prism", "pyramid3", "angle"}
-TYPES = SEQ | {"time", "mind", "compare", "venn", "bars", "line", "frac", "pie", "place", "array", "count", "shape", "table", "coord", "clock", "code", "icons", "circuit", "compass", "balance", "chat"}
+QURAN = {1: (1, 7), 2: (168, 168), 3: (190, 191), 16: (114, 114), 17: (23, 24), 39: (53, 53), 49: (10, 13), 53: (39, 42), 55: (33, 33), 58: (11, 11), 87: (1, 19), 93: (1, 11), 94: (1, 8), 95: (1, 8), 96: (1, 5), 97: (1, 5), 99: (1, 8), 100: (1, 11), 101: (1, 11), 102: (1, 8), 103: (1, 3), 104: (1, 9), 105: (1, 5), 106: (1, 4), 107: (1, 7), 108: (1, 3), 109: (1, 6), 110: (1, 3), 111: (1, 5), 112: (1, 4), 113: (1, 5), 114: (1, 6)}
+TYPES = SEQ | {"quran", "doa", "time", "mind", "compare", "venn", "bars", "line", "frac", "pie", "place", "array", "count", "shape", "table", "coord", "clock", "code", "icons", "circuit", "compass", "balance", "chat"}
 
 
 class FigError(ValueError):
@@ -78,7 +79,20 @@ def parse(spec: str) -> dict:
     if kind not in TYPES:
         raise FigError(f"jenis gambar tidak dikenal: {kind}")
     out: dict = {"type": kind}
-    if kind in SEQ:
+    if kind == "quran":
+        m = re.match(r"^(\d+):(\d+)-(\d+)$", body)
+        if not m:
+            raise FigError("bacaan Al-Qur'an butuh 'surah:awal-akhir'")
+        su, lo, hi = (int(x) for x in m.groups())
+        if su not in QURAN or not (QURAN[su][0] <= lo <= hi <= QURAN[su][1]):
+            raise FigError(f"ayat {su}:{lo}-{hi} belum tersedia di aset bacaan")
+        out.update({"surah": su, "from": lo, "to": hi})
+    elif kind == "doa":
+        parts = [p.strip() for p in body.split(" | ")]
+        if len(parts) != 3 or not all(parts):
+            raise FigError("doa butuh 'judul | bacaan latin | arti'")
+        out.update({"id": re.sub(r"[^a-z0-9]+", "-", parts[0].lower()).strip("-"), "title": parts[0], "latin": parts[1], "meaning": parts[2]})
+    elif kind in SEQ:
         out["items"] = [item(x) for x in _split(body, " > ")]
         if len(out["items"]) < 2:
             raise FigError("minimal 2 langkah")

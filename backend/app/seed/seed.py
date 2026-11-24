@@ -6,7 +6,7 @@ from app.models import (
     AIModel, AIPromptVersion, AIProvider, Assessment, AssessmentQuestion, AssessmentTemplate, Chapter, CurriculumSource, CurriculumVersion,
     EducationLevel, Grade, Lesson, TopicPrerequisite, LessonBlock, Question, QuestionExplanation, QuestionOption, QuestionSource, Subject, SubscriptionEntitlement, Topic,
 )
-from app.seed.sample_content import PREREQUISITES, SAMPLE, SCAFFOLDS, SUBJECTS
+from app.seed.sample_content import EXTRA_SUBJECTS, PREREQUISITES, SAMPLE, SCAFFOLDS, SUBJECTS
 from app.services.ai import retrieval
 from app.services.ai.service import PARENT_PROMPT, TUTOR_PROMPT
 from app.services.learning import band
@@ -63,6 +63,12 @@ def seed_base(db: Session) -> CurriculumVersion:
         for i, (code, name, short) in enumerate(SUBJECTS[band(g.number)]):
             if db.scalar(select(Subject.id).where(Subject.curriculum_version_id == v.id, Subject.grade_id == g.id, Subject.code == code)) is None:
                 db.add(Subject(curriculum_version_id=v.id, grade_id=g.id, code=code, name=name, short_label=short, sort_order=i))
+    db.flush()
+    for g in db.scalars(select(Grade).order_by(Grade.number)):
+        base = len(SUBJECTS[band(g.number)])
+        for i, (code, name, short) in enumerate(EXTRA_SUBJECTS):
+            if db.scalar(select(Subject.id).where(Subject.curriculum_version_id == v.id, Subject.grade_id == g.id, Subject.code == code)) is None:
+                db.add(Subject(curriculum_version_id=v.id, grade_id=g.id, code=code, name=name, short_label=short, sort_order=base + i))
     db.flush()
     return v
 

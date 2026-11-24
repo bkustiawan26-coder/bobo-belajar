@@ -155,6 +155,7 @@ String toSpoken(String raw, {bool english = false}) {
   for (final (a, b) in units) {
     s = s.replaceAll(RegExp('(?<=[0-9])\\s?${RegExp.escape(a)}(?![A-Za-z0-9²³])'), b);
   }
+  s = s.replaceAll('°C', ' derajat Celsius').replaceAll('°F', ' derajat Fahrenheit').replaceAll('°', ' derajat');
   s = s.replaceAllMapped(RegExp(r'(?<=[0-9]) (m|g|L|W|V|N|J|A)(?![A-Za-z0-9²³(])'), (m) => ' ${const {'m': 'meter', 'g': 'gram', 'L': 'liter', 'W': 'watt', 'V': 'volt', 'N': 'newton', 'J': 'joule', 'A': 'ampere'}[m[1]]}');
   s = s.replaceAllMapped(RegExp(r'Rp\s?([0-9][0-9.]*)'), (m) => '${m[1]} rupiah').replaceAll(RegExp(r'\bRp\b'), 'rupiah');
   s = s.replaceAllMapped(RegExp(r'(^|[^\d.,])([01]?\d|2[0-3])\.([0-5]\d)(?![\d,]|\.\d)'), (m) => _time(m, english));

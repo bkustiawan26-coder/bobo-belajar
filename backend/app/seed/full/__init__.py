@@ -14,10 +14,12 @@ from app.models import (
     Assessment, AssessmentQuestion, AssessmentTemplate, Chapter, CurriculumVersion, Grade, Lesson, LessonBlock, Question, QuestionExplanation,
     QuestionOption, QuestionSource, Subject, Topic, TopicPrerequisite,
 )
-from app.seed.full import fig, sas
+from app.seed.full import fig, latihan, mulok, sas
+from app.seed.full.gen import generate
 from app.seed.full.dsl import Q, S
 
 GRADES = range(1, 10)
+EXTRA_CODES = {"PAI", "SUN"}
 SOURCE_NOTE = "Draf materi BOBO buatan AI, belum ditinjau guru/tim kurikulum"
 DIFF = ["mudah", "mudah", "sedang", "menantang"]
 VISUALS = {"frac", "tens", "tri"}
@@ -45,25 +47,59 @@ def load_grade(n: int):
     if ext:
         subjects += copy.deepcopy(getattr(ext, "NEW", []))
         prereq += list(getattr(ext, "PREREQ", []))
+    ag = _module(f"ag{n}")
+    if ag is not None:
+        subjects += copy.deepcopy(_mulok(n).subjects)
     texts = []
     for name in (f"sas{n}", f"sasx{n}"):
-        try:
-            texts.append(importlib.import_module(f"app.seed.full.{name}").BANK)
-        except ModuleNotFoundError:
-            pass
+        mod = _module(name)
+        if mod is not None:
+            texts.append(mod.BANK)
+    if ag is not None:
+        texts.append(ag.SAS)
     bank = sas.parse("\n".join(texts))
     for s in subjects:
         _apply_sas(s, bank)
+    lat = _module(f"lat{n}")
+    practice = latihan.parse_bank("\n".join(x for x in (getattr(lat, "BANK", ""), getattr(ag, "BANK", "")) if x))
+    try:
+        pics = figures(n)
+    except fig.FigError:
+        pics = {}
+    for s in subjects:
+        for c in s.chapters:
+            for t in c.topics:
+                pic = pics.get((s.code, t.title))
+                auto = latihan.from_figure(pic, t.title) if pic else []
+                gen = generate(n, t.title) if s.code == "MAT" else []
+                t.qs = latihan.complete(t.qs, practice.get((s.code, t.title), []), auto, gen)
     return SimpleNamespace(GRADE=n, SUBJECTS=subjects, PREREQ=prereq)
+
+
+def _module(name: str):
+    try:
+        return importlib.import_module(f"app.seed.full.{name}")
+    except ModuleNotFoundError:
+        return None
+
+
+@functools.lru_cache(maxsize=None)
+def _mulok(n: int) -> mulok.Parsed:
+    ag = _module(f"ag{n}")
+    return mulok.parse(ag.TOPICS) if ag is not None else mulok.Parsed()
+
+
+@functools.lru_cache(maxsize=None)
+def readings(n: int) -> dict:
+    return {(code, title): fig.parse(spec) for code, title, spec in _mulok(n).reads}
 
 
 @functools.lru_cache(maxsize=None)
 def figures(n: int) -> dict:
-    try:
-        mod = importlib.import_module(f"app.seed.full.fig{n}")
-    except ModuleNotFoundError:
-        return {}
-    return fig.parse_bank(mod.BANK)
+    mod = _module(f"fig{n}")
+    text = mod.BANK if mod is not None else ""
+    extra = "\n".join(f"## {code}\n{title} :: {spec}" for code, title, spec in _mulok(n).figs)
+    return fig.parse_bank(text + "\n" + extra)
 
 
 def _apply_sas(s: S, bank: dict) -> None:
@@ -164,6 +200,8 @@ def validate_all(subject_codes: dict[int, list[str]]) -> list[str]:
                 errs.append(f"Kelas {n}: {e}")
                 pics = {}
             for t in flat:
+                if len(t.qs) != latihan.TARGET:
+                    errs.append(f"Kelas {n} {s.code} {t.title}: latihan {len(t.qs)} dari {latihan.TARGET} soal")
                 pic = pics.get((s.code, t.title))
                 if pic is None:
                     errs.append(f"Kelas {n} {s.code} {t.title}: belum ada gambar materi")
@@ -224,61 +262,61 @@ def seed_full(db: Session, v: CurriculumVersion, publish: bool = False) -> dict:
     counts = {"topics": 0, "lessons": 0, "questions": 0, "assessments": 0}
     topic_ids: dict[tuple[int, str], int] = {}
     mods = {n: load_grade(n) for n in GRADES}
-    for n, mod in mods.items():
+    passes = [(n, s, mod) for n, mod in mods.items() for s in mod.SUBJECTS if s.code not in EXTRA_CODES]
+    passes += [(n, s, mod) for n, mod in mods.items() for s in mod.SUBJECTS if s.code in EXTRA_CODES]
+    for n, s, mod in passes:
         g = db.scalar(select(Grade).where(Grade.number == n))
-        s: S
-        for s in mod.SUBJECTS:
-            sub = db.scalar(select(Subject).where(Subject.curriculum_version_id == v.id, Subject.grade_id == g.id, Subject.code == s.code))
-            if sub is None or db.scalar(select(Chapter.id).where(Chapter.subject_id == sub.id)) is not None:
-                continue
-            flat: list[Topic] = []
-            order = sorted(range(len(s.chapters)), key=lambda i: (s.chapters[i].semester, i))
-            numbers = {ci: rank + 1 for rank, ci in enumerate(order)}
-            for ci, c in enumerate(s.chapters):
-                ch = Chapter(subject_id=sub.id, number=numbers[ci], title=c.title, semester=c.semester)
-                db.add(ch)
-                db.flush()
-                for ti, t in enumerate(c.topics):
-                    topic = Topic(chapter_id=ch.id, title=t.title, sort_order=len(flat), home_activity=t.act, common_mistake=t.mistake)
-                    db.add(topic)
-                    db.flush()
-                    flat.append(topic)
-                    topic_ids[(n, t.title)] = topic.id
-                    counts["topics"] += 1
-                    ls = t.lesson
-                    lesson = Lesson(topic_id=topic.id, title=t.title, minutes=ls.minutes, status=status, version=1 if publish else 0, is_sample=True, published_at=utcnow() if publish else None)
-                    pic = figures(n).get((s.code, t.title))
-                    act = fig.activity(pic) if pic else None
-                    blocks = [("Penjelasan", ls.explain, None, ls.visual, pic), ("Contoh", ls.example, None, None, None)]
-                    if act:
-                        blocks.append(("Ayo coba", act["ask"], None, None, act))
-                    blocks += [("Poin penting", None, ls.points, None, None), ("Ringkasan", ls.summary, None, None, None)]
-                    for bi, (kind, text, points, visual, figure) in enumerate(blocks):
-                        lesson.blocks.append(LessonBlock(position=bi, kind=kind, text=text, points=points, visual=visual, figure=figure))
-                    db.add(lesson)
-                    counts["lessons"] += 1
-                    for qi, q in enumerate(t.qs):
-                        db.add(_question(topic.id, q, "practice", DIFF[min(qi, 3)], status, publish))
-                        counts["questions"] += 1
-                    if ti > 0:
-                        db.add(TopicPrerequisite(topic_id=topic.id, prerequisite_topic_id=flat[-2].id))
+        sub = db.scalar(select(Subject).where(Subject.curriculum_version_id == v.id, Subject.grade_id == g.id, Subject.code == s.code))
+        if sub is None or db.scalar(select(Chapter.id).where(Chapter.subject_id == sub.id)) is not None:
+            continue
+        flat: list[Topic] = []
+        order = sorted(range(len(s.chapters)), key=lambda i: (s.chapters[i].semester, i))
+        numbers = {ci: rank + 1 for rank, ci in enumerate(order)}
+        for ci, c in enumerate(s.chapters):
+            ch = Chapter(subject_id=sub.id, number=numbers[ci], title=c.title, semester=c.semester)
+            db.add(ch)
             db.flush()
-            sems = topic_semesters(s)
-            for sem in (1, 2):
-                qs = [q for q in s.exam if sems[q.topic] == sem]
-                if not qs:
-                    continue
-                exam = Assessment(template_id=tpl.id, title=f"SAS {'Ganjil' if sem == 1 else 'Genap'} (Semester {sem}): {sub.name} Kelas {n}", short_title=sub.name, subject_id=sub.id, grade_number=n, semester=sem,
-                                  duration_minutes=max(10, 2 * len(qs) + 3 * sum(1 for q in qs if q.type == "essay")), status="published" if publish else "draft", is_sample=True)
-                db.add(exam)
+            for ti, t in enumerate(c.topics):
+                topic = Topic(chapter_id=ch.id, title=t.title, sort_order=len(flat), home_activity=t.act, common_mistake=t.mistake)
+                db.add(topic)
                 db.flush()
-                for pos, q in enumerate(qs):
-                    row = _question(flat[q.topic].id, q, "assessment", "sedang", status, publish)
-                    db.add(row)
-                    db.flush()
-                    db.add(AssessmentQuestion(assessment_id=exam.id, question_id=row.id, position=pos))
+                flat.append(topic)
+                topic_ids[(n, t.title)] = topic.id
+                counts["topics"] += 1
+                ls = t.lesson
+                lesson = Lesson(topic_id=topic.id, title=t.title, minutes=ls.minutes, status=status, version=1 if publish else 0, is_sample=True, published_at=utcnow() if publish else None)
+                pic = figures(n).get((s.code, t.title))
+                act = fig.activity(pic) if pic else None
+                blocks = [("Penjelasan", ls.explain, None, ls.visual, pic), ("Contoh", ls.example, None, None, readings(n).get((s.code, t.title)))]
+                if act:
+                    blocks.append(("Ayo coba", act["ask"], None, None, act))
+                blocks += [("Poin penting", None, ls.points, None, None), ("Ringkasan", ls.summary, None, None, None)]
+                for bi, (kind, text, points, visual, figure) in enumerate(blocks):
+                    lesson.blocks.append(LessonBlock(position=bi, kind=kind, text=text, points=points, visual=visual, figure=figure))
+                db.add(lesson)
+                counts["lessons"] += 1
+                for qi, q in enumerate(t.qs):
+                    db.add(_question(topic.id, q, "practice", DIFF[min(qi, 3)], status, publish))
                     counts["questions"] += 1
-                counts["assessments"] += 1
+                if ti > 0:
+                    db.add(TopicPrerequisite(topic_id=topic.id, prerequisite_topic_id=flat[-2].id))
+        db.flush()
+        sems = topic_semesters(s)
+        for sem in (1, 2):
+            qs = [q for q in s.exam if sems[q.topic] == sem]
+            if not qs:
+                continue
+            exam = Assessment(template_id=tpl.id, title=f"SAS {'Ganjil' if sem == 1 else 'Genap'} (Semester {sem}): {sub.name} Kelas {n}", short_title=sub.name, subject_id=sub.id, grade_number=n, semester=sem,
+                              duration_minutes=max(10, 2 * len(qs) + 3 * sum(1 for q in qs if q.type == "essay")), status="published" if publish else "draft", is_sample=True)
+            db.add(exam)
+            db.flush()
+            for pos, q in enumerate(qs):
+                row = _question(flat[q.topic].id, q, "assessment", "sedang", status, publish)
+                db.add(row)
+                db.flush()
+                db.add(AssessmentQuestion(assessment_id=exam.id, question_id=row.id, position=pos))
+                counts["questions"] += 1
+            counts["assessments"] += 1
     db.flush()
     for n, mod in mods.items():
         for topic, pg, ptopic in mod.PREREQ:

@@ -86,6 +86,8 @@ SAMPLE = {
     },
 }
 
+EXTRA_SUBJECTS = [("PAI", "Pendidikan Agama Islam", "PA"), ("SUN", "Bahasa Sunda", "Su")]
+
 SUBJECTS = {
     1: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("PPK", "Pendidikan Pancasila", "PP"), ("SBD", "Seni dan Budaya", "SB"), ("PJOK", "PJOK", "PJ")],
     2: [("MAT", "Matematika", "Mt"), ("BIN", "Bahasa Indonesia", "BI"), ("IPAS", "IPAS", "IP"), ("PPK", "Pendidikan Pancasila", "PP"), ("BIG", "Bahasa Inggris", "En"), ("SBD", "Seni dan Budaya", "SB"), ("PJOK", "PJOK", "PJ")],

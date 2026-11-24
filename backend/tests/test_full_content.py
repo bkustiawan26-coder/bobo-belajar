@@ -2,14 +2,14 @@ from sqlalchemy import text
 
 from app.core.db import get_engine
 from app.seed.full import arrange, load_grade, validate_all
-from app.seed.sample_content import SUBJECTS
+from app.seed.sample_content import EXTRA_SUBJECTS, SUBJECTS
 from app.seed.seed import run
 from app.services.bundle import build_bundle
 from app.services.learning import band
 
 
 def codes():
-    return {n: [s[0] for s in SUBJECTS[band(n)]] for n in range(1, 10)}
+    return {n: [s[0] for s in SUBJECTS[band(n)]] + [s[0] for s in EXTRA_SUBJECTS] for n in range(1, 10)}
 
 
 def test_full_content_is_valid():
