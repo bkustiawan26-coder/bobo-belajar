@@ -76,6 +76,7 @@ class _BelajarTabState extends State<BelajarTab> {
         key: ValueKey('lesson-$_lessonId'),
         lessonId: _lessonId!,
         theme: t,
+        english: _english,
         onClose: () {
           setState(() => _lessonId = null);
           _load();
@@ -224,9 +225,10 @@ class _BelajarTabState extends State<BelajarTab> {
 }
 
 class LessonReader extends StatefulWidget {
-  const LessonReader({super.key, required this.lessonId, required this.theme, required this.onClose});
+  const LessonReader({super.key, required this.lessonId, required this.theme, required this.onClose, this.english = false});
 
   final int lessonId;
+  final bool english;
   final BandTheme theme;
   final VoidCallback onClose;
 
@@ -322,7 +324,7 @@ class _LessonReaderState extends State<LessonReader> {
       offset += segmentsOf(p).length;
     }
     final lineHeight = persona.young ? 1.8 : 1.65;
-    final english = _english;
+    final english = widget.english;
     void say(String text) {
       if (text.trim().isNotEmpty) {
         Speech.instance.speak(text, englishBias: english);
