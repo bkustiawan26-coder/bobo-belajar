@@ -39,6 +39,7 @@ class C:
     topics: list[T]
     semester: int = 1
     ext: bool = False
+    first: bool = False
 
 
 @dataclass

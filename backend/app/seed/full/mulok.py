@@ -45,7 +45,8 @@ def parse(text: str) -> Parsed:
         elif line.startswith("# "):
             close()
             sem, _, title = line[2:].partition("|")
-            chap = C(title.strip(), [], int(sem))
+            first = sem.strip().endswith("^")
+            chap = C(title.strip(), [], int(sem.strip().rstrip("^")), first=first)
             subj.chapters.append(chap)
         elif line.startswith("@ "):
             close()

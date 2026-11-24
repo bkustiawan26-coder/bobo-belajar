@@ -666,3 +666,84 @@ def generate(grade: int, title: str) -> list[Q]:
     g = G(f"{grade}|{title}")
     fn(g)
     return g.qs
+
+
+def _bilang10(g):
+    icons = "🍎⭐⚽🐟🌸🚗🍌🎈🐤🧸"
+    words = ["satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh"]
+    for n in range(1, 11):
+        ic = icons[n - 1]
+        g.pick(f"Ada berapa {ic}? {ic * n}", n, [n - 1 or 2, n + 1, n + 2], f"Hitung satu per satu, ada {n}.")
+        g.pick(f"Lambang bilangan {words[n - 1]} adalah …", n, [n % 10 + 1, (n + 2) % 10 + 1, (n + 5) % 10 + 1], f"{words[n - 1].capitalize()} ditulis {n}.")
+        g.isi(f"Angka {n} dibaca …", words[n - 1], f"{n} dibaca {words[n - 1]}.")
+
+
+def _pola1(g):
+    pats = [("🔴", "🔵"), ("⭐", "🌙"), ("🍎", "🍌"), ("🐱", "🐶"), ("🟥", "🟨"), ("🌸", "🍀")]
+    for a, b in pats:
+        g.pick(f"Lanjutkan pola: {a} {b} {a} {b} {a} …", b, [a, "🟢", "⚪"], f"Polanya bergantian {a} {b}, jadi berikutnya {b}.", n=3)
+        g.pick(f"Lanjutkan pola: {a} {a} {b} {a} {a} …", b, [a, "🟢"], f"Polanya dua {a} lalu satu {b}.", n=3)
+    for _ in range(8):
+        a, d = g.r.randint(1, 6), g.r.choice([1, 2])
+        seq = [a + d * i for i in range(5)]
+        g.pick(f"Lanjutkan pola: {', '.join(map(str, seq[:4]))}, …", seq[4], [seq[4] + 1, seq[3], seq[4] + 2], f"Setiap langkah bertambah {d}.")
+        g.isi(f"Pola: {seq[0]}, {seq[1]}, …, {seq[3]}. Bilangan yang hilang …", seq[2], f"Setiap langkah bertambah {d}.")
+
+
+def _bil100(g):
+    tens = ["sepuluh", "dua puluh", "tiga puluh", "empat puluh", "lima puluh", "enam puluh", "tujuh puluh", "delapan puluh", "sembilan puluh"]
+    ones = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan"]
+    for _ in range(14):
+        n = g.r.randint(21, 99)
+        t, o = divmod(n, 10)
+        word = tens[t - 1] + (" " + ones[o] if o else "")
+        g.pick(f"Bilangan {word} ditulis …", n, [o * 10 + t if o else n + 10, n + 1, n - 10], f"{word.capitalize()} ditulis {n}.")
+        g.pick(f"Bilangan setelah {n} adalah …", n + 1, [n - 1, n + 10, n + 2], f"Setelah {n} adalah {n + 1}.")
+        g.isi(f"Lanjutkan hitungan puluhan: {(t - 1) * 10 or 10}, {t * 10}, …", t * 10 + 10 if t > 1 else 20, "Hitung loncat sepuluh-sepuluh.")
+    g.isi("Sepuluh puluhan sama dengan …", 100, "10 puluhan = 100.")
+
+
+def _jengkal(g):
+    objs = [("meja", 6), ("papan tulis", 12), ("buku", 2), ("pintu", 5), ("karpet", 9), ("lemari", 7)]
+    for _ in range(8):
+        (a, x), (b, y) = g.r.sample(objs, 2)
+        g.pick(f"Panjang {a} {x} jengkal, panjang {b} {y} jengkal. Mana yang lebih panjang?", a if x > y else b, [b if x > y else a, "sama panjang"], f"{max(x, y)} jengkal lebih panjang dari {min(x, y)} jengkal.", n=3)
+        g.isi(f"Panjang {a} {x} jengkal dan {b} {y} jengkal. Selisihnya … jengkal", abs(x - y), f"{max(x, y)} − {min(x, y)} = {abs(x - y)}.")
+    for a in ["jengkal", "langkah kaki", "depa", "hasta"]:
+        g.bs(f"{a.capitalize()} termasuk satuan tidak baku.", True, f"{a.capitalize()} berbeda-beda untuk tiap orang, jadi tidak baku.")
+    g.pick("Hasil mengukur dengan jengkal bisa berbeda karena …", "panjang jengkal tiap orang berbeda", ["bendanya berubah", "jengkal selalu sama", "salah menghitung saja"], "Tangan setiap orang tidak sama besar.")
+
+
+def _berat(g):
+    pairs = [("gajah", "kucing"), ("batu bata", "bulu ayam"), ("semangka", "anggur"), ("tas penuh buku", "tas kosong"), ("sapi", "ayam"), ("galon air", "gelas plastik"), ("kelapa", "kelereng"), ("meja kayu", "pensil")]
+    for a, b in pairs:
+        g.pick(f"Mana yang lebih berat, {a} atau {b}?", a, [b, "sama berat"], f"{a.capitalize()} lebih berat dari {b}.", n=3)
+        g.bs(f"{b.capitalize()} lebih ringan dari {a}.", True, f"{b.capitalize()} lebih ringan.")
+    g.pick("Alat untuk mengetahui berat benda adalah …", "timbangan", ["penggaris", "jam", "termometer"], "Berat benda diukur dengan timbangan.")
+    g.pick("Pada timbangan dua lengan, sisi yang turun berarti bendanya …", "lebih berat", ["lebih ringan", "sama berat", "lebih panjang"], "Sisi yang lebih berat akan turun.")
+
+
+def _jam(g):
+    for h in range(1, 13):
+        g.pick(f"Jarum pendek menunjuk angka {h} dan jarum panjang menunjuk angka 12. Pukul berapa?", f"pukul {h}", [f"pukul {h % 12 + 1}", f"pukul 12", f"pukul {(h + 5) % 12 + 1}"], f"Jarum panjang di 12 berarti tepat. Jarum pendek di {h}, jadi pukul {h}.")
+    g.pick("Jarum yang menunjukkan jam adalah jarum …", "pendek", ["panjang", "detik", "tengah"], "Jarum pendek menunjukkan jam.")
+    g.pick("Saat jam tepat, jarum panjang menunjuk angka …", "12", ["6", "3", "1"], "Jam tepat: jarum panjang di angka 12.")
+    g.isi("Banyak angka pada jam dinding ada …", 12, "Jam dinding berisi angka 1 sampai 12.")
+
+
+def _hari(g):
+    days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
+    for i, d in enumerate(days):
+        nxt, prv = days[(i + 1) % 7], days[i - 1]
+        g.pick(f"Hari sesudah {d} adalah …", nxt, [prv, days[(i + 2) % 7], days[(i + 3) % 7]], f"Sesudah {d} adalah {nxt}.")
+        g.pick(f"Hari sebelum {d} adalah …", prv, [nxt, days[(i + 2) % 7], days[i - 2]], f"Sebelum {d} adalah {prv}.")
+    g.isi("Banyak hari dalam satu minggu ada …", 7, "Satu minggu ada 7 hari.")
+    g.pick("Hari libur sekolah biasanya hari …", "Minggu", ["Senin", "Rabu", "Kamis"], "Hari Minggu biasanya libur.")
+
+
+GENS.update({
+    (1, "Bilangan 1 sampai 10"): _bilang10, (1, "Bilangan sebelum dan sesudah"): _bilang, (1, "Penjumlahan sampai 10"): _tambah(10),
+    (1, "Pengurangan sampai 10"): _tambah(10, minus=True), (1, "Bangun ruang di sekitarku"): _ruang, (1, "Pola gambar dan bilangan kecil"): _pola1,
+    (1, "Puluhan dan satuan"): _place(10, 99), (1, "Bilangan sampai 100"): _bil100, (1, "Mengukur panjang dengan jengkal"): _jengkal,
+    (1, "Berat dan ringan benda"): _berat, (1, "Membaca jam tepat"): _jam, (1, "Nama hari dalam seminggu"): _hari,
+})

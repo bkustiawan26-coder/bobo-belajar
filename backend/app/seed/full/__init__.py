@@ -314,7 +314,7 @@ def seed_full(db: Session, v: CurriculumVersion, publish: bool = False) -> dict:
         sub = db.scalar(select(Subject).where(Subject.curriculum_version_id == v.id, Subject.grade_id == g.id, Subject.code == s.code))
         if sub is None or db.scalar(select(Chapter.id).where(Chapter.subject_id == sub.id)) is not None:
             continue
-        order = sorted(range(len(s.chapters)), key=lambda i: (s.chapters[i].semester, i))
+        order = sorted(range(len(s.chapters)), key=lambda i: (s.chapters[i].semester, not s.chapters[i].first, i))
         numbers = {ci: rank + 1 for rank, ci in enumerate(order)}
         starts, k = [], 0
         for c in s.chapters:
