@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.8.0 — 2026-11-24
+Latihan lebih banyak, mapel baru, dan bacaan Al-Qur'an dengan suara qari:
+- Setiap materi kini punya tepat 20 soal latihan (12.300 soal untuk 615 materi). Latihan dibagi per sesi 10 soal (5 soal bila "Sesi pendek" aktif) dengan tombol "Lanjut" supaya anak tidak lelah.
+- Mapel baru Kelas 1–9: Pendidikan Agama Islam (label PA) dan Bahasa Sunda (label Su), masing-masing 8 topik per kelas (4 per semester), lengkap dengan materi bergambar, aktivitas Ayo coba, 20 latihan per topik, dan SAS Ganjil/Genap. Total 88 mapel, 176 SAS (6.880 soal).
+- Kartu bacaan Al-Qur'an: teks Arab (rasm Utsmani, huruf Amiri Quran) dengan rekaman qari Syaikh Mishary Rashid Alafasy per ayat, tersimpan di aplikasi (offline). Ayat yang sedang dibaca disorot; ketuk satu ayat untuk mendengarkan dan menirukan berulang. Basmalah diputar sebelum surah yang dimulai dari ayat 1.
+- Kartu doa: bacaan latin dan arti, dengan rekaman suara Ayah/Bunda/ustaz yang direkam langsung di HP (izin mikrofon). Arab dan doa tidak pernah dibacakan suara mesin.
+- Suara: tanda titik dua tidak lagi terbaca "dollar"; perbaikan pelafalan satuan, derajat, singkatan, dan simbol.
+- Pengaturan orang tua baru: "Sembunyikan PAI dan Bahasa Sunda" untuk sekolah yang tidak memakai mapel ini.
+- Lembar Soal Latihan SAS cetak (18 PDF) kini memuat PAI dan Bahasa Sunda.
+
 ## 1.7.0 — 2026-11-23
 Materi kini bergambar dan interaktif, dengan suara yang lebih ramah anak:
 - Setiap materi (471) punya gambar penjelas di bagian Penjelasan: diagram alur dan siklus, peta pikiran, perbandingan dua/tiga kelompok, diagram Venn, diagram batang, garis bilangan, pecahan (batang dan lingkaran), nilai tempat, susunan benda, gambar hitung, bangun datar dan ruang berlabel, bidang koordinat dan grafik fungsi, jam analog, kode program, kartu kosakata bergambar, rangkaian listrik, mata angin, timbangan persamaan, dan percakapan. Semua digambar oleh aplikasi, tetap offline.

@@ -29,7 +29,7 @@ void main() {
 
   test('bundle berisi materi, latihan, dan asesmen untuk kelas 1 sampai 9', () {
     expect(content.includesSample, isTrue);
-    const expected = {1: 5, 2: 5, 3: 7, 4: 7, 5: 8, 6: 8, 7: 10, 8: 10, 9: 10};
+    const expected = {1: 7, 2: 7, 3: 9, 4: 9, 5: 10, 6: 10, 7: 12, 8: 12, 9: 12};
     final typeOf = {for (final q in content.questions) (q['id'] as num).toInt(): q['type']};
     for (var g = 1; g <= 9; g++) {
       final subjects = content.subjectsOfGrade(g);
@@ -41,7 +41,7 @@ void main() {
         for (final t in topics) {
           final tid = (t['id'] as num).toInt();
           expect(content.lessonForTopic(tid), isNotNull, reason: 'materi ${t['title']}');
-          expect(content.practiceCount(tid), greaterThanOrEqualTo(4), reason: 'latihan ${t['title']}');
+          expect(content.practiceCount(tid), 20, reason: 'latihan ${t['title']}');
         }
         final chapters = content.chaptersOfSubject(sid);
         expect({for (final ch in chapters) (ch['semester'] as num).toInt()}, {1, 2}, reason: 'semester kelas $g ${s['name']}');
@@ -61,7 +61,7 @@ void main() {
   });
 
   test('setiap materi punya gambar dan aktivitas Ayo coba', () {
-    expect(content.lessons.length, 471);
+    expect(content.lessons.length, 615);
     for (final l in content.lessons) {
       final blocks = [for (final b in l['blocks'] as List) Map<String, dynamic>.from(b as Map)];
       expect(blocks.map((b) => b['kind']).toList(), ['Penjelasan', 'Contoh', 'Ayo coba', 'Poin penting', 'Ringkasan'], reason: l['title'].toString());

@@ -40,6 +40,7 @@ class SettingsIn(BaseModel):
     larger_text: bool = False
     fewer_options: bool = False
     read_aloud: bool = False
+    hide_mulok: bool = False
 
 
 class ChildPatch(BaseModel):

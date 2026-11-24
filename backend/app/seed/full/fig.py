@@ -80,10 +80,11 @@ def parse(spec: str) -> dict:
         raise FigError(f"jenis gambar tidak dikenal: {kind}")
     out: dict = {"type": kind}
     if kind == "quran":
-        m = re.match(r"^(\d+):(\d+)-(\d+)$", body)
+        m = re.match(r"^(\d+):(\d+)(?:-(\d+))?$", body)
         if not m:
             raise FigError("bacaan Al-Qur'an butuh 'surah:awal-akhir'")
-        su, lo, hi = (int(x) for x in m.groups())
+        su, lo = int(m.group(1)), int(m.group(2))
+        hi = int(m.group(3) or lo)
         if su not in QURAN or not (QURAN[su][0] <= lo <= hi <= QURAN[su][1]):
             raise FigError(f"ayat {su}:{lo}-{hi} belum tersedia di aset bacaan")
         out.update({"surah": su, "from": lo, "to": hi})

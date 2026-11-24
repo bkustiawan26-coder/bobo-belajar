@@ -166,6 +166,10 @@ def validate_all(subject_codes: dict[int, list[str]]) -> list[str]:
         codes = [s.code for s in mod.SUBJECTS]
         if sorted(codes) != sorted(subject_codes[n]):
             errs.append(f"Kelas {n}: mapel {codes} tidak sama dengan {subject_codes[n]}")
+        try:
+            readings(n)
+        except fig.FigError as e:
+            errs.append(f"Kelas {n}: bacaan {e}")
         titles = set()
         for s in mod.SUBJECTS:
             flat = [t for c in s.chapters for t in c.topics]

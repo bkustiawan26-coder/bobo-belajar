@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/speech.dart';
 import '../core/theme.dart';
+import 'recitation.dart';
 
 typedef Say = void Function(String text);
 
@@ -151,6 +152,12 @@ class _LessonFigureState extends State<LessonFigure> {
   Widget build(BuildContext context) {
     final s = widget.spec;
     final type = s['type']?.toString() ?? '';
+    if (type == 'quran') {
+      return QuranCard(surah: (s['surah'] as num).toInt(), from: (s['from'] as num).toInt(), to: (s['to'] as num).toInt(), theme: widget.theme);
+    }
+    if (type == 'doa') {
+      return DoaCard(id: s['id'].toString(), title: s['title'].toString(), latin: s['latin'].toString(), meaning: s['meaning'].toString(), theme: widget.theme);
+    }
     final body = _body(type, s);
     final caption = s['caption']?.toString();
     final hint = widget.quiz ? null : _hint(type);

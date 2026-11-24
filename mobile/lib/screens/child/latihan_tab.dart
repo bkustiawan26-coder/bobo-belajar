@@ -53,6 +53,8 @@ class _LatihanTabState extends State<LatihanTab> {
   int _attempts = 0;
   String _headline = '';
   String? _extra;
+  List<Map<String, dynamic>> _pool = [];
+  int _sessionSize = 10;
 
   @override
   void dispose() {
@@ -84,9 +86,12 @@ class _LatihanTabState extends State<LatihanTab> {
           ? asMap(await app.student('GET', '/student/review'))
           : asMap(await app.student('GET', '/student/practice', query: topicId == null ? null : {'topic_id': '$topicId'}));
       var qs = asList(r['questions']);
-      if (mode == 'practice' && app.setting('short_sessions') && qs.length > 3) {
+      final size = app.setting('short_sessions') ? 5 : 10;
+      var pool = <Map<String, dynamic>>[];
+      if (mode == 'practice' && qs.length > size) {
         qs.shuffle();
-        qs = qs.take(3).toList();
+        pool = qs.skip(size).toList();
+        qs = qs.take(size).toList();
       }
       if (!mounted) {
         return;
@@ -94,6 +99,8 @@ class _LatihanTabState extends State<LatihanTab> {
       setState(() {
         _topics = topics;
         _questions = qs;
+        _pool = pool;
+        _sessionSize = size;
         _reset();
         _loading = false;
       });
@@ -233,6 +240,14 @@ class _LatihanTabState extends State<LatihanTab> {
         _current = null;
         _stepsShown = 0;
       }
+    });
+  }
+
+  void _continueSession() {
+    setState(() {
+      _questions = _pool.take(_sessionSize).toList();
+      _pool = _pool.skip(_sessionSize).toList();
+      _reset();
     });
   }
 
@@ -590,6 +605,12 @@ class _LatihanTabState extends State<LatihanTab> {
         ]),
       ),
       const SizedBox(height: 16),
+      if (_pool.isNotEmpty && _mode == 'practice') ...[
+        PrimaryButton(label: 'Lanjut ${_pool.length < _sessionSize ? _pool.length : _sessionSize} soal lagi', color: t.accent, radius: t.radiusSmall, onPressed: _continueSession),
+        const SizedBox(height: 6),
+        Text('Masih ada ${_pool.length} soal lagi. Boleh istirahat dulu, nanti lanjut.', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: Palette.muted)),
+        const SizedBox(height: 12),
+      ],
       if (wrong > 0) ...[PrimaryButton(label: 'Ulangi yang belum tepat ($wrong)', color: t.accent, radius: t.radiusSmall, onPressed: _retryWrong), const SizedBox(height: 12)],
       SecondaryButton(label: _mode == 'review' ? 'Cek soal ulang lainnya' : 'Latihan dari awal', radius: t.radiusSmall, onPressed: () => _init(_topicId, mode: _mode)),
     ]);

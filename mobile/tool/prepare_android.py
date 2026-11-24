@@ -19,6 +19,8 @@ if "TTS_SERVICE" not in text:
         text = text.replace("<queries>\n", "<queries>\n" + extra_queries, 1)
     else:
         text = text.replace("</manifest>", "    <queries>\n" + extra_queries + "    </queries>\n</manifest>", 1)
+if "android.permission.RECORD_AUDIO" not in text:
+    text = re.sub(r"(<manifest[^>]*>)", r'\1\n    <uses-permission android:name="android.permission.RECORD_AUDIO"/>', text, count=1)
 manifest.write_text(text, encoding="utf-8")
 
 res_src = root / "tool" / "android-res"

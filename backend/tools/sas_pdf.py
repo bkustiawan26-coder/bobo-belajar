@@ -26,7 +26,7 @@ pdfmetrics.registerFontFamily("DV", normal="DV", bold="DVB")
 NAMES = {
     "MAT": "Matematika", "BIN": "Bahasa Indonesia", "IPAS": "IPAS", "IPA": "Ilmu Pengetahuan Alam", "IPS": "Ilmu Pengetahuan Sosial",
     "PPK": "Pendidikan Pancasila", "BIG": "Bahasa Inggris", "SBD": "Seni dan Budaya", "PJOK": "PJOK",
-    "INF": "Informatika", "KKA": "Koding dan Kecerdasan Artifisial",
+    "INF": "Informatika", "KKA": "Koding dan Kecerdasan Artifisial", "PAI": "Pendidikan Agama Islam", "SUN": "Bahasa Sunda",
 }
 ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"]
 WORD = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan"]

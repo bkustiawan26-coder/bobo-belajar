@@ -1028,10 +1028,11 @@ class _SettingsPanelState extends State<_SettingsPanel> {
   String? _saving;
 
   static const _items = [
-    ('short_sessions', 'Sesi pendek', 'Latihan 3 soal per sesi supaya tidak cepat lelah.'),
+    ('short_sessions', 'Sesi pendek', 'Latihan 5 soal per sesi supaya tidak cepat lelah.'),
     ('larger_text', 'Huruf lebih besar', 'Semua tulisan di mode anak diperbesar.'),
     ('fewer_options', 'Pilihan lebih sedikit', 'Satu pilihan salah disembunyikan di soal pilihan ganda.'),
     ('read_aloud', 'Bacakan otomatis', 'Soal, materi, dan jawaban Tutor dibacakan dengan suara.'),
+    ('hide_mulok', 'Sembunyikan PAI dan Bahasa Sunda', 'Pakai kalau sekolah anak tidak memakai mata pelajaran ini.'),
   ];
 
   Future<void> _toggle(String key, bool v) async {

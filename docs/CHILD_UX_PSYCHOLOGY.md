@@ -18,6 +18,7 @@ Prinsip yang dipakai:
 
 - **Belajar lewat gambar dan bermain (1.7.0)**: setiap materi dibuka dengan gambar penjelas yang bisa diketuk (BOBO membacakan bagian yang diketuk), lalu langkah "Ayo coba"/"Ayo main" berisi aktivitas singkat yang diturunkan dari gambar (urutkan, kelompokkan, pasangkan, cari gambar, warnai pecahan, susun bilangan, ketuk garis bilangan, pilih jawaban). Salah diberi petunjuk lembut tanpa hukuman, benar diberi pujian usaha dan animasi bintang; aktivitas tidak menghalangi lanjut ke bagian berikutnya.
 - **Suara lebih ramah (1.7.0)**: nada suara dinaikkan untuk SD agar terdengar ceria, tempo tetap pelan untuk kelas 1–2, sapaan pembuka lebih hangat, dan emoji tidak ikut dibacakan.
+- **Sesi latihan pendek dan suara asli untuk ngaji (1.8.0)**: latihan dibagi 10 soal per sesi (5 untuk sesi pendek) dengan pilihan lanjut atau istirahat, supaya 20 soal per materi tidak terasa berat. Bacaan Al-Qur'an memakai rekaman qari sungguhan dengan sorotan ayat dan ketuk-untuk-mengulang (talaqqi), sedangkan doa memakai suara orang tua sendiri; ikatan dengan suara orang tua membuat hafalan doa lebih hangat, dan suara mesin tidak dipakai untuk bacaan Arab yang menuntut tajwid.
 
 Kode: `mobile/lib/core/persona.dart` (bahasa & profil suara), `mobile/lib/core/speech.dart` (pembacaan per kalimat, sorotan, pilihan suara). Tes: `mobile/test/persona_test.dart`.
 Batasan: kualitas suara bergantung mesin TTS di HP; pemetaan simbol bersifat aturan, bisa keliru pada notasi yang jarang. Belum diuji dengan anak/psikolog anak.

@@ -12,7 +12,7 @@ from app.models import (
 from app.services import learning
 
 REVIEW_INTERVALS = [1, 3, 7]
-SETTING_KEYS = {"short_sessions", "larger_text", "fewer_options", "read_aloud"}
+SETTING_KEYS = {"short_sessions", "larger_text", "fewer_options", "read_aloud", "hide_mulok"}
 
 
 def clean_settings(raw: dict | None) -> dict:

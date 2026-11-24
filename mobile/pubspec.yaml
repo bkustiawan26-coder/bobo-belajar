@@ -1,7 +1,7 @@
 name: bobo_belajar
 description: BOBO BELAJAR — teman belajar untuk siswa SD dan SMP serta pendamping orang tua.
 publish_to: "none"
-version: 1.7.0+9
+version: 1.8.0+10
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -17,6 +17,9 @@ dependencies:
   share_plus: ^11.0.0
   crypto: ^3.0.6
   file_picker: ^10.0.0
+  just_audio: ^0.10.5
+  record: ^6.0.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
@@ -27,7 +30,12 @@ flutter:
   uses-material-design: true
   assets:
     - assets/content/bobo-content.json
+    - assets/quran/quran.json
+    - assets/quran/audio/
   fonts:
+    - family: AmiriQuran
+      fonts:
+        - asset: assets/fonts/AmiriQuran.ttf
     - family: PlusJakartaSans
       fonts:
         - asset: assets/fonts/PlusJakartaSans-Regular.ttf

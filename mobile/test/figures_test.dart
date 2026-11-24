@@ -56,6 +56,26 @@ void main() {
     });
   }
 
+  testWidgets('kartu bacaan Al-Qur\'an menampilkan basmalah dan setiap ayat', (tester) async {
+    await setWidth(tester, 360);
+    await tester.pumpWidget(host(LessonFigure(spec: const {'type': 'quran', 'surah': 112, 'from': 1, 'to': 4}, theme: theme, say: quiet)));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Dengarkan bacaan qari'), findsOneWidget);
+    expect(find.byIcon(Icons.play_circle_outline_rounded), findsNWidgets(5));
+  });
+
+  testWidgets('kartu doa tidak memakai suara mesin dan menunggu rekaman orang tua', (tester) async {
+    await setWidth(tester, 360);
+    spoken.clear();
+    await tester.pumpWidget(host(LessonFigure(spec: const {'type': 'doa', 'id': 'doa-orang-tua', 'title': 'Doa untuk orang tua', 'latin': 'Rabbighfirli waliwalidayya', 'meaning': 'Ya Allah, ampunilah aku dan kedua orang tuaku'}, theme: theme, say: quiet)));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('Belum ada rekaman'), findsOneWidget);
+    expect(find.textContaining('untuk orang tua'), findsOneWidget);
+    expect(spoken, isEmpty);
+  });
+
   testWidgets('mengurutkan kartu dengan benar memberi pujian', (tester) async {
     await setWidth(tester, 400);
     final spec = {

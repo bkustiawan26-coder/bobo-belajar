@@ -16,7 +16,8 @@ const int minEvidence = 3;
 const int masteryWindow = 5;
 const double goodRatio = 0.8;
 const List<int> reviewIntervals = [1, 3, 7];
-const Set<String> settingKeys = {'short_sessions', 'larger_text', 'fewer_options', 'read_aloud'};
+const Set<String> settingKeys = {'short_sessions', 'larger_text', 'fewer_options', 'read_aloud', 'hide_mulok'};
+const Set<String> mulokSubjects = {'Pendidikan Agama Islam', 'Bahasa Sunda'};
 const int maxChildren = 6;
 const int defaultTutorLimit = 20;
 const int parentAssistantLimit = 30;
@@ -666,7 +667,7 @@ class LocalEngine {
         return _applyProgress(c, l, _i(b['step'] ?? 0), b['completed'] == true);
       case 'GET practice':
         final tid = int.tryParse(q['topic_id'] ?? '');
-        final allowed = tid != null ? allowedTopicIds(_grade(c)) : content.gradeTopics(_grade(c)).map((t) => _i(t['id'])).toSet();
+        final allowed = tid != null ? allowedTopicIds(_grade(c)) : content.gradeTopics(_grade(c)).map((t) => _i(t['id'])).toSet().difference(hiddenTopicIds(c));
         final rows = content.practiceQuestions(tid == null ? allowed : (allowed.contains(tid) ? {tid} : <int>{}));
         return {'questions': [for (final x in rows) questionPayload(x, child: c)]};
       case 'GET practice/similar':
@@ -709,11 +710,31 @@ class LocalEngine {
     throw ApiException(404, 'Tidak ditemukan');
   }
 
+  bool hidesSubject(Json c, Json sub) => cleanSettings(c['settings'])['hide_mulok'] == true && mulokSubjects.contains(sub['name']);
+
+  Set<int> hiddenTopicIds(Json c) {
+    final out = <int>{};
+    for (final sub in content.subjectsOfGrade(_grade(c))) {
+      if (!hidesSubject(c, sub)) {
+        continue;
+      }
+      for (final ch in content.chaptersOfSubject(_i(sub['id']))) {
+        for (final t in content.topicsOfChapter(_i(ch['id']))) {
+          out.add(_i(t['id']));
+        }
+      }
+    }
+    return out;
+  }
+
   Future<Json> _catalog(Json c) async {
     final g = _grade(c);
     final progress = await _col('progress');
     final subjects = <Json>[];
     for (final sub in content.subjectsOfGrade(g)) {
+      if (hidesSubject(c, sub)) {
+        continue;
+      }
       final chOut = <Json>[];
       var ready = false;
       var nTopics = 0;
