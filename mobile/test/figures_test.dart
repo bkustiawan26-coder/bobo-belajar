@@ -76,6 +76,32 @@ void main() {
     expect(spoken, isEmpty);
   });
 
+  testWidgets('papan hijaiyah dan aktivitas cari huruf tampil tanpa galat', (tester) async {
+    await setWidth(tester, 360);
+    const board = {'type': 'hijaiyah', 'mode': 'fathah', 'items': [
+      {'glyph': 'بَ', 'name': 'Ba', 'key': 'ba-a', 'read': 'ba'},
+      {'glyph': 'تَ', 'name': 'Ta', 'key': 'ta-a', 'read': 'ta'},
+      {'glyph': 'ثَ', 'name': 'Tsa', 'key': 'tsa-a', 'read': 'tsa'},
+    ]};
+    await tester.pumpWidget(host(LessonFigure(spec: board, theme: theme, say: quiet)));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('ba'), findsOneWidget);
+    expect(find.text('Rekam suara (orang tua/ustaz)'), findsOneWidget);
+    const sambung = {'type': 'hijaiyah', 'mode': 'sambung', 'items': [
+      {'glyph': 'ب', 'name': 'Ba', 'key': 'ba', 'forms': ['ب', 'بـ', 'ـبـ', 'ـب']},
+      {'glyph': 'ر', 'name': 'Ra', 'key': 'ra', 'forms': ['ر', 'ر', 'ـر', 'ـر']},
+    ]};
+    await tester.pumpWidget(host(LessonFigure(spec: sambung, theme: theme, say: quiet)));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    final act = {'type': 'activity', 'mode': 'letter', 'ask': 'Lihat namanya, lalu ketuk bacaan yang benar.', 'items': board['items']};
+    await tester.pumpWidget(host(FigureActivity(key: UniqueKey(), spec: act, theme: theme, say: quiet)));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('Cari: '), findsOneWidget);
+  });
+
   testWidgets('mengurutkan kartu dengan benar memberi pujian', (tester) async {
     await setWidth(tester, 400);
     final spec = {

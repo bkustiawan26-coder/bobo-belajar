@@ -50,6 +50,18 @@ def load_grade(n: int):
     ag = _module(f"ag{n}")
     if ag is not None:
         subjects += copy.deepcopy(_mulok(n).subjects)
+    ex = _module(f"ext{n}")
+    offsets: dict[tuple[str, int], int] = {}
+    if ex is not None:
+        by_code = {s.code: s for s in subjects}
+        for es in copy.deepcopy(_ext(n).subjects):
+            target = by_code[es.code]
+            sems = topic_semesters(target)
+            for sem in (1, 2):
+                offsets.setdefault((es.code, sem), sems.count(sem))
+            for c in es.chapters:
+                c.ext = True
+                target.chapters.append(c)
     texts = []
     for name in (f"sas{n}", f"sasx{n}"):
         mod = _module(name)
@@ -58,10 +70,14 @@ def load_grade(n: int):
     if ag is not None:
         texts.append(ag.SAS)
     bank = sas.parse("\n".join(texts))
+    if ex is not None and getattr(ex, "SAS", ""):
+        for key, items in sas.parse(ex.SAS).items():
+            bank.setdefault(key, []).extend((local + offsets[key], q) for local, q in items)
     for s in subjects:
         _apply_sas(s, bank)
+        _fit_sas(s, n)
     lat = _module(f"lat{n}")
-    practice = latihan.parse_bank("\n".join(x for x in (getattr(lat, "BANK", ""), getattr(ag, "BANK", "")) if x))
+    practice = latihan.parse_bank("\n".join(x for x in (getattr(lat, "BANK", ""), getattr(ag, "BANK", ""), getattr(ex, "BANK", "")) if x))
     try:
         pics = figures(n)
     except fig.FigError:
@@ -91,14 +107,38 @@ def _mulok(n: int) -> mulok.Parsed:
 
 @functools.lru_cache(maxsize=None)
 def readings(n: int) -> dict:
-    return {(code, title): fig.parse(spec) for code, title, spec in _mulok(n).reads}
+    return {(code, title): fig.parse(spec) for code, title, spec in _mulok(n).reads + _ext(n).reads}
+
+
+@functools.lru_cache(maxsize=None)
+def _ext(n: int) -> mulok.Parsed:
+    mod = _module(f"ext{n}")
+    return mulok.parse(mod.TOPICS) if mod is not None else mulok.Parsed()
+
+
+def _fit_sas(s: S, n: int) -> None:
+    sems = topic_semesters(s)
+    for sem in (1, 2):
+        for typ, cap in zip(("mc", "fill", "essay"), sas.target(n)):
+            while True:
+                pos = [i for i, q in enumerate(s.exam) if 0 <= q.topic < len(sems) and sems[q.topic] == sem and q.type == typ]
+                if len(pos) <= cap:
+                    break
+                load: dict[int, int] = {}
+                for q in s.exam:
+                    if 0 <= q.topic < len(sems) and sems[q.topic] == sem:
+                        load[q.topic] = load.get(q.topic, 0) + 1
+                victim = max(pos, key=lambda i: load[s.exam[i].topic])
+                if load[s.exam[victim].topic] <= 1:
+                    break
+                del s.exam[victim]
 
 
 @functools.lru_cache(maxsize=None)
 def figures(n: int) -> dict:
     mod = _module(f"fig{n}")
     text = mod.BANK if mod is not None else ""
-    extra = "\n".join(f"## {code}\n{title} :: {spec}" for code, title, spec in _mulok(n).figs)
+    extra = "\n".join(f"## {code}\n{title} :: {spec}" for code, title, spec in _mulok(n).figs + _ext(n).figs)
     return fig.parse_bank(text + "\n" + extra)
 
 
@@ -268,23 +308,34 @@ def seed_full(db: Session, v: CurriculumVersion, publish: bool = False) -> dict:
     mods = {n: load_grade(n) for n in GRADES}
     passes = [(n, s, mod) for n, mod in mods.items() for s in mod.SUBJECTS if s.code not in EXTRA_CODES]
     passes += [(n, s, mod) for n, mod in mods.items() for s in mod.SUBJECTS if s.code in EXTRA_CODES]
+    plan = []
     for n, s, mod in passes:
         g = db.scalar(select(Grade).where(Grade.number == n))
         sub = db.scalar(select(Subject).where(Subject.curriculum_version_id == v.id, Subject.grade_id == g.id, Subject.code == s.code))
         if sub is None or db.scalar(select(Chapter.id).where(Chapter.subject_id == sub.id)) is not None:
             continue
-        flat: list[Topic] = []
         order = sorted(range(len(s.chapters)), key=lambda i: (s.chapters[i].semester, i))
         numbers = {ci: rank + 1 for rank, ci in enumerate(order)}
+        starts, k = [], 0
+        for c in s.chapters:
+            starts.append(k)
+            k += len(c.topics)
+        plan.append((n, s, sub, numbers, starts, [None] * k))
+
+    def build(item, ext: bool) -> None:
+        n, s, sub, numbers, starts, flat = item
         for ci, c in enumerate(s.chapters):
+            if c.ext != ext:
+                continue
             ch = Chapter(subject_id=sub.id, number=numbers[ci], title=c.title, semester=c.semester)
             db.add(ch)
             db.flush()
+            prev = None
             for ti, t in enumerate(c.topics):
-                topic = Topic(chapter_id=ch.id, title=t.title, sort_order=len(flat), home_activity=t.act, common_mistake=t.mistake)
+                topic = Topic(chapter_id=ch.id, title=t.title, sort_order=starts[ci] + ti, home_activity=t.act, common_mistake=t.mistake)
                 db.add(topic)
                 db.flush()
-                flat.append(topic)
+                flat[starts[ci] + ti] = topic
                 topic_ids[(n, t.title)] = topic.id
                 counts["topics"] += 1
                 ls = t.lesson
@@ -302,9 +353,16 @@ def seed_full(db: Session, v: CurriculumVersion, publish: bool = False) -> dict:
                 for qi, q in enumerate(t.qs):
                     db.add(_question(topic.id, q, "practice", DIFF[min(qi, 3)], status, publish))
                     counts["questions"] += 1
-                if ti > 0:
-                    db.add(TopicPrerequisite(topic_id=topic.id, prerequisite_topic_id=flat[-2].id))
+                if prev is not None:
+                    db.add(TopicPrerequisite(topic_id=topic.id, prerequisite_topic_id=prev.id))
+                prev = topic
         db.flush()
+
+    for item in plan:
+        build(item, False)
+    for item in plan:
+        build(item, True)
+    for n, s, sub, numbers, starts, flat in plan:
         sems = topic_semesters(s)
         for sem in (1, 2):
             qs = [q for q in s.exam if sems[q.topic] == sem]

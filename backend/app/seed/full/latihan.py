@@ -78,6 +78,17 @@ def from_figure(fig: dict, topic: str) -> list[Q]:
                 add_mc(f"Bagian paling atas pada {topic.lower()} adalah …", labels[0], labels, f"Dari atas ke bawah: {chain}.")
             elif k == "flow":
                 add_mc(f"Bagian awal pada {topic.lower()} adalah …", labels[0], labels, f"Urutannya: {chain}.")
+    elif k == "hijaiyah":
+        from app.seed.full.fig import HIJAIYAH
+        names = [x["name"] for x in fig["items"]] + [n for _, n, _, _ in HIJAIYAH]
+        glyphs = [x["glyph"] for x in fig["items"]]
+        for x in fig["items"]:
+            if fig["mode"] in ("huruf", "sambung"):
+                add_mc(f"Huruf ini bernama …: {x['glyph']}", x["name"], names, f"{x['glyph']} adalah huruf {x['name']}.")
+                add_mc(f"Huruf {x['name']} ditulis …", x["glyph"], glyphs + [g for g, _, _, _ in HIJAIYAH], f"Huruf {x['name']} ditulis {x['glyph']}.")
+            elif x.get("read"):
+                reads = [y.get("read") for y in fig["items"] if y.get("read")]
+                add_mc(f"Bacaan ini dibaca …: {x['glyph']}", x["read"], reads, f"{x['glyph']} dibaca {x['read']}.")
     elif k == "time":
         items = [x for x in fig["items"] if _label(x)]
         tags = [x["tag"] for x in items]

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import 'figures.dart';
+import 'hijaiyah.dart';
 
 class FigureActivity extends StatefulWidget {
   const FigureActivity({super.key, required this.spec, required this.theme, this.say = defaultSay, this.cheers = const ['Hebat! Kamu berhasil.'], this.retry = 'Belum pas. Coba lagi, ya!', this.onDone});
@@ -204,6 +205,8 @@ class _FigureActivityState extends State<FigureActivity> with SingleTickerProvid
         return _match();
       case 'find':
         return _find();
+      case 'letter':
+        return _letter();
       case 'color':
         return _color();
       case 'build':
@@ -459,6 +462,60 @@ class _FigureActivityState extends State<FigureActivity> with SingleTickerProvid
                     }
                   },
             child: SizedBox(width: 96, child: FigChip(item: {'icon': items[i]['icon']}, index: i, big: true, done: _visited.contains(i), wrong: _wrongAt == i)),
+          ),
+      ]),
+    ]);
+  }
+
+  Widget _letter() {
+    final items = figList(s['items']);
+    final order = stableShuffle(items.length, seed);
+    final targetOrder = stableShuffle(items.length, '$seed#');
+    final target = _findAt < items.length ? targetOrder[_findAt] : -1;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      if (!_done && target >= 0)
+        Center(
+          child: FilledButton.tonalIcon(
+            onPressed: () => HijaiyahAudio.instance.play(items[target]['key'].toString()),
+            icon: const Icon(Icons.hearing_rounded),
+            label: Text('Cari: ${hijaiyahLabel(items[target])}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 52), backgroundColor: widget.theme.soft, foregroundColor: widget.theme.ink),
+          ),
+        ),
+      const SizedBox(height: 10),
+      Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
+        for (final i in order)
+          GestureDetector(
+            onTap: _done || target < 0
+                ? null
+                : () {
+                    if (i == target) {
+                      setState(() {
+                        _visited.add(i);
+                        _findAt++;
+                        _wrongAt = -1;
+                        _note = '';
+                      });
+                      if (_findAt >= items.length) {
+                        _success();
+                      } else {
+                        HijaiyahAudio.instance.play(items[targetOrder[_findAt]]['key'].toString());
+                      }
+                    } else {
+                      setState(() => _wrongAt = i);
+                      _miss(null);
+                    }
+                  },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 76,
+              decoration: BoxDecoration(
+                color: _visited.contains(i) ? const Color(0xFFDCFCE7) : (_wrongAt == i ? const Color(0xFFFEE2E2) : Colors.white),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: _visited.contains(i) ? const Color(0xFF16A34A) : (_wrongAt == i ? const Color(0xFFDC2626) : const Color(0xFFE2E8F0)), width: 1.5),
+              ),
+              child: HijaiyahGlyph(items[i]['glyph'].toString(), size: 36),
+            ),
           ),
       ]),
     ]);

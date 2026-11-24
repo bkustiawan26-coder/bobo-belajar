@@ -4,7 +4,7 @@ from fractions import Fraction
 SEQ = {"flow", "cycle", "steps", "layers", "pyramid"}
 SHAPES = {"square", "rect", "tri", "right", "circle", "trap", "para", "rhombus", "cube", "box", "cylinder", "cone", "sphere", "prism", "pyramid3", "angle"}
 QURAN = {1: (1, 7), 2: (168, 168), 3: (190, 191), 16: (114, 114), 17: (23, 24), 39: (53, 53), 49: (10, 13), 53: (39, 42), 55: (33, 33), 58: (11, 11), 87: (1, 19), 93: (1, 11), 94: (1, 8), 95: (1, 8), 96: (1, 5), 97: (1, 5), 99: (1, 8), 100: (1, 11), 101: (1, 11), 102: (1, 8), 103: (1, 3), 104: (1, 9), 105: (1, 5), 106: (1, 4), 107: (1, 7), 108: (1, 3), 109: (1, 6), 110: (1, 3), 111: (1, 5), 112: (1, 4), 113: (1, 5), 114: (1, 6)}
-TYPES = SEQ | {"quran", "doa", "time", "mind", "compare", "venn", "bars", "line", "frac", "pie", "place", "array", "count", "shape", "table", "coord", "clock", "code", "icons", "circuit", "compass", "balance", "chat"}
+TYPES = SEQ | {"quran", "doa", "hijaiyah", "time", "mind", "compare", "venn", "bars", "line", "frac", "pie", "place", "array", "count", "shape", "table", "coord", "clock", "code", "icons", "circuit", "compass", "balance", "chat"}
 
 
 class FigError(ValueError):
@@ -93,6 +93,8 @@ def parse(spec: str) -> dict:
         if len(parts) != 3 or not all(parts):
             raise FigError("doa butuh 'judul | bacaan latin | arti'")
         out.update({"id": re.sub(r"[^a-z0-9]+", "-", parts[0].lower()).strip("-"), "title": parts[0], "latin": parts[1], "meaning": parts[2]})
+    elif kind == "hijaiyah":
+        out.update(_hijaiyah(body))
     elif kind in SEQ:
         out["items"] = [item(x) for x in _split(body, " > ")]
         if len(out["items"]) < 2:
@@ -241,12 +243,62 @@ def parse(spec: str) -> dict:
     return out
 
 
+HIJAIYAH = [
+    ("ا", "Alif", "alif", ""), ("ب", "Ba", "ba", "b"), ("ت", "Ta", "ta", "t"), ("ث", "Tsa", "tsa", "ts"), ("ج", "Jim", "jim", "j"),
+    ("ح", "Ḥa", "hha", "ḥ"), ("خ", "Kha", "kha", "kh"), ("د", "Dal", "dal", "d"), ("ذ", "Dzal", "dzal", "dz"), ("ر", "Ra", "ra", "r"),
+    ("ز", "Zai", "zai", "z"), ("س", "Sin", "sin", "s"), ("ش", "Syin", "syin", "sy"), ("ص", "Shad", "shad", "sh"), ("ض", "Dhad", "dhad", "dh"),
+    ("ط", "Tha", "tha", "th"), ("ظ", "Zha", "zha", "zh"), ("ع", "'Ain", "ain", "'"), ("غ", "Ghain", "ghain", "gh"), ("ف", "Fa", "fa", "f"),
+    ("ق", "Qaf", "qaf", "q"), ("ك", "Kaf", "kaf", "k"), ("ل", "Lam", "lam", "l"), ("م", "Mim", "mim", "m"), ("ن", "Nun", "nun", "n"),
+    ("و", "Wau", "wau", "w"), ("ه", "Ha", "ha", "h"), ("لا", "Lam Alif", "lam-alif", "l"), ("ء", "Hamzah", "hamzah", "'"), ("ي", "Ya", "ya", "y"),
+]
+HIJAIYAH_BY_GLYPH = {g: (g, name, key, c) for g, name, key, c in HIJAIYAH}
+HARAKAT = {
+    "huruf": ("", "", ""), "fathah": ("\u064E", "a", "a"), "kasrah": ("\u0650", "i", "i"), "dammah": ("\u064F", "u", "u"),
+    "fathatain": ("\u064B", "an", "an"), "kasratain": ("\u064D", "in", "in"), "dammatain": ("\u064C", "un", "un"),
+    "sukun": ("\u0652", "", "sukun"), "tasydid": ("\u0651\u064E", "", "tasydid"), "sambung": ("", "", ""),
+}
+
+
+def _hijaiyah(body: str) -> dict:
+    mode, sep, rest = body.partition(" ; ")
+    mode = mode.strip()
+    if not sep or mode not in HARAKAT:
+        raise FigError("hijaiyah butuh 'mode ; huruf huruf ...' dengan mode " + ", ".join(HARAKAT))
+    mark, vowel, suffix = HARAKAT[mode]
+    items = []
+    for g in rest.split():
+        if g not in HIJAIYAH_BY_GLYPH:
+            raise FigError(f"huruf hijaiyah tidak dikenal: {g}")
+        glyph, name, key, cons = HIJAIYAH_BY_GLYPH[g]
+        item = {"glyph": glyph, "name": name, "key": key}
+        if mode == "sambung":
+            if glyph in ("ا", "د", "ذ", "ر", "ز", "و", "ء", "لا"):
+                item["forms"] = [glyph, glyph, "ـ" + glyph, "ـ" + glyph]
+            else:
+                item["forms"] = [glyph, glyph + "ـ", "ـ" + glyph + "ـ", "ـ" + glyph]
+        elif mode == "sukun":
+            item.update({"glyph": "اَ" + glyph + mark, "read": "a" + (cons or "'"), "key": key + "-sukun"})
+        elif mode == "tasydid":
+            item.update({"glyph": "اَ" + glyph + mark, "read": "a" + (cons or "'") + (cons or "'") + "a", "key": key + "-tasydid"})
+        elif mode != "huruf":
+            base = "ا" if glyph == "ا" else glyph
+            item.update({"glyph": base + mark, "read": (cons if glyph not in ("ا", "ء", "ع") else ("'" if glyph == "ع" else "")) + vowel, "key": key + "-" + suffix})
+        items.append(item)
+    if len(items) < 2:
+        raise FigError("hijaiyah minimal 2 huruf")
+    return {"mode": mode, "items": items}
+
+
 def _labels(items: list[dict]) -> list[dict]:
     return [{k: v for k, v in x.items() if k in ("icon", "label", "tag", "say")} for x in items]
 
 
 def activity(fig: dict) -> dict:
     k = fig["type"]
+    if k == "hijaiyah":
+        items = [{x2: v for x2, v in x.items() if x2 in ("glyph", "name", "key", "read")} for x in fig["items"]]
+        what = "huruf" if fig["mode"] in ("huruf", "sambung") else "bacaan"
+        return {"type": "activity", "mode": "letter", "ask": f"Lihat namanya, lalu ketuk {what} yang benar.", "items": items}
     if k in SEQ or k == "time" or k == "chat":
         items = fig["items"]
         if len(items) >= 3 and len({(x.get("label"), x.get("say")) for x in items}) == len(items):

@@ -32,6 +32,7 @@ flutter:
     - assets/content/bobo-content.json
     - assets/quran/quran.json
     - assets/quran/audio/
+    - assets/hijaiyah/
   fonts:
     - family: AmiriQuran
       fonts:

@@ -38,6 +38,7 @@ class C:
     title: str
     topics: list[T]
     semester: int = 1
+    ext: bool = False
 
 
 @dataclass
