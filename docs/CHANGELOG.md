@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.9.0 — 2026-11-24
+Logat sesuai bahasa, huruf hijaiyah, dan materi lebih banyak untuk Kelas 1 dan 4:
+- Suara per bahasa: kalimat Bahasa Sunda dibacakan dengan suara Sunda (su-ID) dan kalimat Bahasa Inggris dengan suara Amerika (en-US). Kata atau kalimat dalam tanda petik di tengah penjelasan berbahasa Indonesia juga dibacakan dengan suara bahasanya. Jika HP belum punya suara Sunda, aplikasi memakai suara Indonesia.
+- Modul huruf hijaiyah (PAI Kelas 1): papan huruf alif sampai ya, harakat fathah, kasrah, dammah, tanwin, bentuk huruf sambung, latihan menulis dengan jari, dan permainan "cari huruf". Huruf Arab tidak dibacakan suara mesin; suara pelafalan dari rekaman ustaz yang dibundel atau direkam orang tua/ustaz di aplikasi.
+- Kelas 1 dan Kelas 4: semua mapel kini 10 topik per semester (202 topik baru), lengkap dengan materi bergambar, aktivitas Ayo coba, 20 latihan per topik, dan SAS yang mencakup semua topik. Total 817 materi.
+- Bab tambahan disusun setelah bab yang sudah ada sehingga progres belajar anak tidak berubah (ID topik dan materi tetap).
+- Generator soal Matematika baru untuk Kelas 1 dan 4 (bilangan sampai 100, jam, hari, bersusun, perkalian, pembagian, pecahan, satuan panjang dan berat, simetri, turus, uang).
+
 ## 1.8.0 — 2026-11-24
 Latihan lebih banyak, mapel baru, dan bacaan Al-Qur'an dengan suara qari:
 - Setiap materi kini punya tepat 20 soal latihan (12.300 soal untuk 615 materi). Latihan dibagi per sesi 10 soal (5 soal bila "Sesi pendek" aktif) dengan tombol "Lanjut" supaya anak tidak lelah.

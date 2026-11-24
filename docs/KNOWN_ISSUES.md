@@ -12,7 +12,7 @@
 9. Alat peraga baru 3 jenis (pecahan, nilai tempat, Pythagoras).
 10. Google Play mewajibkan URL kebijakan privasi publik; teks di dalam aplikasi perlu dipasang juga di halaman web (lihat `PLAY_STORE.md`).
 11. Kunci signing tidak disimpan di GitHub (proxy sesi ini tidak bisa mengatur GitHub Secrets). CI menghasilkan App Bundle tanpa tanda tangan rilis; penandatanganan dilakukan manual.
-12. Tag dan GitHub Release `v1.0.0`–`v1.8.0` belum dibuat karena sesi pengembangan tidak diizinkan membuat tag/release.
+12. Tag dan GitHub Release `v1.0.0`–`v1.9.0` belum dibuat karena sesi pengembangan tidak diizinkan membuat tag/release.
 13. Kepatuhan UU PDP dan Google Play Families belum diverifikasi ahli hukum.
 14. Flutter 3.50 menandai `package:flutter/material.dart` deprecated (pindah ke `material_ui`); masih berfungsi.
 15. Suara bergantung mesin TTS di HP (kualitas berbeda antar merek); jika suara Bahasa Indonesia offline belum terpasang, orang tua perlu memasangnya di pengaturan Android. Gaya bahasa per jenjang disusun dari prinsip psikologi perkembangan, belum divalidasi psikolog anak atau uji dengan anak.
@@ -20,3 +20,5 @@
 18. Doa tidak memakai suara apa pun sampai orang tua atau ustaz merekam bacaannya di HP. Rekaman tersimpan per HP (tidak ikut berkas cadangan).
 19. Aplikasi kini meminta izin mikrofon (hanya saat orang tua menekan tombol rekam doa).
 20. Teks Bahasa Sunda dibacakan dengan suara Sunda (su-ID) dan bahasa Inggris dengan suara Amerika (en-US) dari mesin suara Google di HP. Jika paket suara Sunda belum terpasang (Setelan > Text-to-speech > Google > Instal data suara > Sunda), aplikasi kembali ke suara Indonesia.
+21. Rekaman pelafalan huruf hijaiyah oleh ustaz belum dibundel karena belum ada sumber rekaman berlisensi jelas. Sampai rekaman ditambahkan ke `mobile/assets/hijaiyah/` (daftar kunci di `index.json`), suara huruf berasal dari rekaman orang tua/ustaz di aplikasi.
+22. Baru Kelas 1 dan Kelas 4 yang 10 topik per semester untuk semua mapel. Kelas 2, 3, dan 5–9 masih 2–5 topik per semester untuk sebagian mapel dan akan ditambah bertahap.
