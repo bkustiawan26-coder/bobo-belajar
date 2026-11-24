@@ -514,6 +514,7 @@ class _FigureActivityState extends State<FigureActivity> with SingleTickerProvid
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: _visited.contains(i) ? const Color(0xFF16A34A) : (_wrongAt == i ? const Color(0xFFDC2626) : const Color(0xFFE2E8F0)), width: 1.5),
               ),
+              padding: const EdgeInsets.only(bottom: 14),
               child: HijaiyahGlyph(items[i]['glyph'].toString(), size: 36),
             ),
           ),

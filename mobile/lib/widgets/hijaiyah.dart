@@ -254,7 +254,7 @@ class _HijaiyahBoardState extends State<HijaiyahBoard> {
                         ]),
                       )
                     else
-                      HijaiyahGlyph(it['glyph'].toString(), size: compact ? 30 : 38),
+                      Padding(padding: EdgeInsets.only(bottom: compact ? 10 : 12), child: HijaiyahGlyph(it['glyph'].toString(), size: compact ? 30 : 38)),
                     FittedBox(fit: BoxFit.scaleDown, child: Text(hijaiyahLabel(it), maxLines: 1, style: TextStyle(fontSize: compact ? 12 : 13, fontWeight: FontWeight.w800, color: const Color(0xFF166534)))),
                     Icon(_recordingKey == it['key'] ? Icons.fiber_manual_record_rounded : (_available.contains(it['key']) ? Icons.volume_up_rounded : Icons.volume_off_rounded), size: 15, color: _recordingKey == it['key'] ? const Color(0xFFDC2626) : const Color(0xFF16A34A)),
                   ]),
