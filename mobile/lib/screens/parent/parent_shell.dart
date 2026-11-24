@@ -72,6 +72,14 @@ class _ParentShellState extends State<ParentShell> {
         Expanded(child: content),
       ]);
     }
+    final rail = useRail(context);
+    const items = [
+      (Icons.dashboard_outlined, Icons.dashboard_rounded, 'Dashboard'),
+      (Icons.groups_outlined, Icons.groups_rounded, 'Anak'),
+      (Icons.trending_up_rounded, Icons.trending_up_rounded, 'Perkembangan'),
+      (Icons.lightbulb_outline_rounded, Icons.lightbulb_rounded, 'Rekomendasi'),
+      (Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, 'Tanya BOBO'),
+    ];
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -100,19 +108,33 @@ class _ParentShellState extends State<ParentShell> {
             ),
           ],
         ),
-        body: body,
-        bottomNavigationBar: NavigationBar(
+        body: rail
+            ? Row(children: [
+                NavigationRail(
+                  selectedIndex: _tab,
+                  onDestinationSelected: (i) => setState(() => _tab = i),
+                  backgroundColor: Palette.surface,
+                  indicatorColor: Palette.parentSoft,
+                  labelType: NavigationRailLabelType.all,
+                  groupAlignment: -0.8,
+                  destinations: [
+                    for (final (icon, selected, label) in items)
+                      NavigationRailDestination(icon: Icon(icon), selectedIcon: Icon(selected), label: Text(label, style: const TextStyle(fontWeight: FontWeight.w700))),
+                  ],
+                ),
+                const VerticalDivider(width: 1, color: Palette.border),
+                Expanded(child: ContentWidth(child: body)),
+              ])
+            : body,
+        bottomNavigationBar: rail ? null : NavigationBar(
           selectedIndex: _tab,
           onDestinationSelected: (i) => setState(() => _tab = i),
           backgroundColor: Palette.surface,
           indicatorColor: Palette.parentSoft,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: const [
-            NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard_rounded), label: 'Dashboard'),
-            NavigationDestination(icon: Icon(Icons.groups_outlined), selectedIcon: Icon(Icons.groups_rounded), label: 'Anak'),
-            NavigationDestination(icon: Icon(Icons.trending_up_rounded), label: 'Perkembangan'),
-            NavigationDestination(icon: Icon(Icons.lightbulb_outline_rounded), selectedIcon: Icon(Icons.lightbulb_rounded), label: 'Rekomendasi'),
-            NavigationDestination(icon: Icon(Icons.chat_bubble_outline_rounded), selectedIcon: Icon(Icons.chat_bubble_rounded), label: 'Tanya BOBO'),
+          destinations: [
+            for (final (icon, selected, label) in items)
+              NavigationDestination(icon: Icon(icon), selectedIcon: Icon(selected), label: label),
           ],
         ),
       ),
@@ -207,13 +229,7 @@ class _DashboardTab extends StatelessWidget {
             ]),
           ),
           const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.35,
+          AdaptiveGrid(
             children: [
               for (final (label, value, sub) in tiles)
                 AppCard(
@@ -549,7 +565,7 @@ class _AskTabState extends State<_AskTab> {
             Align(
               alignment: me ? Alignment.centerRight : Alignment.centerLeft,
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.86),
+                constraints: BoxConstraints(maxWidth: bubbleMaxWidth(context, 0.86)),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(

@@ -331,8 +331,6 @@ def activity(fig: dict) -> dict:
     k = fig["type"]
     if k == "hijaiyah":
         items = [{x2: v for x2, v in x.items() if x2 in ("glyph", "name", "key", "read")} for x in fig["items"]]
-        if len(items) > 8:
-            items = [items[round(i * (len(items) - 1) / 7)] for i in range(8)]
         what = "huruf" if fig["mode"] in ("huruf", "sambung") else "bacaan"
         return {"type": "activity", "mode": "letter", "ask": f"Lihat namanya, lalu ketuk {what} yang benar.", "items": items}
     if k in SEQ or k == "time" or k == "chat":

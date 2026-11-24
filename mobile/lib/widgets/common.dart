@@ -303,3 +303,66 @@ class _LogoPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _LogoPainter old) => old.color != color || old.smile != smile;
 }
+
+const double kRailBreakpoint = 720;
+const double kContentMaxWidth = 920;
+const double kFormMaxWidth = 560;
+
+bool useRail(BuildContext context) => MediaQuery.sizeOf(context).width >= kRailBreakpoint;
+
+bool isTabletSize(Size logical) => logical.shortestSide >= 600;
+
+int gridColumns(double width, {double cell = 210, int min = 2, int max = 4}) {
+  final n = (width / cell).floor();
+  return n < min ? min : (n > max ? max : n);
+}
+
+double bubbleMaxWidth(BuildContext context, double fraction) {
+  final w = MediaQuery.sizeOf(context).width * fraction;
+  return w > 620 ? 620 : w;
+}
+
+class ContentWidth extends StatelessWidget {
+  const ContentWidth({super.key, required this.child, this.maxWidth = kContentMaxWidth});
+
+  final Widget child;
+  final double maxWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, box) {
+      final w = box.maxWidth.isFinite && box.maxWidth < maxWidth ? box.maxWidth : maxWidth;
+      return Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(width: w, height: box.maxHeight.isFinite ? box.maxHeight : null, child: child),
+      );
+    });
+  }
+}
+
+class AdaptiveGrid extends StatelessWidget {
+  const AdaptiveGrid({super.key, required this.children, this.cell = 210, this.min = 2, this.max = 4, this.aspect = 1.35, this.spacing = 12});
+
+  final List<Widget> children;
+  final double cell;
+  final int min;
+  final int max;
+  final double aspect;
+  final double spacing;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, box) {
+      final width = box.maxWidth.isFinite ? box.maxWidth : MediaQuery.sizeOf(context).width;
+      return GridView.count(
+        crossAxisCount: gridColumns(width, cell: cell, min: min, max: max),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: spacing,
+        crossAxisSpacing: spacing,
+        childAspectRatio: aspect,
+        children: children,
+      );
+    });
+  }
+}

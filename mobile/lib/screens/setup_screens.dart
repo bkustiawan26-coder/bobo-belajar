@@ -71,7 +71,7 @@ class _SetupScreenState extends State<SetupScreen> {
       1 => _pinForm(),
       _ => RecoveryCodeView(code: app.setupRecoveryCode ?? '', buttonLabel: 'Saya sudah menyimpannya, lanjut', onDone: app.finishSetup),
     };
-    return Scaffold(body: SafeArea(child: body));
+    return Scaffold(body: SafeArea(child: ContentWidth(maxWidth: kFormMaxWidth, child: body)));
   }
 
   Widget _welcome() {

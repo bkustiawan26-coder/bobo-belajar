@@ -163,6 +163,14 @@ class _ChildScaffoldState extends State<_ChildScaffold> {
     final ChildInfo c = app.child!;
     final t = BandTheme.forGrade(c.grade);
     final scale = app.setting('larger_text') ? 1.18 : 1.0;
+    final rail = useRail(context) && !nav.examRunning;
+    const items = [
+      (Icons.home_outlined, Icons.home_rounded, 'Home'),
+      (Icons.menu_book_outlined, Icons.menu_book_rounded, 'Belajar'),
+      (Icons.edit_outlined, Icons.edit_rounded, 'Latihan'),
+      (Icons.assignment_outlined, Icons.assignment_rounded, 'Ujian'),
+      (Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, 'Tutor'),
+    ];
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(MediaQuery.textScalerOf(context).scale(1) * scale)),
       child: PopScope(
@@ -174,32 +182,50 @@ class _ChildScaffoldState extends State<_ChildScaffold> {
       },
       child: Scaffold(
         body: SafeArea(
-          child: Column(children: [
-            Container(
-              color: Palette.surface,
-              padding: const EdgeInsets.fromLTRB(20, 10, 16, 10),
-              child: Row(children: [
-                Avatar(c.initial, color: t.accent, size: 40, radius: 12),
-                const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(nav.tab == 0 ? Persona.forGrade(c.grade).greeting(c.nickname, DateTime.now().hour) : _titles[nav.tab], maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
-                  Text(gradeLabel(c.grade), style: const TextStyle(fontSize: 13, color: Palette.muted)),
-                ])),
-                if (!nav.examRunning)
-                  OutlinedButton(
-                    onPressed: () => app.lock(),
-                    style: OutlinedButton.styleFrom(minimumSize: const Size(44, 44), foregroundColor: Palette.ink, side: const BorderSide(color: Palette.borderStrong), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                    child: const Text('Ganti profil', style: TextStyle(fontWeight: FontWeight.w600)),
-                  ),
-              ]),
-            ),
-            const Divider(height: 1, color: Palette.border),
-            Expanded(
-              child: IndexedStack(index: nav.tab, children: const [HomeTab(), BelajarTab(), LatihanTab(), UjianTab(), TutorTab()]),
-            ),
+          child: Row(children: [
+            if (rail) ...[
+              NavigationRail(
+                selectedIndex: nav.tab,
+                onDestinationSelected: nav.go,
+                backgroundColor: Palette.surface,
+                indicatorColor: t.soft,
+                labelType: NavigationRailLabelType.all,
+                groupAlignment: -0.6,
+                leading: const Padding(padding: EdgeInsets.only(top: 8, bottom: 12), child: BoboLogo()),
+                destinations: [
+                  for (final (icon, selected, label) in items)
+                    NavigationRailDestination(icon: Icon(icon), selectedIcon: Icon(selected), label: Text(label, style: const TextStyle(fontWeight: FontWeight.w700))),
+                ],
+              ),
+              const VerticalDivider(width: 1, color: Palette.border),
+            ],
+            Expanded(child: Column(children: [
+              Container(
+                color: Palette.surface,
+                padding: const EdgeInsets.fromLTRB(20, 10, 16, 10),
+                child: Row(children: [
+                  Avatar(c.initial, color: t.accent, size: 40, radius: 12),
+                  const SizedBox(width: 12),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(nav.tab == 0 ? Persona.forGrade(c.grade).greeting(c.nickname, DateTime.now().hour) : _titles[nav.tab], maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+                    Text(gradeLabel(c.grade), style: const TextStyle(fontSize: 13, color: Palette.muted)),
+                  ])),
+                  if (!nav.examRunning)
+                    OutlinedButton(
+                      onPressed: () => app.lock(),
+                      style: OutlinedButton.styleFrom(minimumSize: const Size(44, 44), foregroundColor: Palette.ink, side: const BorderSide(color: Palette.borderStrong), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      child: const Text('Ganti profil', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                ]),
+              ),
+              const Divider(height: 1, color: Palette.border),
+              Expanded(
+                child: ContentWidth(child: IndexedStack(index: nav.tab, children: const [HomeTab(), BelajarTab(), LatihanTab(), UjianTab(), TutorTab()])),
+              ),
+            ])),
           ]),
         ),
-        bottomNavigationBar: nav.examRunning
+        bottomNavigationBar: nav.examRunning || rail
             ? null
             : NavigationBar(
                 selectedIndex: nav.tab,
@@ -207,12 +233,9 @@ class _ChildScaffoldState extends State<_ChildScaffold> {
                 backgroundColor: Palette.surface,
                 indicatorColor: t.soft,
                 labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-                destinations: const [
-                  NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Home'),
-                  NavigationDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book_rounded), label: 'Belajar'),
-                  NavigationDestination(icon: Icon(Icons.edit_outlined), selectedIcon: Icon(Icons.edit_rounded), label: 'Latihan'),
-                  NavigationDestination(icon: Icon(Icons.assignment_outlined), selectedIcon: Icon(Icons.assignment_rounded), label: 'Ujian'),
-                  NavigationDestination(icon: Icon(Icons.chat_bubble_outline_rounded), selectedIcon: Icon(Icons.chat_bubble_rounded), label: 'Tutor'),
+                destinations: [
+                  for (final (icon, selected, label) in items)
+                    NavigationDestination(icon: Icon(icon), selectedIcon: Icon(selected), label: label),
                 ],
               ),
       ),

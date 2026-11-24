@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
+import '../widgets/common.dart';
 
 class PrivacyScreen extends StatelessWidget {
   const PrivacyScreen({super.key});
@@ -20,7 +21,7 @@ class PrivacyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Kebijakan privasi', style: TextStyle(fontWeight: FontWeight.w800))),
-      body: ListView(padding: const EdgeInsets.all(20), children: [
+      body: ContentWidth(maxWidth: 720, child: ListView(padding: const EdgeInsets.all(20), children: [
         const Text('Berlaku untuk BOBO Belajar versi lokal (1.7.0), November 2026.', style: TextStyle(fontSize: 13, color: Palette.muted)),
         const SizedBox(height: 12),
         for (final (title, body) in sections) ...[
@@ -29,7 +30,7 @@ class PrivacyScreen extends StatelessWidget {
           Text(body, style: const TextStyle(fontSize: 14, height: 1.55)),
           const SizedBox(height: 16),
         ],
-      ]),
+      ])),
     );
   }
 }

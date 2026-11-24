@@ -20,5 +20,5 @@
 18. Doa tidak memakai suara apa pun sampai orang tua atau ustaz merekam bacaannya di HP. Rekaman tersimpan per HP (tidak ikut berkas cadangan).
 19. Aplikasi kini meminta izin mikrofon (hanya saat orang tua menekan tombol rekam doa).
 20. Teks Bahasa Sunda dibacakan dengan suara Sunda (su-ID) dan bahasa Inggris dengan suara Amerika (en-US) dari mesin suara Google di HP. Jika paket suara Sunda belum terpasang (Setelan > Text-to-speech > Google > Instal data suara > Sunda), aplikasi kembali ke suara Indonesia.
-21. Rekaman pelafalan huruf hijaiyah oleh ustaz belum dibundel karena belum ada sumber rekaman berlisensi jelas. Sampai rekaman ditambahkan ke `mobile/assets/hijaiyah/` (daftar kunci di `index.json`), suara huruf berasal dari rekaman orang tua/ustaz di aplikasi.
+21. Nama 29 huruf hijaiyah (plus lam alif) kini dibundel dari rekaman berlisensi MIT (github.com/razunatmohammed88-cyber/arabic-alphabet-audio), tetapi rekaman bacaan berharakat (ba, bi, bu) belum ada. Untuk itu suara masih dari rekaman orang tua/ustaz di aplikasi atau suara TTS.
 22. Semua kelas sudah 10 topik per semester untuk semua mapel, tetapi seluruh 1.760 materi masih draf buatan AI yang perlu ditinjau guru.

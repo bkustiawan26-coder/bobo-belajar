@@ -15,7 +15,7 @@ class ProfilesScreen extends StatelessWidget {
     final app = context.watch<AppState>();
     return Scaffold(
       body: SafeArea(
-        child: ListView(padding: const EdgeInsets.fromLTRB(24, 32, 24, 28), children: [
+        child: ContentWidth(maxWidth: kFormMaxWidth, child: ListView(padding: const EdgeInsets.fromLTRB(24, 32, 24, 28), children: [
           const Row(children: [
             BoboLogo(),
             SizedBox(width: 12),
@@ -67,7 +67,7 @@ class ProfilesScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const Text('Laporan dan pengaturan akun hanya terbuka dengan PIN orang tua.', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Palette.muted)),
-        ]),
+        ])),
       ),
     );
   }
@@ -173,7 +173,7 @@ class _PinScreenState extends State<PinScreen> {
       if (!mounted) {
         return;
       }
-      await Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => Scaffold(body: SafeArea(child: RecoveryCodeView(code: newCode, buttonLabel: 'Sudah disimpan', onDone: () => Navigator.of(ctx).pop())))));
+      await Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => Scaffold(body: SafeArea(child: ContentWidth(maxWidth: kFormMaxWidth, child: RecoveryCodeView(code: newCode, buttonLabel: 'Sudah disimpan', onDone: () => Navigator.of(ctx).pop()))))));
       if (mounted) {
         setState(() {
           _error = null;
@@ -198,7 +198,7 @@ class _PinScreenState extends State<PinScreen> {
     return Scaffold(
       appBar: AppBar(backgroundColor: Palette.ground),
       body: SafeArea(
-        child: Padding(
+        child: ContentWidth(maxWidth: 440, child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           child: Column(children: [
             Expanded(
@@ -254,7 +254,7 @@ class _PinScreenState extends State<PinScreen> {
               ],
             ),
           ]),
-        ),
+        )),
       ),
     );
   }

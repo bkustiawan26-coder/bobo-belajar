@@ -8,10 +8,14 @@ import 'screens/child/child_shell.dart';
 import 'screens/parent/parent_shell.dart';
 import 'screens/profiles_screen.dart';
 import 'screens/setup_screens.dart';
+import 'widgets/common.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  final views = WidgetsBinding.instance.platformDispatcher.views;
+  final view = views.isEmpty ? null : views.first;
+  final tablet = view != null && isTabletSize(view.physicalSize / view.devicePixelRatio);
+  SystemChrome.setPreferredOrientations(tablet ? DeviceOrientation.values : [DeviceOrientation.portraitUp]);
   runApp(ChangeNotifierProvider(create: (_) => AppState()..init(), child: const BoboApp()));
 }
 

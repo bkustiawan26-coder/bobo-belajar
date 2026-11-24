@@ -7,6 +7,7 @@ import 'dart:ui' as ui;
 
 import 'package:bobo_belajar/core/persona.dart';
 import 'package:bobo_belajar/core/theme.dart';
+import 'package:bobo_belajar/widgets/common.dart';
 import 'package:bobo_belajar/widgets/figure_activity.dart';
 import 'package:bobo_belajar/widgets/figures.dart';
 import 'package:flutter/material.dart';
@@ -63,7 +64,15 @@ void main() {
       for (final (i, f) in (fixtures['figures'] as List).indexed) ('fig_${i.toString().padLeft(2, '0')}_${(f as Map)['type']}', LessonFigure(spec: Map<String, dynamic>.from(f), theme: theme, say: (_, {gender}) {})),
       for (final (i, a) in (fixtures['activities'] as List).indexed) ('act_${i.toString().padLeft(2, '0')}_${(a as Map)['mode']}', FigureActivity(key: UniqueKey(), spec: Map<String, dynamic>.from(a), theme: theme, say: (_, {gender}) {})),
     ];
-    for (final (name, w) in items) {
+    final tablet = <(String, Widget)>[
+      for (final (i, f) in (fixtures['figures'] as List).indexed)
+        if (const {'cycle', 'mind', 'hijaiyah', 'compare', 'chat', 'venn', 'coord'}.contains((f as Map)['type']))
+          ('tab_${i.toString().padLeft(2, '0')}_${f['type']}', ContentWidth(child: LessonFigure(spec: Map<String, dynamic>.from(f), theme: theme, say: (_, {gender}) {}))),
+    ];
+    for (final (name, w) in [...items, ...tablet]) {
+      if (name.startsWith('tab_')) {
+        tester.view.physicalSize = const Size(2560, 3200);
+      }
       final key = GlobalKey();
       await tester.pumpWidget(MaterialApp(
         theme: ThemeData(fontFamily: 'PlusJakartaSans', textTheme: const TextTheme().apply(fontFamilyFallback: const ['Emoji'])),

@@ -186,7 +186,7 @@ class _TutorTabState extends State<TutorTab> {
             Align(
               alignment: m.me ? Alignment.centerRight : Alignment.centerLeft,
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
+                constraints: BoxConstraints(maxWidth: bubbleMaxWidth(context, 0.82)),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(

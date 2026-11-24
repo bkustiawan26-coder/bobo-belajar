@@ -1283,9 +1283,39 @@
      "key": "alif"
     },
     {
+     "glyph": "ب",
+     "name": "Ba",
+     "key": "ba"
+    },
+    {
+     "glyph": "ت",
+     "name": "Ta",
+     "key": "ta"
+    },
+    {
+     "glyph": "ث",
+     "name": "Tsa",
+     "key": "tsa"
+    },
+    {
      "glyph": "ج",
      "name": "Jim",
      "key": "jim"
+    },
+    {
+     "glyph": "ح",
+     "name": "Ḥa",
+     "key": "hha"
+    },
+    {
+     "glyph": "خ",
+     "name": "Kha",
+     "key": "kha"
+    },
+    {
+     "glyph": "د",
+     "name": "Dal",
+     "key": "dal"
     },
     {
      "glyph": "ذ",
@@ -1293,9 +1323,39 @@
      "key": "dzal"
     },
     {
+     "glyph": "ر",
+     "name": "Ra",
+     "key": "ra"
+    },
+    {
+     "glyph": "ز",
+     "name": "Zai",
+     "key": "zai"
+    },
+    {
+     "glyph": "س",
+     "name": "Sin",
+     "key": "sin"
+    },
+    {
      "glyph": "ش",
      "name": "Syin",
      "key": "syin"
+    },
+    {
+     "glyph": "ص",
+     "name": "Shad",
+     "key": "shad"
+    },
+    {
+     "glyph": "ض",
+     "name": "Dhad",
+     "key": "dhad"
+    },
+    {
+     "glyph": "ط",
+     "name": "Tha",
+     "key": "tha"
     },
     {
      "glyph": "ظ",
@@ -1303,14 +1363,59 @@
      "key": "zha"
     },
     {
+     "glyph": "ع",
+     "name": "'Ain",
+     "key": "ain"
+    },
+    {
+     "glyph": "غ",
+     "name": "Ghain",
+     "key": "ghain"
+    },
+    {
+     "glyph": "ف",
+     "name": "Fa",
+     "key": "fa"
+    },
+    {
      "glyph": "ق",
      "name": "Qaf",
      "key": "qaf"
     },
     {
+     "glyph": "ك",
+     "name": "Kaf",
+     "key": "kaf"
+    },
+    {
+     "glyph": "ل",
+     "name": "Lam",
+     "key": "lam"
+    },
+    {
+     "glyph": "م",
+     "name": "Mim",
+     "key": "mim"
+    },
+    {
      "glyph": "ن",
      "name": "Nun",
      "key": "nun"
+    },
+    {
+     "glyph": "و",
+     "name": "Wau",
+     "key": "wau"
+    },
+    {
+     "glyph": "ه",
+     "name": "Ha",
+     "key": "ha"
+    },
+    {
+     "glyph": "ء",
+     "name": "Hamzah",
+     "key": "hamzah"
     },
     {
      "glyph": "ي",

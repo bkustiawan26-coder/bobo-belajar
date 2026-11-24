@@ -131,7 +131,7 @@ class GrowthScreen extends StatelessWidget {
           if (!snap.hasData) {
             return const LoadingView();
           }
-          return ListView(padding: const EdgeInsets.all(20), children: [GrowthView(data: snap.data!, theme: theme, forParent: false)]);
+          return ContentWidth(child: ListView(padding: const EdgeInsets.all(20), children: [GrowthView(data: snap.data!, theme: theme, forParent: false)]));
         },
       ),
     );

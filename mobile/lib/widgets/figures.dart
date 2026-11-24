@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/speech.dart';
 import '../core/theme.dart';
+import 'common.dart';
 import 'hijaiyah.dart';
 import 'recitation.dart';
 
@@ -199,7 +200,9 @@ class _LessonFigureState extends State<LessonFigure> {
     if (type == 'doa') {
       return DoaCard(id: s['id'].toString(), title: s['title'].toString(), latin: s['latin'].toString(), meaning: s['meaning'].toString(), theme: widget.theme);
     }
-    final body = _body(type, s);
+    const wide = {'flow', 'compare', 'table', 'icons', 'chat', 'steps', 'time', 'layers', 'pyramid', 'bars'};
+    final raw = _body(type, s);
+    final body = wide.contains(type) ? raw : ContentWidth(maxWidth: 560, child: raw);
     final caption = s['caption']?.toString();
     final hint = widget.quiz ? null : _hint(type);
     return Semantics(

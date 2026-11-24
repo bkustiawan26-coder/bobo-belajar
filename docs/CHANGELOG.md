@@ -2,13 +2,15 @@
 
 ## 1.10.1 — 2026-11-24
 Perbaikan dari uji di HP:
-- Materi "Mengenal huruf hijaiyah" (PAI Kelas 1) kini menampilkan papan 29 huruf hijaiyah dari alif sampai ya, plus kartu bacaan berharakat fathah seperti buku Iqro jilid 1 (a, ba, ta, tsa, sampai ya). Aktivitas "Ayo coba" memakai 8 huruf agar tidak terlalu panjang untuk Kelas 1.
+- Materi "Mengenal huruf hijaiyah" (PAI Kelas 1) kini menampilkan papan 29 huruf hijaiyah dari alif sampai ya, plus kartu bacaan berharakat fathah seperti buku Iqro jilid 1 (a, ba, ta, tsa, sampai ya). Aktivitas "Ayo coba" berisi semua 29 huruf.
 - Percakapan bergambar: tokoh laki-laki kini dibacakan dengan suara laki-laki (memakai suara pria bila tersedia di HP, jika tidak nada suara diturunkan), tokoh perempuan tetap suara perempuan. Tombol baru "Putar percakapan" membacakan seluruh percakapan berurutan dengan suara masing-masing tokoh.
 - Papan huruf hijaiyah yang berisi banyak huruf ditampilkan lebih rapat agar tidak terlalu panjang digulir.
 - Simbol himpunan (∪, ∩, ∅, ∈, ∉) dibacakan sebagai kata, simbol hiasan tidak dibacakan.
 - Tutor BOBO: pertanyaan seperti "huruf tsa" dijawab langsung (bentuk huruf, ciri titik, bacaan fathah/kasrah/dammah). Jawaban Tutor tidak lagi memuat judul dan label "Penjelasan:", dan memilih kalimat yang paling sesuai dengan pertanyaan. Saran pertanyaan diambil dari mapel yang berbeda-beda.
 - Soal latihan otomatis yang jawabannya sudah tertulis di soal diganti soal benar/salah; perbaikan kalimat soal "untuk untuk".
 - Ejaan diseragamkan menjadi "hijaiyah".
+- Suara nama 29 huruf hijaiyah (plus lam alif) kini dibundel di aplikasi, rekaman berlisensi MIT, jadi papan huruf langsung bersuara tanpa perlu merekam sendiri.
+- Tampilan tablet Android: di layar lebar menu pindah ke samping (navigation rail), isi halaman dipusatkan dengan lebar nyaman dibaca, kartu mapel dan ringkasan tampil 3–4 kolom, gambar seperti diagram siklus tidak membesar berlebihan, dan tablet bisa dipakai mendatar maupun tegak. HP tetap tegak.
 
 ## 1.10.0 — 2026-11-24
 Semua kelas kini lengkap 10 topik per semester:

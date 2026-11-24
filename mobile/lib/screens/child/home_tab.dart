@@ -194,13 +194,7 @@ class _HomeTabState extends State<HomeTab> {
         ],
         const SizedBox(height: 20),
         const SectionTitle('Mata pelajaran'),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.35,
+        AdaptiveGrid(
           children: [
             for (final s in subjects)
               Material(
