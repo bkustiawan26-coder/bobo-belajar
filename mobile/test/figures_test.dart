@@ -72,7 +72,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.textContaining('Belum ada rekaman'), findsOneWidget);
-    expect(find.textContaining('untuk orang tua'), findsOneWidget);
+    expect(find.text('Rekam bacaan (untuk orang tua)'), findsOneWidget);
     expect(spoken, isEmpty);
   });
 
