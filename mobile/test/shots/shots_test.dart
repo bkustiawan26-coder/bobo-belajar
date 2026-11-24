@@ -52,6 +52,9 @@ void main() {
     await tester.runAsync(() async {
       await loadFont('PlusJakartaSans', ['assets/fonts/PlusJakartaSans-Regular.ttf', 'assets/fonts/PlusJakartaSans-Bold.ttf', 'assets/fonts/PlusJakartaSans-ExtraBold.ttf']);
       await loadFont('Emoji', ['/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf']);
+      await loadFont('AmiriQuran', ['assets/fonts/AmiriQuran.ttf']);
+      final root = Platform.environment['FLUTTER_ROOT'] ?? '';
+      await loadFont('MaterialIcons', ['$root/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf']);
     });
     tester.view.devicePixelRatio = 2;
     tester.view.physicalSize = const Size(780, 2400);

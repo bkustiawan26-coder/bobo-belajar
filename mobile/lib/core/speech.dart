@@ -240,6 +240,23 @@ class Speech {
     }
   }
 
+  int get generation => _gen;
+
+  Future<bool> finished(String text) async {
+    final start = DateTime.now();
+    while (speaking.value != text) {
+      if (DateTime.now().difference(start) > const Duration(seconds: 3)) {
+        return false;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    final gen = _gen;
+    while (speaking.value == text && gen == _gen) {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    return gen == _gen;
+  }
+
   Future<void> stop() async {
     _gen++;
     _gender = null;

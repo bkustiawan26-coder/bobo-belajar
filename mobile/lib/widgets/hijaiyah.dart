@@ -220,6 +220,7 @@ class _HijaiyahBoardState extends State<HijaiyahBoard> {
     final t = widget.theme;
     final items = _items;
     final sambung = widget.spec['mode'] == 'sambung';
+    final compact = !sambung && items.length > 12;
     final active = _active >= 0 && _active < items.length ? items[_active] : null;
     return Container(
       width: double.infinity,
@@ -229,15 +230,15 @@ class _HijaiyahBoardState extends State<HijaiyahBoard> {
         Wrap(
           alignment: WrapAlignment.center,
           textDirection: TextDirection.rtl,
-          spacing: 8,
-          runSpacing: 8,
+          spacing: compact ? 6 : 8,
+          runSpacing: compact ? 6 : 8,
           children: [
             for (final (i, it) in items.indexed)
               GestureDetector(
                 onTap: () => _tap(i),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
-                  width: sambung ? 150 : 82,
+                  width: sambung ? 150 : (compact ? 60 : 82),
                   padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                   decoration: BoxDecoration(
                     color: _recordingKey == it['key'] ? const Color(0xFFFEE2E2) : (_active == i ? const Color(0xFFDCFCE7) : Colors.white),
@@ -253,8 +254,8 @@ class _HijaiyahBoardState extends State<HijaiyahBoard> {
                         ]),
                       )
                     else
-                      HijaiyahGlyph(it['glyph'].toString(), size: 38),
-                    Text(hijaiyahLabel(it), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF166534))),
+                      HijaiyahGlyph(it['glyph'].toString(), size: compact ? 30 : 38),
+                    FittedBox(fit: BoxFit.scaleDown, child: Text(hijaiyahLabel(it), maxLines: 1, style: TextStyle(fontSize: compact ? 12 : 13, fontWeight: FontWeight.w800, color: const Color(0xFF166534)))),
                     Icon(_recordingKey == it['key'] ? Icons.fiber_manual_record_rounded : (_available.contains(it['key']) ? Icons.volume_up_rounded : Icons.volume_off_rounded), size: 15, color: _recordingKey == it['key'] ? const Color(0xFFDC2626) : const Color(0xFF16A34A)),
                   ]),
                 ),

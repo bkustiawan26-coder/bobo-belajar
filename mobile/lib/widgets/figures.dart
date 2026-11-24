@@ -133,12 +133,49 @@ class _LessonFigureState extends State<LessonFigure> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.spec != widget.spec) {
       _active = -1;
+      _run++;
+      _playing = false;
     }
   }
 
+  int _run = 0;
+  bool _playing = false;
+
   void _tap(int i, String text, {String? gender}) {
-    setState(() => _active = i);
+    _run++;
+    setState(() {
+      _active = i;
+      _playing = false;
+    });
     widget.say(text, gender: gender);
+  }
+
+  Future<void> _playChat(List<Map<String, dynamic>> items) async {
+    if (_playing) {
+      _run++;
+      setState(() => _playing = false);
+      await Speech.instance.stop();
+      return;
+    }
+    final my = ++_run;
+    setState(() => _playing = true);
+    for (final (i, it) in items.indexed) {
+      if (my != _run || !mounted) {
+        return;
+      }
+      final text = (it['say'] ?? '').toString();
+      if (text.trim().isEmpty) {
+        continue;
+      }
+      setState(() => _active = i);
+      widget.say(text, gender: it['voice']?.toString());
+      if (!await Speech.instance.finished(text)) {
+        break;
+      }
+    }
+    if (my == _run && mounted) {
+      setState(() => _playing = false);
+    }
   }
 
   Widget _chip(Map<String, dynamic> it, int i, {double? width, bool big = false}) =>
@@ -392,6 +429,15 @@ class _LessonFigureState extends State<LessonFigure> {
           }
         }
         return Column(children: [
+          if (!widget.quiz)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => _playChat(items),
+                icon: Icon(_playing ? Icons.stop_circle_outlined : Icons.play_circle_fill_rounded, color: widget.theme.ink),
+                label: Text(_playing ? 'Berhenti' : 'Putar percakapan', style: TextStyle(color: widget.theme.ink, fontWeight: FontWeight.w800)),
+              ),
+            ),
           for (final (i, it) in items.indexed) _bubble(it, i, who.indexOf(it['label'].toString()).isOdd),
         ]);
       default:

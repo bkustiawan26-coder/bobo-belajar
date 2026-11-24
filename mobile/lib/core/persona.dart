@@ -253,6 +253,7 @@ String toSpoken(String raw, {bool english = false}) {
   s = s.replaceAllMapped(RegExp(r'([A-Za-z])/([A-Za-z])'), (m) => '${m[1]} atau ${m[2]}');
   s = s.replaceAllMapped(RegExp(r'(^|[\s(=,\[])[−-](?=[0-9a-z(])'), (m) => '${m[1]} negatif ');
   s = s.replaceAll(RegExp(r'\s[−-]\s'), ' kurang ').replaceAll('−', ' kurang ');
+  s = s.replaceAll('∪', ' gabungan ').replaceAll('∩', ' irisan ').replaceAll('∅', ' himpunan kosong ').replaceAll('∉', ' bukan anggota ').replaceAll('∈', ' anggota ').replaceAll('↔', ' ').replaceAll('←', ' ').replaceAll(RegExp('[▬〰●▲◇▱▭■⏱⏰]'), ' ');
   s = s.replaceAll('≠', ' tidak sama dengan ').replaceAll('≤', ' kurang dari atau sama dengan ').replaceAll('≥', ' lebih dari atau sama dengan ');
   s = s.replaceAll('<', ' kurang dari ').replaceAll('>', ' lebih dari ');
   s = s.replaceAll('+', ' tambah ').replaceAll('=', ' sama dengan ').replaceAll('%', ' persen');

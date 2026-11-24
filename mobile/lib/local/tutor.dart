@@ -267,10 +267,10 @@ String? hijaiyahAnswer(String question) {
   final lines = <String>[];
   for (final k in found.take(3)) {
     final (glyph, name, mark, c) = _hijaiyah[k]!;
-    lines.add('Huruf $name ditulis $glyph. Cirinya: $mark. Dengan fathah, kasrah, dan dammah dibaca ${c}a, ${c}i, ${c}u.');
+    lines.add('Huruf $name: $glyph\nCirinya $mark. Dengan fathah, kasrah, dan dammah dibaca ${c}a, ${c}i, ${c}u.');
   }
   if (ha) {
-    lines.add('Ada dua huruf ha: ḥa (ح) tanpa titik di tengah urutan, dan ha (ه) di dekat akhir. Keduanya tidak bertitik.');
+    lines.add('Ada dua huruf ha, keduanya tidak bertitik.\nḤa yang keenam: ح\nHa yang dekat akhir: ه');
   }
   return '${lines.join('\n\n')}\n\nLihat papan huruf di materi "Mengenal huruf hijaiyah" (PAI), lalu minta ayah, bunda, atau ustaz mencontohkan bacaannya.';
 }
