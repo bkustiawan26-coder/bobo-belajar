@@ -61,7 +61,7 @@ void main() {
   });
 
   test('setiap materi punya gambar dan aktivitas Ayo coba', () {
-    expect(content.lessons.length, 817);
+    expect(content.lessons.length, 1760);
     for (final l in content.lessons) {
       final blocks = [for (final b in l['blocks'] as List) Map<String, dynamic>.from(b as Map)];
       expect(blocks.map((b) => b['kind']).toList(), ['Penjelasan', 'Contoh', 'Ayo coba', 'Poin penting', 'Ringkasan'], reason: l['title'].toString());

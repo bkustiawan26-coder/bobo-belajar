@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.10.0 — 2026-11-24
+Semua kelas kini lengkap 10 topik per semester:
+- Kelas 2, 3, 5, 6, 7, 8, dan 9: semua mapel kini 10 topik per semester (943 topik baru), lengkap dengan materi bergambar, aktivitas Ayo coba, 20 latihan per topik, dan SAS yang mencakup semua topik. Total 1.760 materi dan 35.200 soal latihan untuk Kelas 1–9.
+- Bacaan Al-Qur'an baru dengan rekaman qari: Al-Qadr, An-Nahl 114, Az-Zalzalah, Al-Humazah, Al-Qari'ah, dan Al-Lahab.
+- Bab tambahan disusun setelah bab yang sudah ada sehingga progres belajar anak tidak berubah (ID topik dan materi tetap).
+- Lembar SAS cetak diperbarui untuk semua kelas.
+
 ## 1.9.0 — 2026-11-24
 Logat sesuai bahasa, huruf hijaiyah, dan materi lebih banyak untuk Kelas 1 dan 4:
 - Suara per bahasa: kalimat Bahasa Sunda dibacakan dengan suara Sunda (su-ID) dan kalimat Bahasa Inggris dengan suara Amerika (en-US). Kata atau kalimat dalam tanda petik di tengah penjelasan berbahasa Indonesia juga dibacakan dengan suara bahasanya. Jika HP belum punya suara Sunda, aplikasi memakai suara Indonesia.
