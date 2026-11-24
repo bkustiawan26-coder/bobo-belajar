@@ -1,6 +1,6 @@
 # Status Milestone
 
-Status per 2026-11-24 (versi 1.10.1, suara Sunda/Inggris sesuai logat, modul hijaiyah, semua Kelas 1–9 10 topik per semester, PAI dan Bahasa Sunda dengan bacaan qari, 20 latihan per materi, mode lokal, gambar dan aktivitas interaktif di setiap materi, konten Semester 1 & 2 Kelas 1–9, SAS SD 20 PG + 10 isian + 5 uraian dan SMP 35 PG + 5 isian + 5 uraian, suara & UX per jenjang). "Terverifikasi" berarti diuji otomatis di lingkungan pengembangan.
+Status per 2026-11-24 (versi 1.10.2, suara Sunda/Inggris sesuai logat, modul hijaiyah, semua Kelas 1–9 10 topik per semester, PAI dan Bahasa Sunda dengan bacaan qari, 20 latihan per materi, mode lokal, gambar dan aktivitas interaktif di setiap materi, konten Semester 1 & 2 Kelas 1–9, SAS SD 20 PG + 10 isian + 5 uraian dan SMP 35 PG + 5 isian + 5 uraian, suara & UX per jenjang). "Terverifikasi" berarti diuji otomatis di lingkungan pengembangan.
 
 | Milestone | Status | Bukti |
 |---|---|---|
@@ -13,6 +13,6 @@ Status per 2026-11-24 (versi 1.10.1, suara Sunda/Inggris sesuai logat, modul hij
 | M6 Dashboard orang tua | Selesai, terverifikasi backend | KPI, status penguasaan, rekomendasi berbasis bukti, Tanya BOBO |
 | M7 Offline | Selesai, terverifikasi tes aplikasi | 1.1.0 lokal penuh: mesin belajar di HP, paket materi dibundel, tanpa izin internet; 14 tes mesin lokal + 7 tes logika lulus di CI |
 | M9 Pendampingan anak tertinggal | Selesai, terverifikasi backend; aplikasi terkompilasi | ulang terjadwal, langkah kecil, jalur pondasi lintas kelas, mode bantuan, bacakan (TTS), alat peraga, Tutor jelaskan ulang, Kemajuanku, sinyal + rencana 7 hari, ringkasan guru; editor prasyarat & langkah kecil di CMS |
-| M8 QA & rilis | Rilis 1.10.1 siap unggah | Folder `release\1.10.1` (di luar git): App Bundle dan APK bertanda tangan upload key (diverifikasi `bundletool validate`, `jarsigner -verify`, `apksigtool verify`), manifest tanpa izin internet, draf listing & Data safety (`PLAY_STORE.md`). Belum: uji perangkat nyata, tinjauan hukum, tinjauan guru atas draf konten, unggah ke Play Console |
+| M8 QA & rilis | Rilis 1.10.2 siap unggah | Folder `release\1.10.2` (di luar git): App Bundle dan APK bertanda tangan upload key (diverifikasi `bundletool validate`, `jarsigner -verify`, `apksigtool verify`), manifest tanpa izin internet, draf listing & Data safety (`PLAY_STORE.md`). Belum: uji perangkat nyata, tinjauan hukum, tinjauan guru atas draf konten, unggah ke Play Console |
 
 Build terbaru dibangun otomatis setiap push ke `main` (Flutter stable) dan diunggah ke GitHub Release `android-latest`. `flutter analyze`: 0 error, 0 warning (hanya info deprecation `material.dart`).

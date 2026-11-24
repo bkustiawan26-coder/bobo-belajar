@@ -92,6 +92,8 @@ class _ChildScaffold extends StatefulWidget {
 
 class _ChildScaffoldState extends State<_ChildScaffold> {
   static const _titles = ['', 'Belajar', 'Latihan', 'Ujian', 'Tutor BOBO'];
+  static const _tabs = [HomeTab(), BelajarTab(), LatihanTab(), UjianTab(), TutorTab()];
+  final Set<int> _built = {0};
   Timer? _timer;
   DateTime _since = DateTime.now();
   bool _asking = false;
@@ -163,6 +165,7 @@ class _ChildScaffoldState extends State<_ChildScaffold> {
     final ChildInfo c = app.child!;
     final t = BandTheme.forGrade(c.grade);
     final scale = app.setting('larger_text') ? 1.18 : 1.0;
+    _built.add(nav.tab);
     final rail = useRail(context) && !nav.examRunning;
     const items = [
       (Icons.home_outlined, Icons.home_rounded, 'Home'),
@@ -220,7 +223,7 @@ class _ChildScaffoldState extends State<_ChildScaffold> {
               ),
               const Divider(height: 1, color: Palette.border),
               Expanded(
-                child: ContentWidth(child: IndexedStack(index: nav.tab, children: const [HomeTab(), BelajarTab(), LatihanTab(), UjianTab(), TutorTab()])),
+                child: ContentWidth(child: IndexedStack(index: nav.tab, children: [for (var i = 0; i < _tabs.length; i++) _built.contains(i) ? _tabs[i] : const SizedBox.shrink()])),
               ),
             ])),
           ]),

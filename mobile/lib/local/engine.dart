@@ -668,7 +668,11 @@ class LocalEngine {
       case 'GET practice':
         final tid = int.tryParse(q['topic_id'] ?? '');
         final allowed = tid != null ? allowedTopicIds(_grade(c)) : content.gradeTopics(_grade(c)).map((t) => _i(t['id'])).toSet().difference(hiddenTopicIds(c));
-        final rows = content.practiceQuestions(tid == null ? allowed : (allowed.contains(tid) ? {tid} : <int>{}));
+        var rows = content.practiceQuestions(tid == null ? allowed : (allowed.contains(tid) ? {tid} : <int>{}));
+        final limit = int.tryParse(q['limit'] ?? '');
+        if (limit != null && limit > 0 && rows.length > limit) {
+          rows = (rows..shuffle(rnd)).take(limit).toList();
+        }
         return {'questions': [for (final x in rows) questionPayload(x, child: c)]};
       case 'GET practice/similar':
         return _similar(c, int.tryParse(q['question_id'] ?? '') ?? -1);
@@ -752,7 +756,7 @@ class LocalEngine {
             'id': tid, 'title': t['title'], 'question_count': nq,
             'lesson': lesson == null
                 ? null
-                : {'id': lesson['id'], 'title': lesson['title'], 'minutes': lesson['minutes'], 'block_count': _jl(lesson['blocks']).length, 'step': p?['step'] ?? 0, 'completed': p?['completed_at'] != null, 'downloaded': true, 'sample': lesson['sample'] == true},
+                : {'id': lesson['id'], 'title': lesson['title'], 'minutes': lesson['minutes'], 'block_count': (lesson['blocks'] as List?)?.length ?? 0, 'step': p?['step'] ?? 0, 'completed': p?['completed_at'] != null, 'downloaded': true, 'sample': lesson['sample'] == true},
           });
         }
         nTopics += tOut.length;
@@ -852,7 +856,7 @@ class LocalEngine {
     final all = content.gradeTopics(_grade(c));
     final topics = [...all.where((t) => content.semesterOfTopic(_i(t['id'])) == sem), ...all.where((t) => content.semesterOfTopic(_i(t['id'])) != sem)];
     for (final t in topics) {
-      lessons.addAll(content.lessons.where((l) => _i(l['topic_id']) == _i(t['id'])));
+      lessons.addAll(content.lessonsOfTopic(_i(t['id'])));
     }
     Json? pick = lessons.where((l) {
           final p = progress['$childId|${l['id']}'];

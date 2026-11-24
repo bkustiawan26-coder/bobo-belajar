@@ -83,6 +83,7 @@ class Passage {
   final int? topicId;
   final String? topic;
   final int priority;
+  late final String lower = content.toLowerCase();
   double rank = 0;
 }
 
@@ -105,51 +106,52 @@ List<String> _chunks(String text, {int size = 700}) {
 }
 
 class KnowledgeIndex {
-  KnowledgeIndex(Content content) {
-    for (final l in content.lessons) {
-      final tid = (l['topic_id'] as num).toInt();
-      final grade = content.gradeOfTopic(tid);
-      if (grade == null) {
-        continue;
-      }
-      final parts = <String>[l['title'] as String];
-      for (final b in (l['blocks'] as List? ?? const [])) {
-        final m = Map<String, dynamic>.from(b as Map);
-        if (m['text'] != null && (m['text'] as String).isNotEmpty) {
-          parts.add('${m['kind']}: ${m['text']}');
-        }
-        final pts = m['points'] as List?;
-        if (pts != null && pts.isNotEmpty) {
-          parts.add('${m['kind']}: ${pts.join(' ')}');
-        }
-      }
-      for (final c in _chunks(parts.join('\n\n'))) {
-        _byGrade.putIfAbsent(grade, () => []).add(Passage(l['title'] as String, c, 'lesson', tid, content.topicTitle(tid), 3));
-      }
-    }
-    for (final q in content.questions) {
-      if (q['usage'] == 'assessment' || ((q['explanation'] as String?) ?? '').isEmpty) {
-        continue;
-      }
-      final tid = (q['topic_id'] as num).toInt();
-      final grade = content.gradeOfTopic(tid);
-      if (grade == null) {
-        continue;
-      }
-      final title = content.topicTitle(tid);
-      _byGrade.putIfAbsent(grade, () => []).add(Passage('Bank soal · $title', 'Contoh soal $title: ${q['body']}\n\nPembahasan: ${q['explanation']}', 'question', tid, title, 2));
-    }
-  }
+  KnowledgeIndex(this.content);
 
+  final Content content;
   final Map<int, List<Passage>> _byGrade = {};
+
+  List<Passage> _pool(int grade) => _byGrade[grade] ??= _build(grade);
+
+  List<Passage> _build(int grade) {
+    final out = <Passage>[];
+    for (final t in content.gradeTopics(grade)) {
+      final tid = (t['id'] as num).toInt();
+      final title = content.topicTitle(tid);
+      for (final l in content.lessonsOfTopic(tid)) {
+        final parts = <String>[l['title'] as String];
+        for (final b in (l['blocks'] as List? ?? const [])) {
+          final m = b as Map;
+          final text = m['text'];
+          if (text is String && text.isNotEmpty) {
+            parts.add('${m['kind']}: $text');
+          }
+          final pts = m['points'] as List?;
+          if (pts != null && pts.isNotEmpty) {
+            parts.add('${m['kind']}: ${pts.join(' ')}');
+          }
+        }
+        for (final c in _chunks(parts.join('\n\n'))) {
+          out.add(Passage(l['title'] as String, c, 'lesson', tid, title, 3));
+        }
+      }
+      for (final q in content.questionsOfTopic(tid)) {
+        if (q['usage'] == 'assessment' || ((q['explanation'] as String?) ?? '').isEmpty) {
+          continue;
+        }
+        out.add(Passage('Bank soal · $title', 'Contoh soal $title: ${q['body']}\n\nPembahasan: ${q['explanation']}', 'question', tid, title, 2));
+      }
+    }
+    return out;
+  }
 
   List<Passage> search(String query, int grade, {int? topicId, int limit = 4}) {
     final words = query.toLowerCase().split(RegExp(r'\s+')).map((w) => w.replaceAll(RegExp(r'[^0-9a-z]'), '')).where((w) => w.length >= 3).toSet();
-    final pool = _byGrade[grade] ?? const <Passage>[];
+    final pool = _pool(grade);
     final scored = <Passage>[];
     if (words.isNotEmpty) {
       for (final p in pool) {
-        final hay = p.content.toLowerCase();
+        final hay = p.lower;
         var hits = 0;
         for (final w in words) {
           if (hay.contains(w)) {

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.10.2 — 2026-11-24
+Perbaikan aplikasi lambat dan tertutup sendiri setelah beberapa menit dipakai:
+- Materi dimuat di latar belakang sehingga layar tidak membeku saat aplikasi dibuka, dan bundel materi tidak lagi disimpan dua kali di memori.
+- Soal disimpan ringkas per topik dan baru dibuka saat dibutuhkan, sehingga pemakaian memori turun jauh.
+- Daftar mapel, topik, materi, dan jumlah soal kini diambil dari indeks yang dibuat sekali, tidak lagi menyisir 42 ribu soal setiap kali halaman dibuka.
+- Latihan campuran mengambil 60 soal acak, bukan ribuan soal sekaligus.
+- Indeks Tutor BOBO dibuat hanya untuk kelas yang sedang dipakai.
+- Tab Belajar, Latihan, Ujian, dan Tutor baru dimuat saat pertama kali dibuka.
+
 ## 1.10.1 — 2026-11-24
 Perbaikan dari uji di HP:
 - Materi "Mengenal huruf hijaiyah" (PAI Kelas 1) kini menampilkan papan 29 huruf hijaiyah dari alif sampai ya, plus kartu bacaan berharakat fathah seperti buku Iqro jilid 1 (a, ba, ta, tsa, sampai ya). Aktivitas "Ayo coba" berisi semua 29 huruf.

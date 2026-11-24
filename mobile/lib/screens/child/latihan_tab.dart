@@ -84,7 +84,7 @@ class _LatihanTabState extends State<LatihanTab> {
       }
       final r = mode == 'review'
           ? asMap(await app.student('GET', '/student/review'))
-          : asMap(await app.student('GET', '/student/practice', query: topicId == null ? null : {'topic_id': '$topicId'}));
+          : asMap(await app.student('GET', '/student/practice', query: topicId == null ? const {'limit': '60'} : {'topic_id': '$topicId'}));
       var qs = asList(r['questions']);
       final size = app.setting('short_sessions') ? 5 : 10;
       var pool = <Map<String, dynamic>>[];
