@@ -57,47 +57,154 @@ String _superscripts(String s) => s.replaceAllMapped(RegExp('[${_sup.keys.join()
       return ' pangkat ${run.split('').map((c) => _sup[c]).join()} ';
     });
 
-String toSpoken(String raw) {
-  var s = raw.replaceAll(RegExp(r'[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{20E3}]', unicode: true), ' ').trim();
+const _arabic = '[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+';
+const _emoji = r'[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{20E3}\u{1F1E6}-\u{1F1FF}]';
+
+const _roman = {'I': '1', 'II': '2', 'III': '3', 'IV': '4', 'V': '5', 'VI': '6', 'VII': '7', 'VIII': '8', 'IX': '9'};
+
+const _idWords = {
+  'yang', 'dan', 'di', 'ke', 'dari', 'ini', 'itu', 'adalah', 'untuk', 'dengan', 'kita', 'kamu', 'aku', 'saya', 'tidak', 'ada', 'akan', 'juga',
+  'atau', 'karena', 'jadi', 'artinya', 'arti', 'contoh', 'kata', 'kalimat', 'bahasa', 'soal', 'jawab', 'jawaban', 'berapa', 'apa', 'siapa', 'mana',
+  'bagaimana', 'mengapa', 'kapan', 'sudah', 'belum', 'lalu', 'kemudian', 'setelah', 'sebelum', 'hari', 'pagi', 'siang', 'malam', 'ibu', 'ayah',
+  'kakak', 'adik', 'teman', 'sekolah', 'rumah', 'ayo', 'yuk', 'mari', 'coba', 'ketuk', 'pilih', 'benar', 'salah', 'bagus', 'hebat', 'sekarang',
+  'kalau', 'jika', 'bisa', 'harus', 'boleh', 'mau', 'ingin', 'sedang', 'pada', 'dalam', 'sebagai', 'seperti', 'lebih', 'sangat', 'semua', 'setiap',
+  'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'berarti', 'menjadi', 'dibaca', 'ditulis', 'maaf',
+  'terima', 'kasih', 'selamat', 'nama', 'namaku', 'kucing', 'anjing', 'buku', 'dipakai', 'gunanya', 'bentuk', 'pakai', 'waktu', 'tempat', 'orang',
+  'baik', 'besar', 'kecil', 'panjang', 'pendek', 'cara', 'menyapa', 'perhatikan', 'urutan', 'kelompok', 'gambar', 'bagian', 'ya', 'kok', 'lho',
+  'nah', 'betul', 'cocok', 'hore', 'yeay', 'keren', 'mantap', 'tepat', 'lagi', 'cari', 'pas', 'hmm', 'ups', 'tos', 'wah', 'tentu', 'dong',
+};
+
+bool _idShaped(String w) => (w.length >= 6 && RegExp(r'^(meng|meny|mem|men|ber|ter|per)[a-z]+$').hasMatch(w)) || (w.length >= 5 && RegExp(r'[a-z]+(nya|kan|lah|kah)$').hasMatch(w));
+
+const _enWords = {
+  'the', 'a', 'an', 'is', 'are', 'am', 'was', 'were', 'be', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'my', 'your', 'his', 'her', 'our', 'their',
+  'this', 'that', 'these', 'those', 'what', 'where', 'when', 'who', 'why', 'how', 'do', 'does', 'did', 'can', 'will', 'would', 'should', 'must',
+  'have', 'has', 'had', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'and', 'or', 'but', 'not', "don't", "can't", "i'm", "it's", 'yes', 'no',
+  'please', 'thank', 'thanks', 'hello', 'hi', 'good', 'morning', 'afternoon', 'evening', 'night', 'name', 'there', 'here', 'very', 'like', 'go',
+  'going', 'went', 'some', 'many', 'much', 'every', 'always', 'usually', 'sometimes', 'never', 'today', 'tomorrow', 'yesterday', 'from', 'by',
+};
+
+bool looksEnglish(String text, {bool bias = false}) {
+  final words = RegExp(r"[a-zA-Z']+").allMatches(text.toLowerCase()).map((m) => m[0]!).toList();
+  if (words.isEmpty) {
+    return false;
+  }
+  var en = 0;
+  for (final w in words) {
+    if (_idWords.contains(w) || _idShaped(w)) {
+      return false;
+    }
+    if (_enWords.contains(w)) {
+      en++;
+    }
+  }
+  if (bias) {
+    return true;
+  }
+  return en >= 2 && en * 10 >= words.length * 3;
+}
+
+String _time(Match m, bool english) {
+  final h = int.parse(m[2]!);
+  final mm = int.parse(m[3]!);
+  final lead = m[1] ?? '';
+  final before = m.input.substring(m.start < 8 ? 0 : m.start - 8, m.start + lead.length);
+  final said = RegExp(r'(pukul|jam)\s*$', caseSensitive: false).hasMatch(before);
+  if (english) {
+    return '$lead$h ${mm == 0 ? "o'clock" : mm < 10 ? 'oh $mm' : '$mm'}';
+  }
+  final head = said ? '' : 'pukul ';
+  return '$lead$head$h${mm == 0 ? '' : ' lewat $mm menit'}';
+}
+
+String toSpoken(String raw, {bool english = false}) {
+  var s = raw.replaceAll(RegExp(_emoji, unicode: true), ' ').replaceAll(RegExp(_arabic), ' ').replaceAll(' ', ' ').trim();
   if (s.isEmpty) {
     return s;
   }
+  s = s.replaceAll('==', ' ⩵ ').replaceAll('!=', ' ≠ ').replaceAll('>=', ' ≥ ').replaceAll('<=', ' ≤ ');
   const units = [
     ('m/s²', ' meter per detik kuadrat'),
     ('km/jam', ' kilometer per jam'),
+    ('m/s', ' meter per detik'),
+    ('km²', ' kilometer persegi'),
     ('cm²', ' sentimeter persegi'),
     ('m²', ' meter persegi'),
+    ('dm³', ' desimeter kubik'),
     ('cm³', ' sentimeter kubik'),
     ('m³', ' meter kubik'),
     ('kWh', ' kilowatt jam'),
     ('Wh', ' watt jam'),
     ('°C', ' derajat Celsius'),
+    ('°F', ' derajat Fahrenheit'),
     ('°', ' derajat'),
     ('Ω', ' ohm'),
+    ('kHz', ' kilohertz'),
+    ('Hz', ' hertz'),
+    ('dB', ' desibel'),
+    ('mm', ' milimeter'),
+    ('cm', ' sentimeter'),
+    ('dm', ' desimeter'),
+    ('km', ' kilometer'),
+    ('kg', ' kilogram'),
+    ('mg', ' miligram'),
+    ('ml', ' mililiter'),
+    ('mL', ' mililiter'),
+    ('ha', ' hektare'),
   ];
   for (final (a, b) in units) {
-    s = s.replaceAll(RegExp('(?<=[0-9 ])${RegExp.escape(a)}(?![A-Za-z])'), b);
+    s = s.replaceAll(RegExp('(?<=[0-9])\\s?${RegExp.escape(a)}(?![A-Za-z0-9²³])'), b);
   }
-  s = s.replaceAllMapped(RegExp(r'Rp\s?([0-9][0-9.]*)'), (m) => '${m[1]} rupiah');
+  s = s.replaceAllMapped(RegExp(r'(?<=[0-9]) (m|g|L|W|V|N|J|A)(?![A-Za-z0-9²³(])'), (m) => ' ${const {'m': 'meter', 'g': 'gram', 'L': 'liter', 'W': 'watt', 'V': 'volt', 'N': 'newton', 'J': 'joule', 'A': 'ampere'}[m[1]]}');
+  s = s.replaceAllMapped(RegExp(r'Rp\s?([0-9][0-9.]*)'), (m) => '${m[1]} rupiah').replaceAll(RegExp(r'\bRp\b'), 'rupiah');
+  s = s.replaceAllMapped(RegExp(r'(^|[^\d.,])([01]?\d|2[0-3])\.([0-5]\d)(?![\d,]|\.\d)'), (m) => _time(m, english));
+  s = s.replaceAllMapped(RegExp(r'(^|[^\d.,])([01]?\d|2[0-3]):([0-5]\d)(?![\d:])(?!\s*=)'), (m) => _time(m, english));
   for (final e in _sub.entries) {
     s = s.replaceAll(e.key, ' ${e.value}');
   }
   s = _superscripts(s);
-  s = s.replaceAll('√', ' akar ').replaceAll('π', ' pi ').replaceAll('×', ' kali ').replaceAll('÷', ' bagi ');
+  s = s.replaceAllMapped(RegExp(r'\b(Hukum Newton|Kelas|Bab|Sila|Amandemen|Fase)\s+(IX|VIII|VII|VI|IV|V|III|II|I)\b'), (m) => '${m[1]} ${_roman[m[2]]}');
+  s = s.replaceAllMapped(RegExp(r'\bke-(\d+)'), (m) => 'ke ${m[1]}');
+  final abbr = {
+    RegExp(r'\bdll\.?'): 'dan lain-lain',
+    RegExp(r'\bdsb\.?'): 'dan sebagainya',
+    RegExp(r'\bdst\.?'): 'dan seterusnya',
+    RegExp(r'\bdkk\.?'): 'dan kawan-kawan',
+    RegExp(r'\btsb\.?'): 'tersebut',
+    RegExp(r'\bs\.d\.'): 'sampai dengan',
+    RegExp(r'\byg\b'): 'yang',
+    RegExp(r'\bdgn\b'): 'dengan',
+    RegExp(r'\bNo\.\s?(?=\d)'): 'nomor ',
+    RegExp(r'\bhlm\.\s?'): 'halaman ',
+    RegExp(r'\bMoh\.'): 'Mohammad',
+    RegExp(r'\bJl\.'): 'Jalan',
+    RegExp(r'\bSWT\b'): 'subhanahu wa taala',
+    RegExp(r'\bSAW\b'): 'sallallahu alaihi wasallam',
+  };
+  for (final e in abbr.entries) {
+    s = s.replaceAll(e.key, e.value);
+  }
+  s = s.replaceAll('√', ' akar ').replaceAll('π', ' pi ').replaceAll('×', ' kali ').replaceAll('÷', ' bagi ').replaceAll('·', ' kali ').replaceAll('⩵', ' sama dengan ');
+  s = s.replaceAll('±', ' kurang lebih ').replaceAll('≈', ' kira-kira ').replaceAll('∠', ' sudut ').replaceAll('△', ' segitiga ').replaceAll('&', ' dan ').replaceAll('^', ' pangkat ');
+  s = s.replaceAllMapped(RegExp(r'\b([A-Za-z])\(\s*([^()]{1,12}?)\s*\)'), (m) => '${m[1]} ${m[2]} ');
   s = s.replaceAllMapped(RegExp(r'(\d)\s*:\s*(?=\d+\s*=)'), (m) => '${m[1]} bagi ');
   s = s.replaceAllMapped(RegExp(r'(\d)\s*:\s*(?=\d)'), (m) => '${m[1]} banding ');
-  s = s.replaceAllMapped(RegExp(r'(\d)/(\d)'), (m) => '${m[1]} per ${m[2]}');
-  s = s.replaceAllMapped(RegExp(r'(^|[\s(=,])[−-](?=[0-9a-z(])'), (m) => '${m[1]} negatif ');
+  s = s.replaceAllMapped(RegExp(r'(?<![\d/,.])([1-3])/([24])(?![\d/])'), (m) => const {'1/2': 'setengah', '1/4': 'seperempat', '3/4': 'tiga perempat', '2/4': 'dua perempat', '1/3': 'sepertiga', '2/3': 'dua pertiga'}['${m[1]}/${m[2]}'] ?? '${m[1]} per ${m[2]}');
+  s = s.replaceAllMapped(RegExp(r'(?<![\d/,.])1/3(?![\d/])'), (m) => 'sepertiga').replaceAllMapped(RegExp(r'(?<![\d/,.])2/3(?![\d/])'), (m) => 'dua pertiga');
+  s = s.replaceAllMapped(RegExp(r'(\d{4})/(\d{4})'), (m) => '${m[1]} sampai ${m[2]}');
+  s = s.replaceAllMapped(RegExp(r'(\d)\s*/\s*(\d)'), (m) => '${m[1]} per ${m[2]}');
+  s = s.replaceAllMapped(RegExp(r'([A-Za-z])/([A-Za-z])'), (m) => '${m[1]} atau ${m[2]}');
+  s = s.replaceAllMapped(RegExp(r'(^|[\s(=,\[])[−-](?=[0-9a-z(])'), (m) => '${m[1]} negatif ');
   s = s.replaceAll(RegExp(r'\s[−-]\s'), ' kurang ').replaceAll('−', ' kurang ');
   s = s.replaceAll('≠', ' tidak sama dengan ').replaceAll('≤', ' kurang dari atau sama dengan ').replaceAll('≥', ' lebih dari atau sama dengan ');
-  s = s.replaceAll(RegExp(r'\s<\s'), ' kurang dari ').replaceAll(RegExp(r'\s>\s'), ' lebih dari ');
+  s = s.replaceAll('<', ' kurang dari ').replaceAll('>', ' lebih dari ');
   s = s.replaceAll('+', ' tambah ').replaceAll('=', ' sama dengan ').replaceAll('%', ' persen');
-  s = s.replaceAll('→', ', jadi ').replaceAll('…', ' titik-titik ').replaceAll('...', ' titik-titik ');
+  s = s.replaceAll('→', ', jadi ').replaceAll('⇒', ', jadi ').replaceAll('…', ' titik-titik ').replaceAll('...', ' titik-titik ');
   s = s.replaceAllMapped(RegExp(r'(\d)\s*–\s*(\d)'), (m) => '${m[1]} sampai ${m[2]}');
-  s = s.replaceAll(' – ', ', ').replaceAll(' — ', ', ').replaceAll('—', ', ').replaceAll('–', ' ke ');
-  s = s.replaceAll(RegExp('[“”"•*_]'), ' ').replaceAll(RegExp(r'[()]'), ', ');
-  s = s.replaceAll(RegExp(r'\s*,\s*(,\s*)+'), ', ').replaceAll(RegExp(r'\s+([,.!?])'), r'$1').replaceAll(RegExp(r'\s{2,}'), ' ').trim();
-  s = s.replaceAll(RegExp(r'^,\s*'), '');
+  s = s.replaceAll(' – ', ', ').replaceAll(' — ', ', ').replaceAll('—', ', ').replaceAll('–', ' sampai ');
+  s = s.replaceAll(RegExp('[“”"•*_#@\\\$~`]'), ' ').replaceAll(RegExp(r'[()\[\]{}|;:/\\]'), ', ');
+  s = s.replaceAll(RegExp(r'\s*,\s*(,\s*)+'), ', ').replaceAllMapped(RegExp(r'\s+([,.!?])'), (m) => m[1]!).replaceAllMapped(RegExp(r',([.!?])'), (m) => m[1]!).replaceAll(RegExp(r'\s{2,}'), ' ').trim();
+  s = s.replaceAll(RegExp(r'^[,.\s]+'), '').replaceAll(RegExp(r'[,\s]+$'), '');
   return s;
 }
 

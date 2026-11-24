@@ -134,6 +134,18 @@ class _BelajarTabState extends State<BelajarTab> {
     ]);
   }
 
+  bool get _english {
+    if (_catalog == null || _subjectId == null) {
+      return false;
+    }
+    for (final s in asList(_catalog!['subjects'])) {
+      if (s['id'] == _subjectId) {
+        return s['short_label'] == 'En';
+      }
+    }
+    return false;
+  }
+
   int? _subjectOfLesson(int lessonId) {
     if (_catalog == null) {
       return null;
@@ -310,9 +322,16 @@ class _LessonReaderState extends State<LessonReader> {
       offset += segmentsOf(p).length;
     }
     final lineHeight = persona.young ? 1.8 : 1.65;
+    final english = _english;
+    void say(String text) {
+      if (text.trim().isNotEmpty) {
+        Speech.instance.speak(text, englishBias: english);
+      }
+    }
+
     if (_spoken != _step && app.setting('read_aloud')) {
       _spoken = _step;
-      WidgetsBinding.instance.addPostFrameCallback((_) => Speech.instance.speak(speakText, intro: intro));
+      WidgetsBinding.instance.addPostFrameCallback((_) => Speech.instance.speak(speakText, intro: intro, englishBias: english));
     }
     return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 24), children: [
       Row(children: List.generate(blocks.length, (i) => Expanded(
@@ -334,10 +353,10 @@ class _LessonReaderState extends State<LessonReader> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             const Spacer(),
-            SpeakButton(text: speakText, intro: intro, color: t.ink, label: persona.young ? 'Dengarkan BOBO' : 'Dengarkan'),
+            SpeakButton(text: speakText, intro: intro, color: t.ink, label: persona.young ? 'Dengarkan BOBO' : 'Dengarkan', englishBias: english),
           ]),
           if (b['figure'] is Map && kind != 'Ayo coba') ...[
-            LessonFigure(spec: Map<String, dynamic>.from(b['figure'] as Map), theme: t),
+            LessonFigure(spec: Map<String, dynamic>.from(b['figure'] as Map), theme: t, say: say),
             const SizedBox(height: 14),
           ],
           if (b['figure'] is Map && kind == 'Ayo coba') ...[
@@ -345,6 +364,7 @@ class _LessonReaderState extends State<LessonReader> {
               key: ValueKey('act-${_lesson!['id']}'),
               spec: Map<String, dynamic>.from(b['figure'] as Map),
               theme: t,
+              say: say,
               cheers: persona.cheers(),
               retry: persona.tryAgain(),
             ),

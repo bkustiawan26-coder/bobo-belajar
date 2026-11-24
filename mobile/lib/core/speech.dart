@@ -15,6 +15,8 @@ class Speech {
   int _gen = 0;
   VoiceProfile _profile = VoiceProfile.forGrade(5);
   Map<String, String>? _voice;
+  bool? _enOk;
+  bool _inEnglish = false;
   final ValueNotifier<String?> speaking = ValueNotifier<String?>(null);
   final ValueNotifier<int> sentence = ValueNotifier<int>(-1);
 
@@ -85,7 +87,34 @@ class Speech {
     }
   }
 
-  Future<void> speak(String text, {String? intro}) async {
+  Future<bool> _english(bool on) async {
+    if (on == _inEnglish) {
+      return true;
+    }
+    try {
+      if (on) {
+        _enOk ??= (await _tts.isLanguageAvailable('en-US')) == true;
+        if (_enOk != true) {
+          return false;
+        }
+        await _tts.setLanguage('en-US');
+      } else {
+        await _tts.setLanguage('id-ID');
+        if (_voice != null) {
+          await _tts.setVoice(_voice!);
+        }
+      }
+      await _tts.setSpeechRate(_profile.rate);
+      await _tts.setPitch(_profile.pitch);
+      _inEnglish = on;
+      return true;
+    } catch (_) {
+      _enOk = false;
+      return false;
+    }
+  }
+
+  Future<void> speak(String text, {String? intro, bool englishBias = false}) async {
     await _init();
     if (speaking.value == text) {
       await stop();
@@ -104,7 +133,12 @@ class Speech {
         return;
       }
       final isLead = i < lead.length;
-      final spoken = toSpoken(isLead ? lead[i] : body[i - lead.length]);
+      final raw = isLead ? lead[i] : body[i - lead.length];
+      final en = !isLead && looksEnglish(raw, bias: englishBias) && await _english(true);
+      if (!en) {
+        await _english(false);
+      }
+      final spoken = toSpoken(raw, english: en);
       sentence.value = isLead ? -1 : i - lead.length;
       if (spoken.isEmpty) {
         continue;
@@ -122,6 +156,7 @@ class Speech {
     if (my == _gen) {
       speaking.value = null;
       sentence.value = -1;
+      await _english(false);
     }
   }
 
@@ -136,9 +171,10 @@ class Speech {
 }
 
 class SpeakButton extends StatelessWidget {
-  const SpeakButton({super.key, required this.text, this.intro, this.color = Palette.inkSoft, this.label});
+  const SpeakButton({super.key, required this.text, this.intro, this.color = Palette.inkSoft, this.label, this.englishBias = false});
 
   final String text;
+  final bool englishBias;
   final String? intro;
   final Color color;
   final String? label;
@@ -151,10 +187,10 @@ class SpeakButton extends StatelessWidget {
         final on = current == text;
         final icon = Icon(on ? Icons.stop_circle_outlined : Icons.volume_up_rounded, color: color, size: 20);
         if (label == null) {
-          return IconButton(onPressed: () => Speech.instance.speak(text, intro: intro), icon: icon, tooltip: on ? 'Berhenti membacakan' : 'Bacakan', constraints: const BoxConstraints(minWidth: 44, minHeight: 44));
+          return IconButton(onPressed: () => Speech.instance.speak(text, intro: intro, englishBias: englishBias), icon: icon, tooltip: on ? 'Berhenti membacakan' : 'Bacakan', constraints: const BoxConstraints(minWidth: 44, minHeight: 44));
         }
         return TextButton.icon(
-          onPressed: () => Speech.instance.speak(text, intro: intro),
+          onPressed: () => Speech.instance.speak(text, intro: intro, englishBias: englishBias),
           icon: icon,
           label: Text(on ? 'Berhenti' : label!, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
           style: TextButton.styleFrom(minimumSize: const Size(44, 44)),

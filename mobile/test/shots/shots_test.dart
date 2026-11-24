@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:bobo_belajar/core/persona.dart';
 import 'package:bobo_belajar/core/theme.dart';
 import 'package:bobo_belajar/widgets/figure_activity.dart';
 import 'package:bobo_belajar/widgets/figures.dart';
@@ -12,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../speech_corpus_test.dart' show spokenCorpus;
 
 Future<void> loadFont(String family, List<String> paths) async {
   final loader = FontLoader(family);
@@ -32,6 +35,18 @@ void main() {
   final fixtures = jsonDecode(File('test/fixtures/figures.json').readAsStringSync()) as Map<String, dynamic>;
   final theme = BandTheme.forGrade(4);
   final out = Directory('shots')..createSync(recursive: true);
+
+  test('contoh ucapan BOBO', () {
+    final corpus = spokenCorpus();
+    final buf = StringBuffer();
+    for (final raw in corpus) {
+      final spoken = toSpoken(raw);
+      if (spoken != raw.trim()) {
+        buf.writeln('$raw\n    => $spoken');
+      }
+    }
+    File('${out.path}/spoken.txt').writeAsStringSync(buf.toString());
+  });
 
   testWidgets('tangkapan layar gambar dan aktivitas', (tester) async {
     await tester.runAsync(() async {

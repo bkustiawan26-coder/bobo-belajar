@@ -16,7 +16,8 @@ void main() {
       expect(toSpoken('5 − 3 = 2'), '5 kurang 3 sama dengan 2');
       expect(toSpoken('√144 = 12'), 'akar 144 sama dengan 12');
       expect(toSpoken('2⁵ = 32'), '2 pangkat 5 sama dengan 32');
-      expect(toSpoken('3/4 bagian'), '3 per 4 bagian');
+      expect(toSpoken('3/4 bagian'), 'tiga perempat bagian');
+      expect(toSpoken('5/8 bagian'), '5 per 8 bagian');
       expect(toSpoken('Biaya Rp1.500'), 'Biaya 1.500 rupiah');
       expect(toSpoken('a = 10 m/s²'), 'a sama dengan 10 meter per detik kuadrat');
       expect(toSpoken('Luasnya 6 cm²'), 'Luasnya 6 sentimeter persegi');
@@ -27,7 +28,26 @@ void main() {
 
     test('kata berimbuhan tidak berubah', () {
       expect(toSpoken('paru-paru dan anak-anak'), 'paru-paru dan anak-anak');
-      expect(toSpoken('Pilihan A: Benar.'), 'Pilihan A: Benar.');
+      expect(toSpoken('Pilihan A: Benar.'), 'Pilihan A, Benar.');
+      expect(toSpoken('Contoh: 15 : 5 = 3'), 'Contoh, 15 bagi 5 sama dengan 3');
+      expect(toSpoken('Rasio merah : biru = 12 : 8 (disederhanakan) .'), isNot(contains(r'$')));
+      expect(toSpoken('Hasilnya (lihat gambar) , benar .'), 'Hasilnya, lihat gambar, benar.');
+      expect(toSpoken('Pukul 07.30 kita berangkat.'), 'Pukul 7 lewat 30 menit kita berangkat.');
+      expect(toSpoken('Bel berbunyi 13.00.'), 'Bel berbunyi pukul 13.');
+      expect(toSpoken('I wake up at 05.30.', english: true), 'I wake up at 5 30.');
+      expect(toSpoken('Panjang pensil 15 cm, berat 2 kg.'), 'Panjang pensil 15 sentimeter, berat 2 kilogram.');
+      expect(toSpoken('Tinggi tiang 5 m.'), 'Tinggi tiang 5 meter.');
+      expect(toSpoken('Pasal 28A UUD'), 'Pasal 28A UUD');
+      expect(toSpoken('kabupaten/kota'), 'kabupaten atau kota');
+      expect(toSpoken('Tahun pelajaran 2026/2027'), 'Tahun pelajaran 2026 sampai 2027');
+      expect(toSpoken('abad ke-21'), 'abad ke 21');
+      expect(toSpoken('Hukum Newton III berlaku.'), 'Hukum Newton 3 berlaku.');
+      expect(toSpoken('Titik A(2, 3) ada di kuadran I.'), 'Titik A 2, 3 ada di kuadran I.');
+      expect(toSpoken('Setengah = 1/2, seperempat = 1/4'), 'Setengah sama dengan setengah, seperempat sama dengan seperempat');
+      expect(toSpoken('Bacaan: بِسْمِ اللّٰهِ (Bismillah)'), 'Bacaan, Bismillah');
+      expect(toSpoken('Nabi Muhammad SAW'), 'Nabi Muhammad sallallahu alaihi wasallam');
+      expect(toSpoken('if x >= 5 and y == 2'), 'if x lebih dari atau sama dengan 5 and y sama dengan 2');
+      expect(toSpoken('Siapa? Kamu!'), 'Siapa? Kamu!');
     });
 
     test('pemenggalan kalimat utuh dan tidak memotong angka', () {
@@ -104,5 +124,15 @@ void main() {
     final big = Map<String, dynamic>.from(await e.parent('POST', '/parent/children', body: {'nickname': 'Raka', 'grade': 7}) as Map);
     expect((small['settings'] as Map)['read_aloud'], isTrue);
     expect((big['settings'] as Map)['read_aloud'], isFalse);
+  });
+
+  test('deteksi kalimat bahasa Inggris untuk suara Inggris', () {
+    expect(looksEnglish('My name is Andi.'), isTrue);
+    expect(looksEnglish('Good morning! How are you?'), isTrue);
+    expect(looksEnglish('Namaku Andi.'), isFalse);
+    expect(looksEnglish('Artinya: aku bangun pagi.'), isFalse);
+    expect(looksEnglish('apple', bias: true), isTrue);
+    expect(looksEnglish('Betul!', bias: true), isFalse);
+    expect(looksEnglish('Itu apple. Cari banana, ya!', bias: true), isFalse);
   });
 }
